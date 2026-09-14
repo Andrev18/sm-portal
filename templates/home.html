@@ -1,14 +1,14 @@
 {% extends "base.html" %}{% block title %}Pulpit · Baza Wiedzy 5B{% endblock %}
 {% block content %}
 
-<!-- 1. SEKCJA HERO: POWITANIE + GAMIFIKACJA (Z KODU BOLT.DIY) -->
+<!-- 1. HERO COMMAND SECTION (ODZYSKANE Z SESJI 20:36) -->
 <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
   <div>
     <h1 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px;">
       Cześć {{ user['name'] }}! 👋
     </h1>
     <p style="color: var(--text-secondary); font-size: 15px;">
-      Baza Wiedzy Klasy 5B · Regularność to klucz do sukcesu.
+      Baza Wiedzy Klasy 5B · SP13 w Gliwicach
     </p>
   </div>
 
@@ -28,163 +28,108 @@
   </div>
 </div>
 
-<!-- 2. GŁÓWNA KARTA AKCJI (HERO FISZKI + NAJBLIŻSZE SPRAWDZIANY) -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
-  
-  <!-- Główny Panel Powtórek (Fiszki) -->
-  <div class="glass-card" style="border-color: rgba(158, 127, 255, 0.25); display: flex; flex-direction: column; justify-content: space-between;">
-    <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(158, 127, 255, 0.15) 0%, transparent 70%); filter: blur(50px); pointer-events: none;"></div>
-    
-    <div>
-      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--accent-purple); margin-bottom: 16px;">
-        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Dzienny Cel: Aktywny
-      </div>
-      <h2 style="font-size: 26px; font-weight: 700; margin-bottom: 8px;">Czas na powtórkę</h2>
-      <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
-        Masz do przejrzenia <strong style="color: #fff; font-size: 16px;">142 fiszki</strong>.<br>
-        Zajmie Ci to około <strong>15 minut</strong>.
-      </p>
-    </div>
-
-    <div style="margin-top: 24px;">
-      <a href="/srs" class="btn btn-primary" style="padding: 14px 28px; font-size: 15px;">
-        <span>Rozpocznij naukę</span>
-        <i data-lucide="play" style="width: 16px; height: 16px;"></i>
-      </a>
-    </div>
-  </div>
-
-  <!-- Skrót VULCAN & Sprawdziany -->
-  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-    <div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);">
-          <i data-lucide="graduation-cap" style="width: 16px; height: 16px; color: var(--accent-purple);"></i>
-          <span>VULCAN · SP13</span>
-        </div>
-        <span class="status-badge badge-cyan">🎯 Numerek: 7</span>
-      </div>
-
-      <!-- Sprawdziany -->
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <strong style="font-size: 14px;">Historia · Średniowiecze</strong>
-            <span class="status-badge" style="background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid rgba(244,63,94,0.3); font-size: 11px;">Jutro</span>
-          </div>
-          <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Fiszki pokrywają 85% materiału
-          </div>
-        </div>
-
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <strong style="font-size: 14px;">Geografia · Krajobrazy Polski</strong>
-            <span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.3); font-size: 11px;">Za 3 dni</span>
-          </div>
-          <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Dział 2 w podręczniku
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Następna lekcja (Home Assistant Sensor) -->
-    <div style="margin-top: 16px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); margin-bottom: 2px;">
-          🏫 TRWA TERAZ (09:45 - 10:30)
-        </div>
-        <div style="font-weight: 600; font-size: 14px;">Geografia · Sala 32</div>
-      </div>
-      <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-cyan);">
-        23.3 °C
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- 3. REPOZYTORIA PRZEDMIOTÓW (Z MOCKDATA.TS BOLT.DIY) -->
-<div>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+<!-- 2. BENTO GRID Z SESJI 20:36 (SUPER PAMIĘĆ, MATEMATYKA, FIZYKA, POLSKI, BAZA WIEDZY) -->
+<div style="margin-top: 10px;">
+  <div style="display: flex; items-center; gap: 12px; margin-bottom: 16px;">
     <h2 style="font-size: 18px; font-weight: 600; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
-      Repozytoria_Przedmiotów
+      Twoje_Przedmioty
     </h2>
-    <a href="/subjects" style="font-size: 13px; color: var(--accent-purple);">Wszystkie przedmioty →</a>
+    <div style="flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-subtle) 0%, transparent 100%);"></div>
   </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
     
-    <!-- Matematyka -->
-    <div class="glass-card" style="padding: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan);">
-          <i data-lucide="calculator" style="width: 22px; height: 22px;"></i>
+    <!-- Karta 1: Super Pamięć (Fiszki SM-2) -->
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(158, 127, 255, 0.12), rgba(99, 102, 241, 0.08)); border-color: rgba(158, 127, 255, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+          <div style="padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); color: var(--accent-purple); border: 1px solid var(--border-subtle);">
+            <i data-lucide="sparkles" style="width: 22px; height: 22px;"></i>
+          </div>
+          <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--accent-purple); border: 1px solid rgba(158, 127, 255, 0.3); padding: 2px 8px; border-radius: 9999px; background: rgba(0,0,0,0.3);">
+            FUNKCJA
+          </span>
         </div>
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">MATH-101</span>
+        <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #fff;">Super Pamięć</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+          Aplikacja podpowiada Ci dokładnie to, co zaraz zapomnisz. Magia algorytmu SM-2!
+        </p>
       </div>
-      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Matematyka</h3>
-      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Ułamki, figury geometryczne i zadania tekstowe.</p>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-        <span style="color: var(--accent-purple); font-weight: 600;">42 fiszki na dziś</span>
-        <span style="color: var(--text-muted);">320 łącznie</span>
+
+      <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px; font-weight: 600; color: #fff;">142 do powtórki</span>
+        <a href="/srs" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">Ucz się →</a>
       </div>
     </div>
 
-    <!-- Język Polski -->
-    <div class="glass-card" style="padding: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(244, 114, 182, 0.1); border: 1px solid rgba(244, 114, 182, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-pink);">
-          <i data-lucide="book-open" style="width: 22px; height: 22px;"></i>
+    <!-- Karta 2: Matematyka -->
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(59, 130, 246, 0.05)); border-color: rgba(56, 189, 248, 0.2); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+          <div style="padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); color: var(--accent-cyan); border: 1px solid var(--border-subtle);">
+            <i data-lucide="calculator" style="width: 22px; height: 22px;"></i>
+          </div>
+          <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 9999px; background: rgba(0,0,0,0.3);">
+            PRZEDMIOT
+          </span>
         </div>
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">POL-201</span>
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #fff;">Matematyka</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+          Ułamki i geometria bez tajemnic.
+        </p>
       </div>
-      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Język Polski</h3>
-      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Lektury obowiązkowe (Baśniobór), gramatyka i ortografia.</p>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-        <span style="color: var(--accent-purple); font-weight: 600;">15 fiszek na dziś</span>
-        <span style="color: var(--text-muted);">210 łącznie</span>
+      <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted);">
+        42 fiszki na dziś · 320 łącznie
       </div>
     </div>
 
-    <!-- Język Angielski -->
-    <div class="glass-card" style="padding: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-emerald);">
-          <i data-lucide="globe" style="width: 22px; height: 22px;"></i>
+    <!-- Karta 3: Fizyka / Przyroda na luzie -->
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(20, 184, 166, 0.05)); border-color: rgba(16, 185, 129, 0.2); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+          <div style="padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); color: var(--accent-emerald); border: 1px solid var(--border-subtle);">
+            <i data-lucide="flask-conical" style="width: 22px; height: 22px;"></i>
+          </div>
+          <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 9999px; background: rgba(0,0,0,0.3);">
+            PRZEDMIOT
+          </span>
         </div>
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">ENG-102</span>
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #fff;">Fizyka na luzie</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+          Grawitacja, prąd, magnesy i doświadczenia.
+        </p>
       </div>
-      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">J. Angielski (FreeLingo)</h3>
-      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Słownictwo tematyczne, wymowa i dialogi codzienne.</p>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-        <span style="color: var(--accent-emerald); font-weight: 600;">Opanowane 100%</span>
-        <span style="color: var(--text-muted);">158 łącznie</span>
+      <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted);">
+        15 fiszek na dziś · 210 łącznie
       </div>
     </div>
 
-    <!-- Informatyka & Programowanie -->
-    <div class="glass-card" style="padding: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(158, 127, 255, 0.1); border: 1px solid rgba(158, 127, 255, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-purple);">
-          <i data-lucide="terminal" style="width: 22px; height: 22px;"></i>
+    <!-- Karta 4: Język Polski -->
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(244, 63, 94, 0.05)); border-color: rgba(244, 114, 182, 0.2); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+          <div style="padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); color: var(--accent-pink); border: 1px solid var(--border-subtle);">
+            <i data-lucide="book-open" style="width: 22px; height: 22px;"></i>
+          </div>
+          <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--accent-pink); border: 1px solid rgba(244, 114, 182, 0.3); padding: 2px 8px; border-radius: 9999px; background: rgba(0,0,0,0.3);">
+            PRZEDMIOT
+          </span>
         </div>
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">CS-101</span>
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #fff;">Język Polski</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+          Lektury szkolne (Baśniobór) i szybkie ściągi.
+        </p>
       </div>
-      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Informatyka</h3>
-      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Algorytmy, Python, bezpieczeństwo w sieci i gry.</p>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-        <span style="color: var(--accent-purple); font-weight: 600;">85 fiszek na dziś</span>
-        <span style="color: var(--text-muted);">450 łącznie</span>
+      <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted);">
+        Opanowane 100% · Lektury dostępne
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- 4. EKOSYSTEM SERWISÓW (Z SERVICECATEGORIES.TSX) -->
-<div>
+<!-- 3. EKOSYSTEM OŚRODKA & APLIKACJE -->
+<div style="margin-top: 20px;">
   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
     <h2 style="font-size: 18px; font-weight: 600; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
       Ekosystem_Ośrodka
@@ -193,7 +138,6 @@
   </div>
 
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
-    
     <a href="https://en.b2bgliwice.pl" target="_blank" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
         <h4 style="font-weight: 600; font-size: 15px; color: #fff;">FreeLingo</h4>
@@ -225,7 +169,6 @@
       </div>
       <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Wideorozmowy klasowe i lekcje zdalne.</p>
     </a>
-
   </div>
 </div>
 
