@@ -3,181 +3,545 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Baza Wiedzy 5B{% endblock %}</title>
+  <title>{% block title %}Baza Wiedzy 5B · Ośrodek Core{% endblock %}</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     :root {
-      --bg-main: #09090b;
-      --bg-card: #121215;
+      --bg-dark: #09090b;
+      --bg-surface: #121215;
       --bg-sidebar: #0d0d10;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --text-primary: #f4f4f5;
+      --bg-elevated: #18181b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.15);
+      --text-primary: #fafafa;
       --text-secondary: #a1a1aa;
-      --accent-primary: #38bdf8;
-      --accent-secondary: #6366f1;
+      --text-muted: #71717a;
+      
+      --accent-cyan: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-purple: #9e7fff;
+      --accent-pink: #f472b6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
     }
-    * { box-sizing: border-box; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', system-ui, sans-serif;
-      background-color: var(--bg-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-dark);
       color: var(--text-primary);
-      display: flex;
       height: 100vh;
+      width: 100vw;
+      display: flex;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
     }
-    a { color: var(--accent-primary); text-decoration: none; }
+
+    /* Ambient Background Glows */
+    .ambient-glow-1 {
+      position: absolute;
+      top: -20%;
+      left: -10%;
+      width: 50vw;
+      height: 50vh;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(158, 127, 255, 0.08) 0%, transparent 70%);
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-glow-2 {
+      position: absolute;
+      top: 30%;
+      right: -10%;
+      width: 45vw;
+      height: 60vh;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* SIDEBAR (Bolt.diy Layout) */
     .sidebar {
       width: 260px;
       background-color: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
-      padding: 20px 16px;
-      transition: width 0.2s ease;
       flex-shrink: 0;
+      position: relative;
+      z-index: 20;
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .sidebar.collapsed { width: 70px; }
-    .sidebar.collapsed .nav-text, .sidebar.collapsed .brand-name { display: none; }
-    .brand {
+    .sidebar.collapsed { width: 80px; }
+    .sidebar.collapsed .hide-on-collapse { display: none; }
+    .sidebar.collapsed .sidebar-header { justify-content: center; padding: 16px 8px; }
+    .sidebar.collapsed .nav-link { justify-content: center; padding: 10px; }
+    .sidebar.collapsed .nav-category-title { display: none; }
+
+    .sidebar-header {
+      padding: 20px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .brand-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      padding: 1px;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(158, 127, 255, 0.25);
+    }
+    .brand-icon-inner {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-surface);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-purple);
+    }
+    .brand-title {
       font-weight: 700;
-      font-size: 18px;
-      margin-bottom: 24px;
+      font-size: 15px;
+      letter-spacing: 0.02em;
       color: #fff;
     }
-    .nav-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
-    .nav-item a {
+    .brand-badge {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 2px; }
+
+    .nav-category {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-category-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 6px 12px;
+    }
+    .nav-link {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 12px;
+      padding: 9px 12px;
+      border-radius: 10px;
       color: var(--text-secondary);
-      border-radius: 8px;
-      font-size: 14px;
+      text-decoration: none;
+      font-size: 13px;
       font-weight: 500;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
+      position: relative;
     }
-    .nav-item a:hover, .nav-item.active a {
-      background: rgba(255, 255, 255, 0.05);
+    .nav-link:hover {
       color: #fff;
+      background: rgba(255, 255, 255, 0.04);
     }
-    .nav-item.active a {
-      border-left: 3px solid var(--accent-primary);
+    .nav-link.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.03);
     }
-    .main-content {
+    .nav-link.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 25%;
+      bottom: 25%;
+      width: 3px;
+      border-radius: 0 4px 4px 0;
+      background: var(--accent-purple);
+    }
+    .nav-link i { flex-shrink: 0; width: 18px; height: 18px; }
+
+    /* MAIN CONTENT */
+    .main-wrapper {
       flex: 1;
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+      background: rgba(18, 18, 21, 0.4);
     }
-    .topbar {
+
+    /* HEADER */
+    .top-header {
       height: 64px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(9, 9, 11, 0.7);
+      backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 24px;
-      background: rgba(9, 9, 11, 0.8);
-      backdrop-filter: blur(10px);
+      flex-shrink: 0;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 30;
     }
-    .content-area {
-      padding: 24px;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .sidebar-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      padding: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .sidebar-toggle-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-focus);
+    }
+    
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+    }
+    .nav-tab-item {
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .nav-tab-item:hover { color: #fff; }
+    .nav-tab-item.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 14px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .search-pill kbd {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+    }
+
+    /* SCROLL CONTAINER */
+    .content-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 36px 80px 36px;
+    }
+    .content-scroll::-webkit-scrollbar { width: 6px; }
+    .content-scroll::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+
+    .content-container {
       max-width: 1200px;
-      width: 100%;
       margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
     }
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+
+    /* GLASS CARD SYSTEM */
+    .glass-card {
+      background: rgba(18, 18, 21, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
     }
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 12px 0;
+    .glass-card:hover {
+      border-color: var(--border-focus);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
     }
-    .grid { display: grid; gap: 16px; }
-    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+    /* BUTTONS */
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 16px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 12px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      border: none;
-      transition: all 0.15s;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
     }
-    .btn-primary { background: var(--accent-primary); color: #09090b; }
-    .btn-primary:hover { opacity: 0.9; }
-    .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); }
-    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-    .badge {
+    .btn-primary {
+      background: #fff;
+      color: #000;
+    }
+    .btn-primary:hover {
+      background: var(--accent-purple);
+      color: #fff;
+      box-shadow: 0 0 25px rgba(158, 127, 255, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border-color: var(--border-subtle);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--border-focus);
+    }
+
+    /* BADGES */
+    .status-badge {
       display: inline-flex;
       align-items: center;
+      gap: 6px;
       padding: 4px 10px;
       border-radius: 9999px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
     }
-    .badge-primary { background: rgba(56, 189, 248, 0.15); color: var(--accent-primary); }
-    .badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge-orange { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .badge-purple { background: rgba(158, 127, 255, 0.15); color: var(--accent-purple); border: 1px solid rgba(158, 127, 255, 0.3); }
+    .badge-cyan { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* HERMES COMPANION (CLI / CHAT WIDGET) */
+    .hermes-widget-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 50;
+      padding: 12px 18px;
+      border-radius: 16px;
+      background: rgba(18, 18, 21, 0.85);
+      border: 1px solid var(--border-focus);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.2s;
+    }
+    .hermes-widget-btn:hover {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 25px rgba(158, 127, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    .hermes-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
-  <!-- Zwijany Sidebar -->
-  <aside class="sidebar" id="appSidebar">
-    <div class="brand">
-      <span>🧠</span>
-      <span class="brand-name">Baza Wiedzy 5B</span>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="mainSidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-box">
+        <div class="brand-icon-inner">
+          <i data-lucide="hexagon"></i>
+        </div>
+      </div>
+      <div class="hide-on-collapse">
+        <div class="brand-title">OŚRODEK 5B</div>
+        <div class="brand-badge">v2.1.0 · Core</div>
+      </div>
     </div>
-    <ul class="nav-list">
-      <li class="nav-item active"><a href="/"><span>📊</span><span class="nav-text">Dashboard</span></a></li>
-      <li class="nav-item"><a href="/srs"><span>🃏</span><span class="nav-text">Fiszki SRS</span></a></li>
-      <li class="nav-item"><a href="/vulcan"><span>📓</span><span class="nav-text">Plan & VULCAN</span></a></li>
-      <li class="nav-item"><a href="/lektury"><span>📖</span><span class="nav-text">Lektury & PDF</span></a></li>
-      <li class="nav-item"><a href="/subjects"><span>📚</span><span class="nav-text">Przedmioty</span></a></li>
-      <li class="nav-item"><a href="/serwisy"><span>🛠️</span><span class="nav-text">Narzędzia</span></a></li>
-      <li class="nav-item"><a href="/forum"><span>💬</span><span class="nav-text">Forum Klasowe</span></a></li>
-      <li class="nav-item"><a href="/leaderboard"><span>🏆</span><span class="nav-text">Rankingi</span></a></li>
-      {% if user and user['role'] in ['teacher', 'admin'] %}
-      <li class="nav-item"><a href="/teacher"><span>👨🏫</span><span class="nav-text">Panel Nauczyciela</span></a></li>
-      {% endif %}
-    </ul>
+
+    <nav class="sidebar-nav">
+      <div class="nav-category">
+        <div class="nav-category-title">Główne</div>
+        <a href="/" class="nav-link active">
+          <i data-lucide="layout-dashboard"></i>
+          <span class="hide-on-collapse">Pulpit Główny</span>
+        </a>
+        <a href="/srs" class="nav-link">
+          <i data-lucide="layers"></i>
+          <span class="hide-on-collapse">Fiszki SRS (Powtórki)</span>
+        </a>
+        <a href="/vulcan" class="nav-link">
+          <i data-lucide="graduation-cap"></i>
+          <span class="hide-on-collapse">Dziennik Vulcan</span>
+        </a>
+        <a href="/lektury" class="nav-link">
+          <i data-lucide="book-open"></i>
+          <span class="hide-on-collapse">Lektury & Podręczniki</span>
+        </a>
+      </div>
+
+      <div class="nav-category">
+        <div class="nav-category-title">Przedmioty Klasy 5B</div>
+        <a href="/subjects" class="nav-link">
+          <i data-lucide="calculator"></i>
+          <span class="hide-on-collapse">Matematyka</span>
+        </a>
+        <a href="/subjects" class="nav-link">
+          <i data-lucide="book-marked"></i>
+          <span class="hide-on-collapse">Język Polski</span>
+        </a>
+        <a href="/subjects" class="nav-link">
+          <i data-lucide="globe-2"></i>
+          <span class="hide-on-collapse">J. Angielski (FreeLingo)</span>
+        </a>
+        <a href="/subjects" class="nav-link">
+          <i data-lucide="compass"></i>
+          <span class="hide-on-collapse">Geografia & Przyroda</span>
+        </a>
+      </div>
+
+      <div class="nav-category">
+        <div class="nav-category-title">Aplikacje & Narzędzia</div>
+        <a href="/serwisy" class="nav-link">
+          <i data-lucide="grid"></i>
+          <span class="hide-on-collapse">Ekosystem Serwisów</span>
+        </a>
+        <a href="/leaderboard" class="nav-link">
+          <i data-lucide="trophy"></i>
+          <span class="hide-on-collapse">Ranking Klasowy</span>
+        </a>
+        <a href="/forum" class="nav-link">
+          <i data-lucide="message-square"></i>
+          <span class="hide-on-collapse">Forum Uczniów</span>
+        </a>
+        {% if user and user['role'] in ['teacher', 'admin'] %}
+        <a href="/teacher" class="nav-link">
+          <i data-lucide="shield-check"></i>
+          <span class="hide-on-collapse">Panel Nauczyciela</span>
+        </a>
+        {% endif %}
+      </div>
+    </nav>
   </aside>
 
-  <!-- Główny kontener -->
-  <div class="main-content">
-    <header class="topbar">
-      <button class="btn btn-secondary" onclick="document.getElementById('appSidebar').classList.toggle('collapsed')" title="Zwiń/Rozwiń menu">
-        ◀ Menu
-      </button>
-      <div style="display:flex; align-items:center; gap:16px;">
+  <!-- MAIN VIEW -->
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle-btn" onclick="document.getElementById('mainSidebar').classList.toggle('collapsed')" title="Zwiń / Rozwiń panel">
+          <i data-lucide="panel-left-close"></i>
+        </button>
+
+        <div class="nav-tabs">
+          <a href="/" class="nav-tab-item active">Pulpit</a>
+          <a href="/srs" class="nav-tab-item">Fiszki</a>
+          <a href="/vulcan" class="nav-tab-item">Vulcan</a>
+          <a href="/serwisy" class="nav-tab-item">Aplikacje</a>
+          <a href="/leaderboard" class="nav-tab-item">Ranking</a>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="search-pill">
+          <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+          <span>Szukaj...</span>
+          <kbd>⌘K</kbd>
+        </div>
+
         {% if user %}
-        <span style="font-size:14px; font-weight:500;">{{ user['name'] }} ({{ user['role'] }})</span>
-        <a href="/logout" class="btn btn-secondary" style="font-size:12px; padding:6px 12px;">Wyloguj</a>
+        <div style="display: flex; align-items: center; gap: 10px; margin-left: 8px;">
+          <span style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">{{ user['name'] }}</span>
+          <a href="/logout" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Wyloguj</a>
+        </div>
         {% endif %}
       </div>
     </header>
 
-    <main class="content-area">
-      {% block content %}{% endblock %}
-    </main>
+    <div class="content-scroll">
+      <div class="content-container">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
   </div>
+
+  <!-- HERMES COMPANION -->
+  <div class="hermes-widget-btn" onclick="alert('Hermes AI Assistant gotowy do pomocy w powtórkach!')">
+    <i data-lucide="terminal-square" style="color: var(--accent-purple); width: 22px; height: 22px;"></i>
+    <div style="display: flex; flex-direction: column; text-align: left;">
+      <span style="font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 600;">HERMES_AI</span>
+      <span style="font-size: 10px; color: var(--accent-emerald); display: flex; align-items: center; gap: 5px;">
+        <span class="hermes-status-dot"></span> online
+      </span>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
 </html>

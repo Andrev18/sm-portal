@@ -1,113 +1,232 @@
-{% extends "base.html" %}{% block title %}Dashboard · Baza Wiedzy 5B{% endblock %}
+{% extends "base.html" %}{% block title %}Pulpit · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-<div class="header-card">
-  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+
+<!-- 1. SEKCJA HERO: POWITANIE + GAMIFIKACJA (Z KODU BOLT.DIY) -->
+<div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+  <div>
+    <h1 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px;">
+      Cześć {{ user['name'] }}! 👋
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 15px;">
+      Baza Wiedzy Klasy 5B · Regularność to klucz do sukcesu.
+    </p>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 12px; background: rgba(18, 18, 21, 0.6); padding: 8px 12px; border-radius: 16px; border: 1px solid var(--border-subtle);">
+    <div class="status-badge badge-orange">
+      <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+      <span>12 dni z rzędu</span>
+    </div>
+    <div class="status-badge badge-purple">
+      <i data-lucide="trophy" style="width: 14px; height: 14px;"></i>
+      <span>Poziom 14</span>
+    </div>
+    <div class="status-badge badge-cyan">
+      <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+      <span>Średnia: 4.85</span>
+    </div>
+  </div>
+</div>
+
+<!-- 2. GŁÓWNA KARTA AKCJI (HERO FISZKI + NAJBLIŻSZE SPRAWDZIANY) -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+  
+  <!-- Główny Panel Powtórek (Fiszki) -->
+  <div class="glass-card" style="border-color: rgba(158, 127, 255, 0.25); display: flex; flex-direction: column; justify-content: space-between;">
+    <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(158, 127, 255, 0.15) 0%, transparent 70%); filter: blur(50px); pointer-events: none;"></div>
+    
     <div>
-      <h1 style="margin:0 0 4px 0; font-size:24px; font-weight:700;">Cześć, {{ user['name'] }}! 👋</h1>
-      <p style="margin:0; color:var(--text-secondary); font-size:14px;">Baza Wiedzy Klasy 5B · SP13 w Gliwicach</p>
-    </div>
-    <div style="display:flex; gap:8px;">
-      <span class="badge badge-success">🎯 Numerek: <strong>7</strong></span>
-      <span class="badge badge-primary">📊 Średnia: <strong>4.85</strong></span>
-      <span class="badge badge-warning">🔥 Streak: <strong>5 dni</strong></span>
-    </div>
-  </div>
-</div>
-
-<div class="grid grid-2" style="margin-top:20px;">
-  <!-- Szybki start -->
-  <div class="card">
-    <h2 class="card-title">🚀 Szybkie akcje</h2>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:12px;">
-      <a href="https://meet.google.com" target="_blank" class="btn btn-secondary" style="justify-content:center; text-decoration:none;">📹 Google Meet</a>
-      <a href="/lektury" class="btn btn-secondary" style="justify-content:center; text-decoration:none;">📖 Lektury PDF</a>
-      <a href="/srs" class="btn btn-primary" style="justify-content:center; text-decoration:none;">🃏 Powtórki (12)</a>
-      <a href="/vulcan" class="btn btn-secondary" style="justify-content:center; text-decoration:none;">📓 VULCAN</a>
-    </div>
-  </div>
-
-  <!-- Czujniki HA -->
-  <div class="card">
-    <h2 class="card-title">🏫 Klasa 5B · Smart School</h2>
-    <div style="display:flex; gap:16px; margin-top:14px;">
-      <div style="flex:1; padding:12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; text-align:center;">
-        <div style="font-size:12px; color:var(--text-secondary);">Temperatura</div>
-        <div style="font-size:20px; font-weight:700; color:var(--accent-primary); margin-top:4px;">23.3 °C</div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--accent-purple); margin-bottom: 16px;">
+        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Dzienny Cel: Aktywny
       </div>
-      <div style="flex:1; padding:12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; text-align:center;">
-        <div style="font-size:12px; color:var(--text-secondary);">Jakość powietrza</div>
-        <div style="font-size:18px; font-weight:700; color:#10b981; margin-top:4px;">BARDZO DOBRA</div>
+      <h2 style="font-size: 26px; font-weight: 700; margin-bottom: 8px;">Czas na powtórkę</h2>
+      <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
+        Masz do przejrzenia <strong style="color: #fff; font-size: 16px;">142 fiszki</strong>.<br>
+        Zajmie Ci to około <strong>15 minut</strong>.
+      </p>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <a href="/srs" class="btn btn-primary" style="padding: 14px 28px; font-size: 15px;">
+        <span>Rozpocznij naukę</span>
+        <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Skrót VULCAN & Sprawdziany -->
+  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);">
+          <i data-lucide="graduation-cap" style="width: 16px; height: 16px; color: var(--accent-purple);"></i>
+          <span>VULCAN · SP13</span>
+        </div>
+        <span class="status-badge badge-cyan">🎯 Numerek: 7</span>
+      </div>
+
+      <!-- Sprawdziany -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <strong style="font-size: 14px;">Historia · Średniowiecze</strong>
+            <span class="status-badge" style="background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid rgba(244,63,94,0.3); font-size: 11px;">Jutro</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Fiszki pokrywają 85% materiału
+          </div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <strong style="font-size: 14px;">Geografia · Krajobrazy Polski</strong>
+            <span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.3); font-size: 11px;">Za 3 dni</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Dział 2 w podręczniku
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Plan lekcji na dziś -->
-<div class="card" style="margin-top:20px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-    <h2 class="card-title" style="margin:0;">📅 Dzisiejszy plan lekcji (Poniedziałek)</h2>
-    <span style="font-size:12px; color:var(--text-secondary);">Trwa lekcja: <strong>Geografia (s.32)</strong></span>
-  </div>
-  <div style="display:flex; flex-direction:column; gap:8px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
-      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">08:00 - 08:45</span><strong>Matematyka</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 12</span></div>
-      <span class="badge badge-success">Zakończona</span>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
-      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">08:55 - 09:40</span><strong>Język Polski</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 15</span></div>
-      <span class="badge badge-success">Zakończona</span>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(56, 189, 248, 0.1); border:1px solid var(--accent-primary); border-radius:6px;">
-      <div><span style="color:var(--accent-primary); font-size:13px; margin-right:12px; font-weight:600;">09:45 - 10:30</span><strong>Geografia</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 32 (Piotr Staszków)</span></div>
-      <span class="badge badge-primary">TRWA TERAZ</span>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
-      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">10:40 - 11:25</span><strong>Język Angielski</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 32</span></div>
-      <span class="badge" style="background:var(--bg-main); color:var(--text-secondary);">Następna</span>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
-      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">11:45 - 12:30</span><strong>Wychowanie Fizyczne</strong> <span style="color:var(--text-secondary); font-size:12px;">· sgim2</span></div>
-      <span class="badge" style="background:var(--bg-main); color:var(--text-secondary);">Zaplanowana</span>
-    </div>
-  </div>
-</div>
-
-<!-- Narzędzia i serwisy -->
-<div style="margin-top:20px;">
-  <h2 style="font-size:18px; margin-bottom:12px;">🛠️ Narzędzia i Aplikacje Edukacyjne</h2>
-  <div class="grid grid-3">
-    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+    <!-- Następna lekcja (Home Assistant Sensor) -->
+    <div style="margin-top: 16px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
       <div>
-        <h3 style="margin:0 0 6px 0; font-size:16px;">🇬🇧 FreeLingo</h3>
-        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Platforma do nauki języka angielskiego z audio native speakera.</p>
+        <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); margin-bottom: 2px;">
+          🏫 TRWA TERAZ (09:45 - 10:30)
+        </div>
+        <div style="font-weight: 600; font-size: 14px;">Geografia · Sala 32</div>
       </div>
-      <a href="https://en.b2bgliwice.pl" target="_blank" class="btn btn-secondary" style="margin-top:14px; text-decoration:none; justify-content:center;">Otwórz FreeLingo ↗</a>
-    </div>
-    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
-      <div>
-        <h3 style="margin:0 0 6px 0; font-size:16px;">🎮 ClassQuiz</h3>
-        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Klasowe quizy i testy wiedzy w czasie rzeczywistym.</p>
+      <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-cyan);">
+        23.3 °C
       </div>
-      <a href="http://10.10.10.157:3210" target="_blank" class="btn btn-secondary" style="margin-top:14px; text-decoration:none; justify-content:center;">Graj w Quizy ↗</a>
     </div>
-    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
-      <div>
-        <h3 style="margin:0 0 6px 0; font-size:16px;">⚡ Razzia Live</h3>
-        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Szybka rywalizacja i pojedynki klasowe na żywo.</p>
+  </div>
+
+</div>
+
+<!-- 3. REPOZYTORIA PRZEDMIOTÓW (Z MOCKDATA.TS BOLT.DIY) -->
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h2 style="font-size: 18px; font-weight: 600; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
+      Repozytoria_Przedmiotów
+    </h2>
+    <a href="/subjects" style="font-size: 13px; color: var(--accent-purple);">Wszystkie przedmioty →</a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+    
+    <!-- Matematyka -->
+    <div class="glass-card" style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan);">
+          <i data-lucide="calculator" style="width: 22px; height: 22px;"></i>
+        </div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">MATH-101</span>
       </div>
-      <a href="http://10.10.10.157:3211" target="_blank" class="btn btn-secondary" style="margin-top:14px; text-decoration:none; justify-content:center;">Dołącz do gry ↗</a>
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Matematyka</h3>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Ułamki, figury geometryczne i zadania tekstowe.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+        <span style="color: var(--accent-purple); font-weight: 600;">42 fiszki na dziś</span>
+        <span style="color: var(--text-muted);">320 łącznie</span>
+      </div>
     </div>
+
+    <!-- Język Polski -->
+    <div class="glass-card" style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(244, 114, 182, 0.1); border: 1px solid rgba(244, 114, 182, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-pink);">
+          <i data-lucide="book-open" style="width: 22px; height: 22px;"></i>
+        </div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">POL-201</span>
+      </div>
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Język Polski</h3>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Lektury obowiązkowe (Baśniobór), gramatyka i ortografia.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+        <span style="color: var(--accent-purple); font-weight: 600;">15 fiszek na dziś</span>
+        <span style="color: var(--text-muted);">210 łącznie</span>
+      </div>
+    </div>
+
+    <!-- Język Angielski -->
+    <div class="glass-card" style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-emerald);">
+          <i data-lucide="globe" style="width: 22px; height: 22px;"></i>
+        </div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">ENG-102</span>
+      </div>
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">J. Angielski (FreeLingo)</h3>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Słownictwo tematyczne, wymowa i dialogi codzienne.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+        <span style="color: var(--accent-emerald); font-weight: 600;">Opanowane 100%</span>
+        <span style="color: var(--text-muted);">158 łącznie</span>
+      </div>
+    </div>
+
+    <!-- Informatyka & Programowanie -->
+    <div class="glass-card" style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(158, 127, 255, 0.1); border: 1px solid rgba(158, 127, 255, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-purple);">
+          <i data-lucide="terminal" style="width: 22px; height: 22px;"></i>
+        </div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">CS-101</span>
+      </div>
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Informatyka</h3>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Algorytmy, Python, bezpieczeństwo w sieci i gry.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+        <span style="color: var(--accent-purple); font-weight: 600;">85 fiszek na dziś</span>
+        <span style="color: var(--text-muted);">450 łącznie</span>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- Maskotka Hermes w prawym dolnym rogu -->
-<div style="position:fixed; bottom:20px; right:20px; z-index:100; display:flex; align-items:flex-end; gap:10px;">
-  <div style="background:var(--bg-card); border:1px solid var(--accent-primary); border-radius:12px; padding:10px 14px; box-shadow:0 4px 20px rgba(0,0,0,0.4); max-width:240px; font-size:13px; line-height:1.4;">
-    🐰 <strong>Hermes Bot:</strong><br>
-    Pamiętaj o dzisiejszych powtórkach (12 fiszek) i sprawdzianie z Geografii!
+<!-- 4. EKOSYSTEM SERWISÓW (Z SERVICECATEGORIES.TSX) -->
+<div>
+  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+    <h2 style="font-size: 18px; font-weight: 600; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
+      Ekosystem_Ośrodka
+    </h2>
+    <div style="flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-subtle) 0%, transparent 100%);"></div>
   </div>
-  <div style="width:48px; height:48px; border-radius:50%; background:var(--accent-primary); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 0 15px rgba(56, 189, 248, 0.4); cursor:pointer;">
-    🦊
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+    
+    <a href="https://en.b2bgliwice.pl" target="_blank" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+        <h4 style="font-weight: 600; font-size: 15px; color: #fff;">FreeLingo</h4>
+        <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+      </div>
+      <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Platforma do nauki angielskiego z native speakerami.</p>
+    </a>
+
+    <a href="http://10.10.10.157:3210" target="_blank" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+        <h4 style="font-weight: 600; font-size: 15px; color: #fff;">ClassQuiz</h4>
+        <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+      </div>
+      <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Klasowe quizy i testy wiedzy w czasie rzeczywistym.</p>
+    </a>
+
+    <a href="http://10.10.10.157:3211" target="_blank" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+        <h4 style="font-weight: 600; font-size: 15px; color: #fff;">Razzia Live</h4>
+        <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+      </div>
+      <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Pojedynki klasowe i szybka rywalizacja na punkty.</p>
+    </a>
+
+    <a href="https://meet.google.com" target="_blank" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+        <h4 style="font-weight: 600; font-size: 15px; color: #fff;">Google Meet 5B</h4>
+        <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+      </div>
+      <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Wideorozmowy klasowe i lekcje zdalne.</p>
+    </a>
+
   </div>
 </div>
+
 {% endblock %}
