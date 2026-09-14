@@ -1,307 +1,113 @@
 {% extends "base.html" %}{% block title %}Dashboard · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-
-<!-- Hero Banner -->
-<div class="dashboard-hero">
-  <div class="hero-main">
-    <div class="hero-badge">⚡ BAZA WIEDZY · KLASA 5B · SP13 GLIWICE</div>
-    <h1 class="hero-title">Witaj na pokładzie, {{ user['name'] }}! 👋</h1>
-    <p class="hero-sub">Twój spersonalizowany panel nauki, plan lekcji VULCAN i czujniki klasowe w jednym miejscu.</p>
-  </div>
-  <div class="hero-actions">
-    <a href="https://meet.google.com/sp13-klasa5b" target="_blank" class="btn primary-btn">📹 Google Meet 5B</a>
-    <a href="/srs" class="btn secondary-btn">🃏 Powtórki Fiszki</a>
-  </div>
-</div>
-
-<!-- Bento Grid Top Row -->
-<div class="bento-grid">
-  
-  <!-- 1. Fix SRS Flashcard Reviews Card (Prostokąt zwarty z licznikiem) -->
-  <div class="bento-card srs-card">
-    <div class="card-header">
-      <span class="card-icon">🃏</span>
-      <span class="card-title">Dzisiejsze Powtórki SRS</span>
-      <span class="badge badge-indigo">SM-2 Algorytm</span>
+<div class="header-card">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 style="margin:0 0 4px 0; font-size:24px; font-weight:700;">Cześć, {{ user['name'] }}! 👋</h1>
+      <p style="margin:0; color:var(--text-secondary); font-size:14px;">Baza Wiedzy Klasy 5B · SP13 w Gliwicach</p>
     </div>
-    <div class="srs-status-box">
-      <div class="srs-count-large">12</div>
-      <div class="srs-meta">
-        <span class="srs-label">fiszek czeka na dziś</span>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width: 65%;"></div>
-        </div>
-        <span class="progress-text">Ukończono 8 / 20 dzisiaj (65%)</span>
-      </div>
-    </div>
-    <a href="/srs" class="btn block-btn primary-glow">Rozpocznij Nauke ▶</a>
-  </div>
-
-  <!-- 2. VULCAN e-Dziennik & Lucky Number -->
-  <div class="bento-card vulcan-card">
-    <div class="card-header">
-      <span class="card-icon">📓</span>
-      <span class="card-title">e-Dziennik VULCAN</span>
-      <span class="badge badge-emerald">Stanisław Mikos (5B)</span>
-    </div>
-    <div class="vulcan-grid-stats">
-      <div class="stat-box">
-        <span class="stat-label">Średnia ocen</span>
-        <span class="stat-val emerald-text">4.85</span>
-      </div>
-      <div class="stat-box">
-        <span class="stat-label">Szczęśliwy numerek</span>
-        <span class="stat-val amber-text">🎯 #7</span>
-      </div>
-    </div>
-    <div class="upcoming-alert">
-      <span class="alert-icon">🗓️</span>
-      <span class="alert-text">Jutro: Sprawdzian z Geografii (Dz. 2 - Mapa Polski)</span>
-    </div>
-  </div>
-
-  <!-- 3. Home Assistant Classroom Sensors -->
-  <div class="bento-card ha-card">
-    <div class="card-header">
-      <span class="card-icon">🏠</span>
-      <span class="card-title">Klimat w Klasie & Szkole</span>
-      <span class="badge badge-cyan">Home Assistant</span>
-    </div>
-    <div class="ha-sensors-list">
-      <div class="sensor-item">
-        <span class="sensor-icon">🌡️</span>
-        <span class="sensor-name">Temperatura w sali</span>
-        <span class="sensor-value">23.3 °C</span>
-      </div>
-      <div class="sensor-item">
-        <span class="sensor-icon">🍃</span>
-        <span class="sensor-name">Jakość Powietrza</span>
-        <span class="sensor-value badge-success">BARDZO DOBRA</span>
-      </div>
-      <div class="sensor-item">
-        <span class="sensor-icon">💡</span>
-        <span class="sensor-name">Oświetlenie Sali</span>
-        <span class="sensor-value">Auto (100%)</span>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Middle Section: Timetable & Interactive Services -->
-<div class="bento-grid-2col" style="margin-top: 20px;">
-
-  <!-- Timetable (Plan Lekcji na Dziś) -->
-  <div class="bento-card timetable-card">
-    <div class="card-header">
-      <span class="card-icon">📅</span>
-      <span class="card-title">Plan Lekcji (Dzisiaj)</span>
-      <span class="badge badge-outline">Poniedziałek</span>
-    </div>
-    <div class="timetable-list">
-      <div class="time-row completed">
-        <span class="time-slot">08:00 - 08:45</span>
-        <span class="subject-name">Matematyka</span>
-        <span class="room-tag">s.12</span>
-        <span class="status-tag">Ukończona</span>
-      </div>
-      <div class="time-row completed">
-        <span class="time-slot">08:55 - 09:40</span>
-        <span class="subject-name">Język Polski</span>
-        <span class="room-tag">s.15</span>
-        <span class="status-tag">Ukończona</span>
-      </div>
-      <div class="time-row active-now">
-        <span class="time-slot">09:45 - 10:30</span>
-        <span class="subject-name">Geografia 🌍</span>
-        <span class="room-tag">s.32 (Staszków P.)</span>
-        <span class="status-tag live-tag">TRWA TERAZ</span>
-      </div>
-      <div class="time-row">
-        <span class="time-slot">10:40 - 11:25</span>
-        <span class="subject-name">Język Angielski</span>
-        <span class="room-tag">s.32</span>
-        <span class="status-tag upcoming">Nastepna</span>
-      </div>
-      <div class="time-row">
-        <span class="time-slot">11:45 - 12:30</span>
-        <span class="subject-name">Wychowanie Fizyczne</span>
-        <span class="room-tag">sgim2</span>
-        <span class="status-tag">11:45</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interactive Services & Tools Grid (Rozklikiwalne kafelki do zewnętrznych usług) -->
-  <div class="bento-card services-bento">
-    <div class="card-header">
-      <span class="card-icon">🛠️</span>
-      <span class="card-title">Narzędzia & Serwisy Dydaktyczne</span>
-      <span class="badge badge-purple">Rozklikiwalne</span>
-    </div>
-    <div class="services-tiles-grid">
-      <a href="https://en.b2bgliwice.pl" target="_blank" class="service-tile hover-glow">
-        <span class="tile-icon">🇬🇧</span>
-        <div class="tile-content">
-          <span class="tile-title">FreeLingo</span>
-          <span class="tile-sub">Angielski AI Tutor</span>
-        </div>
-        <span class="tile-arrow">↗</span>
-      </a>
-
-      <a href="https://meet.google.com/sp13-klasa5b" target="_blank" class="service-tile hover-glow">
-        <span class="tile-icon">📹</span>
-        <div class="tile-content">
-          <span class="tile-title">Google Meet</span>
-          <span class="tile-sub">Lekcje Online 5B</span>
-        </div>
-        <span class="tile-arrow">↗</span>
-      </a>
-
-      <div class="service-tile hover-glow" onclick="alert('Uruchamianie ClassQuiz Klasowego...')">
-        <span class="tile-icon">🎮</span>
-        <div class="tile-content">
-          <span class="tile-title">ClassQuiz</span>
-          <span class="tile-sub">Quizy domowe</span>
-        </div>
-        <span class="tile-arrow">▶</span>
-      </div>
-
-      <div class="service-tile hover-glow" onclick="alert('Łączenie z Razzia Live...')">
-        <span class="tile-icon">⚡</span>
-        <div class="tile-content">
-          <span class="tile-title">Razzia Live</span>
-          <span class="tile-sub">Rywalizacja na żywo</span>
-        </div>
-        <span class="tile-arrow">▶</span>
-      </div>
-
-      <a href="/lektury" class="service-tile hover-glow">
-        <span class="tile-icon">📖</span>
-        <div class="tile-content">
-          <span class="tile-title">Biblioteka PDF</span>
-          <span class="tile-sub">Podręczniki & Lektury</span>
-        </div>
-        <span class="tile-arrow">→</span>
-      </a>
-
-      <a href="http://10.10.10.123:8123" target="_blank" class="service-tile hover-glow">
-        <span class="tile-icon">🏠</span>
-        <div class="tile-content">
-          <span class="tile-title">Home Assistant</span>
-          <span class="tile-sub">Sensory Klasowe</span>
-        </div>
-        <span class="tile-arrow">↗</span>
-      </a>
-    </div>
-  </div>
-
-</div>
-
-<!-- Interactive Subjects Section (Minimalistyczne karty przedmiotów z podglądem podręcznika/ćwiczeń) -->
-<div class="section-title-row" style="margin-top: 30px;">
-  <h2>📚 Przedmioty Klasy 5B</h2>
-  <span class="sub-text">Kliknij przedmiot, aby otworzyć materiały, podręcznik i zadania</span>
-</div>
-
-<div class="subjects-interactive-grid">
-  
-  <div class="subject-card-interactive" onclick="openSubjectModal('Matematyka', 'Kowalska A.', 'Podręcznik str. 45-60', 'Zestaw zadań #4')">
-    <div class="subj-header">
-      <span class="subj-icon">📐</span>
-      <span class="subj-name">Matematyka</span>
-    </div>
-    <div class="subj-body">
-      <span class="subj-meta">📖 Podręcznik: Ułamki zwykłe</span>
-      <span class="subj-meta">✏️ Zeszyt ćwiczeń: Zad. 1-5 str. 22</span>
-    </div>
-    <div class="subj-footer">
-      <span class="badge badge-indigo">3 fiszki do powtórki</span>
-      <span class="subj-link">Szczegóły →</span>
-    </div>
-  </div>
-
-  <div class="subject-card-interactive" onclick="openSubjectModal('Język Polski', 'Nowak M.', 'Baśniobór - Lektura', 'Wypracowanie opowiadanie')">
-    <div class="subj-header">
-      <span class="subj-icon">📚</span>
-      <span class="subj-name">Język Polski</span>
-    </div>
-    <div class="subj-body">
-      <span class="subj-meta">📖 Lektura: Baśniobór Rozdz. 4</span>
-      <span class="subj-meta">📝 Sprawdzian: Dyktando w czwartek</span>
-    </div>
-    <div class="subj-footer">
-      <span class="badge badge-indigo">5 fiszek do powtórki</span>
-      <span class="subj-link">Szczegóły →</span>
-    </div>
-  </div>
-
-  <div class="subject-card-interactive" onclick="openSubjectModal('Geografia', 'Staszków P.', 'Mapa Polski i ukształtowanie terenu', 'Mapa konturowa')">
-    <div class="subj-header">
-      <span class="subj-icon">🌍</span>
-      <span class="subj-name">Geografia</span>
-    </div>
-    <div class="subj-body">
-      <span class="subj-meta">📖 Podręcznik: Krajobrazy Polski</span>
-      <span class="subj-meta">⚠️ Sprawdzian: JUTRO!</span>
-    </div>
-    <div class="subj-footer">
-      <span class="badge badge-amber">4 fiszki do powtórki</span>
-      <span class="subj-link">Szczegóły →</span>
-    </div>
-  </div>
-
-  <div class="subject-card-interactive" onclick="openSubjectModal('Język Angielski', 'Staszków P.', 'Unit 3: School Subjects & Habits', 'FreeLingo zestaw 12')">
-    <div class="subj-header">
-      <span class="subj-icon">🇬🇧</span>
-      <span class="subj-name">Język Angielski</span>
-    </div>
-    <div class="subj-body">
-      <span class="subj-meta">📖 Together 5 MEE Unit 3</span>
-      <span class="subj-meta">🎧 FreeLingo Słówka dnia</span>
-    </div>
-    <div class="subj-footer">
-      <span class="badge badge-indigo">6 fiszek do powtórki</span>
-      <span class="subj-link">Szczegóły →</span>
-    </div>
-  </div>
-
-</div>
-
-<!-- Interactive Subject Details Modal -->
-<div class="custom-modal" id="subjectModal" style="display:none;">
-  <div class="modal-backdrop" onclick="closeSubjectModal()"></div>
-  <div class="modal-content-card">
-    <div class="modal-header">
-      <h3 id="modalSubjectTitle">Matematyka</h3>
-      <button class="close-btn" onclick="closeSubjectModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p><strong>Nauczyciel:</strong> <span id="modalSubjectTeacher">Kowalska A.</span></p>
-      <hr style="border-color: rgba(255,255,255,0.1); margin: 12px 0;">
-      <h4>📖 Podręcznik & Materiały:</h4>
-      <p id="modalSubjectBook" class="modal-info-text">Podręcznik str. 45-60</p>
-      <h4>📝 Zadania & Sprawdziany:</h4>
-      <p id="modalSubjectTasks" class="modal-info-text">Zestaw zadań #4</p>
-    </div>
-    <div class="modal-footer">
-      <a href="/lektury" class="btn primary-btn">Otwórz Czytnik PDF</a>
-      <button class="btn secondary-btn" onclick="closeSubjectModal()">Zamknij</button>
+    <div style="display:flex; gap:8px;">
+      <span class="badge badge-success">🎯 Numerek: <strong>7</strong></span>
+      <span class="badge badge-primary">📊 Średnia: <strong>4.85</strong></span>
+      <span class="badge badge-warning">🔥 Streak: <strong>5 dni</strong></span>
     </div>
   </div>
 </div>
 
-<script>
-function openSubjectModal(title, teacher, book, tasks) {
-  document.getElementById('modalSubjectTitle').textContent = title;
-  document.getElementById('modalSubjectTeacher').textContent = teacher;
-  document.getElementById('modalSubjectBook').textContent = book;
-  document.getElementById('modalSubjectTasks').textContent = tasks;
-  document.getElementById('subjectModal').style.display = 'flex';
-}
+<div class="grid grid-2" style="margin-top:20px;">
+  <!-- Szybki start -->
+  <div class="card">
+    <h2 class="card-title">🚀 Szybkie akcje</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:12px;">
+      <a href="https://meet.google.com" target="_blank" class="btn btn-secondary" style="justify-content:center; text-decoration:none;">📹 Google Meet</a>
+      <a href="/lektury" class="btn btn-secondary" style="justify-content:center; text-decoration:none;">📖 Lektury PDF</a>
+      <a href="/srs" class="btn btn-primary" style="justify-content:center; text-decoration:none;">🃏 Powtórki (12)</a>
+      <a href="/vulcan" class="btn btn-secondary" style="justify-content:center; text-decoration:none;">📓 VULCAN</a>
+    </div>
+  </div>
 
-function closeSubjectModal() {
-  document.getElementById('subjectModal').style.display = 'none';
-}
-</script>
+  <!-- Czujniki HA -->
+  <div class="card">
+    <h2 class="card-title">🏫 Klasa 5B · Smart School</h2>
+    <div style="display:flex; gap:16px; margin-top:14px;">
+      <div style="flex:1; padding:12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; text-align:center;">
+        <div style="font-size:12px; color:var(--text-secondary);">Temperatura</div>
+        <div style="font-size:20px; font-weight:700; color:var(--accent-primary); margin-top:4px;">23.3 °C</div>
+      </div>
+      <div style="flex:1; padding:12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; text-align:center;">
+        <div style="font-size:12px; color:var(--text-secondary);">Jakość powietrza</div>
+        <div style="font-size:18px; font-weight:700; color:#10b981; margin-top:4px;">BARDZO DOBRA</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Plan lekcji na dziś -->
+<div class="card" style="margin-top:20px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <h2 class="card-title" style="margin:0;">📅 Dzisiejszy plan lekcji (Poniedziałek)</h2>
+    <span style="font-size:12px; color:var(--text-secondary);">Trwa lekcja: <strong>Geografia (s.32)</strong></span>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
+      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">08:00 - 08:45</span><strong>Matematyka</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 12</span></div>
+      <span class="badge badge-success">Zakończona</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
+      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">08:55 - 09:40</span><strong>Język Polski</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 15</span></div>
+      <span class="badge badge-success">Zakończona</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(56, 189, 248, 0.1); border:1px solid var(--accent-primary); border-radius:6px;">
+      <div><span style="color:var(--accent-primary); font-size:13px; margin-right:12px; font-weight:600;">09:45 - 10:30</span><strong>Geografia</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 32 (Piotr Staszków)</span></div>
+      <span class="badge badge-primary">TRWA TERAZ</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
+      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">10:40 - 11:25</span><strong>Język Angielski</strong> <span style="color:var(--text-secondary); font-size:12px;">· sala 32</span></div>
+      <span class="badge" style="background:var(--bg-main); color:var(--text-secondary);">Następna</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px;">
+      <div><span style="color:var(--text-secondary); font-size:13px; margin-right:12px;">11:45 - 12:30</span><strong>Wychowanie Fizyczne</strong> <span style="color:var(--text-secondary); font-size:12px;">· sgim2</span></div>
+      <span class="badge" style="background:var(--bg-main); color:var(--text-secondary);">Zaplanowana</span>
+    </div>
+  </div>
+</div>
+
+<!-- Narzędzia i serwisy -->
+<div style="margin-top:20px;">
+  <h2 style="font-size:18px; margin-bottom:12px;">🛠️ Narzędzia i Aplikacje Edukacyjne</h2>
+  <div class="grid grid-3">
+    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <h3 style="margin:0 0 6px 0; font-size:16px;">🇬🇧 FreeLingo</h3>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Platforma do nauki języka angielskiego z audio native speakera.</p>
+      </div>
+      <a href="https://en.b2bgliwice.pl" target="_blank" class="btn btn-secondary" style="margin-top:14px; text-decoration:none; justify-content:center;">Otwórz FreeLingo ↗</a>
+    </div>
+    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <h3 style="margin:0 0 6px 0; font-size:16px;">🎮 ClassQuiz</h3>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Klasowe quizy i testy wiedzy w czasie rzeczywistym.</p>
+      </div>
+      <a href="http://10.10.10.157:3210" target="_blank" class="btn btn-secondary" style="margin-top:14px; text-decoration:none; justify-content:center;">Graj w Quizy ↗</a>
+    </div>
+    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <h3 style="margin:0 0 6px 0; font-size:16px;">⚡ Razzia Live</h3>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Szybka rywalizacja i pojedynki klasowe na żywo.</p>
+      </div>
+      <a href="http://10.10.10.157:3211" target="_blank" class="btn btn-secondary" style="margin-top:14px; text-decoration:none; justify-content:center;">Dołącz do gry ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- Maskotka Hermes w prawym dolnym rogu -->
+<div style="position:fixed; bottom:20px; right:20px; z-index:100; display:flex; align-items:flex-end; gap:10px;">
+  <div style="background:var(--bg-card); border:1px solid var(--accent-primary); border-radius:12px; padding:10px 14px; box-shadow:0 4px 20px rgba(0,0,0,0.4); max-width:240px; font-size:13px; line-height:1.4;">
+    🐰 <strong>Hermes Bot:</strong><br>
+    Pamiętaj o dzisiejszych powtórkach (12 fiszek) i sprawdzianie z Geografii!
+  </div>
+  <div style="width:48px; height:48px; border-radius:50%; background:var(--accent-primary); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 0 15px rgba(56, 189, 248, 0.4); cursor:pointer;">
+    🦊
+  </div>
+</div>
 {% endblock %}

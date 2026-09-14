@@ -1,154 +1,183 @@
-<!doctype html>
-<html lang="pl" data-theme="dark-pro">
+<!DOCTYPE html>
+<html lang="pl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#09090b">
-<title>{% block title %}Baza Wiedzy 5B{% endblock %} · Klasa 5B</title>
-<link rel="manifest" href="/static/manifest.json">
-<link rel="icon" href="/static/icons/icon-192.png">
-<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
-<link rel="stylesheet" href="/static/style.css?v={{ v }}">
-<script src="/static/theme.js?v={{ v }}"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Baza Wiedzy 5B{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #09090b;
+      --bg-card: #121215;
+      --bg-sidebar: #0d0d10;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --accent-primary: #38bdf8;
+      --accent-secondary: #6366f1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    a { color: var(--accent-primary); text-decoration: none; }
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+      transition: width 0.2s ease;
+      flex-shrink: 0;
+    }
+    .sidebar.collapsed { width: 70px; }
+    .sidebar.collapsed .nav-text, .sidebar.collapsed .brand-name { display: none; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+    .nav-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      color: var(--text-secondary);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .nav-item a:hover, .nav-item.active a {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .nav-item.active a {
+      border-left: 3px solid var(--accent-primary);
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .topbar {
+      height: 64px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .content-area {
+      padding: 24px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--accent-primary); color: #09090b; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-primary { background: rgba(56, 189, 248, 0.15); color: var(--accent-primary); }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+  </style>
 </head>
-<body data-role="{{ user['role'] if user else '' }}" data-uid="{{ user['id'] if user else '' }}" data-avatar="{{ user['avatar'] if user and user['avatar'] else 'byte-bunny' }}">
-{% if user %}
-<div class="app-layout">
-  <!-- Collapsible Sidebar -->
+<body>
+  <!-- Zwijany Sidebar -->
   <aside class="sidebar" id="appSidebar">
-    <div class="sidebar-header">
-      <div class="brand">
-        <span class="brand-logo">⚡</span>
-        <span class="brand-name">5B / CORE</span>
-      </div>
-      <button class="icon-btn collapse-toggle" id="sidebarToggle" title="Zwiń / Rozwiń Menu">
-        <span id="toggleIcon">◀</span>
-      </button>
+    <div class="brand">
+      <span>🧠</span>
+      <span class="brand-name">Baza Wiedzy 5B</span>
     </div>
-    
-    <nav class="sidebar-nav">
-      <a href="/" class="nav-item active" title="Dashboard">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Dashboard</span>
-      </a>
-      <a href="/srs" class="nav-item" title="Fiszki SRS">
-        <span class="nav-icon">🃏</span>
-        <span class="nav-label">Fiszki SRS</span>
-      </a>
-      <a href="/vulcan" class="nav-item" title="e-Dziennik VULCAN">
-        <span class="nav-icon">📓</span>
-        <span class="nav-label">Plan & VULCAN</span>
-      </a>
-      <a href="/lektury" class="nav-item" title="Lektury & Książki">
-        <span class="nav-icon">📖</span>
-        <span class="nav-label">Lektury & PDF</span>
-      </a>
-      <a href="/subjects" class="nav-item" title="Przedmioty">
-        <span class="nav-icon">📚</span>
-        <span class="nav-label">Przedmioty</span>
-      </a>
-      <a href="/serwisy" class="nav-item" title="Narzędzia & Serwisy">
-        <span class="nav-icon">🛠️</span>
-        <span class="nav-label">Serwisy</span>
-      </a>
-      <a href="/forum" class="nav-item" title="Czat Klasowy">
-        <span class="nav-icon">💬</span>
-        <span class="nav-label">Czat Klasowy</span>
-      </a>
-      <a href="/leaderboard" class="nav-item" title="Rankingi">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label">Rankingi</span>
-      </a>
-      {% if user['role'] in ['teacher', 'admin'] %}
-      <a href="/teacher" class="nav-item teacher-link" title="Panel Nauczyciela">
-        <span class="nav-icon">🎓</span>
-        <span class="nav-label">Nauczyciel</span>
-      </a>
+    <ul class="nav-list">
+      <li class="nav-item active"><a href="/"><span>📊</span><span class="nav-text">Dashboard</span></a></li>
+      <li class="nav-item"><a href="/srs"><span>🃏</span><span class="nav-text">Fiszki SRS</span></a></li>
+      <li class="nav-item"><a href="/vulcan"><span>📓</span><span class="nav-text">Plan & VULCAN</span></a></li>
+      <li class="nav-item"><a href="/lektury"><span>📖</span><span class="nav-text">Lektury & PDF</span></a></li>
+      <li class="nav-item"><a href="/subjects"><span>📚</span><span class="nav-text">Przedmioty</span></a></li>
+      <li class="nav-item"><a href="/serwisy"><span>🛠️</span><span class="nav-text">Narzędzia</span></a></li>
+      <li class="nav-item"><a href="/forum"><span>💬</span><span class="nav-text">Forum Klasowe</span></a></li>
+      <li class="nav-item"><a href="/leaderboard"><span>🏆</span><span class="nav-text">Rankingi</span></a></li>
+      {% if user and user['role'] in ['teacher', 'admin'] %}
+      <li class="nav-item"><a href="/teacher"><span>👨🏫</span><span class="nav-text">Panel Nauczyciela</span></a></li>
       {% endif %}
-    </nav>
-    
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <span class="user-avatar">{{ user['avatar_icon'] if user.get('avatar_icon') else '🦊' }}</span>
-        <div class="user-info">
-          <span class="user-name">{{ user['name'] }}</span>
-          <span class="user-role">{{ user['role'] }}</span>
-        </div>
-      </div>
-      <a href="/logout" class="icon-btn logout-btn" title="Wyloguj">🚪</a>
-    </div>
+    </ul>
   </aside>
 
-  <!-- Main Content Wrapper -->
-  <div class="main-wrapper">
+  <!-- Główny kontener -->
+  <div class="main-content">
     <header class="topbar">
-      <div class="topbar-left">
-        <span class="status-indicator live">🟢 HA & VULCAN Live</span>
-      </div>
-      <div class="topbar-right">
-        <div class="stat-pill streak-pill" title="Seria aktywnych dni">🔥 <span id="userStreak">{{ user['streak'] if user.get('streak') else 5 }}</span> dni</div>
-        <div class="stat-pill xp-pill" title="Punkty wiedzy XP">⚡ <span id="userXp">{{ user['points'] if user.get('points') else 420 }}</span> XP</div>
-        <button class="theme-toggle-btn" id="themeBtn" title="Zmień motyw">🎨</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('appSidebar').classList.toggle('collapsed')" title="Zwiń/Rozwiń menu">
+        ◀ Menu
+      </button>
+      <div style="display:flex; align-items:center; gap:16px;">
+        {% if user %}
+        <span style="font-size:14px; font-weight:500;">{{ user['name'] }} ({{ user['role'] }})</span>
+        <a href="/logout" class="btn btn-secondary" style="font-size:12px; padding:6px 12px;">Wyloguj</a>
+        {% endif %}
       </div>
     </header>
 
-    <main class="main-content">
+    <main class="content-area">
       {% block content %}{% endblock %}
     </main>
   </div>
-</div>
-
-<!-- Bottom-Right Hermes Companion Widget -->
-<div class="companion-widget-br" id="companionWidget">
-  <div class="speech-bubble" id="companionBubble">
-    Masz 12 fiszek do powtórki na dziś! 🃏
-  </div>
-  <div class="companion-avatar-wrapper" onclick="toggleCompanionDialog()">
-    <img src="/static/pets/byte-bunny.png" alt="Hermes Mascot" class="companion-avatar-img">
-  </div>
-</div>
-
-<script>
-// Sidebar Toggle Script
-const sidebar = document.getElementById('appSidebar');
-const toggleBtn = document.getElementById('sidebarToggle');
-const toggleIcon = document.getElementById('toggleIcon');
-
-if (toggleBtn && sidebar) {
-  const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
-  if (isCollapsed) {
-    sidebar.classList.add('collapsed');
-    if (toggleIcon) toggleIcon.textContent = '▶';
-  }
-
-  toggleBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-    const collapsedNow = sidebar.classList.contains('collapsed');
-    localStorage.setItem('sidebar_collapsed', collapsedNow);
-    if (toggleIcon) toggleIcon.textContent = collapsedNow ? '▶' : '◀';
-  });
-}
-
-function toggleCompanionDialog() {
-  const bubble = document.getElementById('companionBubble');
-  const messages = [
-    "Jutro sprawdzian z Geografii! 🌍",
-    "Stanisław, świetna seria 5 dni z rzędu! 🔥",
-    "Jakość powietrza w szkole: Bardzo Dobra 🍃",
-    "Pamiętaj o zeszycie z Matematyki! 📐"
-  ];
-  const nextMsg = messages[Math.floor(Math.random() * messages.length)];
-  if (bubble) {
-    bubble.textContent = nextMsg;
-    bubble.classList.add('pulse');
-    setTimeout(() => bubble.classList.remove('pulse'), 600);
-  }
-}
-</script>
-{% else %}
-<main class="auth-container">
-  {% block auth_content %}{% endblock %}
-</main>
-{% endif %}
 </body>
 </html>
