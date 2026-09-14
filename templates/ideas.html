@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block title %}Pomysły{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>💡 Pomysły — co dodać do portalu?</h1>
+<a class="btn" href="/">← Start</a></div>
+<p class="muted small">Masz pomysł na nową funkcję, grę albo materiał? Napisz go tutaj! Każdy może głosować 👍 na pomysły innych — najpopularniejsze wdrażamy pierwsze. Za dodanie pomysłu dostajesz ⭐5.</p>
+
+<form method="post" action="/ideas" class="rowform">
+  <input name="title" placeholder="Tytuł pomysłu (krótko)" required style="flex:2">
+  <input name="body" placeholder="Opisz dokładniej (opcjonalnie)" style="flex:3">
+  <button class="btn primary">Dodaj pomysł (+⭐5)</button>
+</form>
+
+<div class="list">
+{% for i in items %}
+  <div class="rowitem {% if i['status']=='zrobione' %}done{% elif i['status']=='planowane' %}planned{% endif %}">
+    <div class="idea-head">
+      <b>{{ i['title'] }}</b>
+      <span class="badge s-{{ i['status'] }}">{{ badges[i['status']] }} {{ i['status'] }}</span>
+      <span class="spacer"></span>
+      <form method="post" action="/ideas/{{ i['id'] }}/vote" class="inline">
+        <button class="btn small {{ 'voted' if i['my_vote'] }}">👍 {{ i['votes'] }}</button>
+      </form>
+    </div>
+    {% if i['body'] %}<p>{{ i['body'] }}</p>{% endif %}
+    <small>dodał: {{ i['author_name'] }} · {{ i['created_at'] }}</small>
+    {% if user['role'] in ('admin','teacher') %}
+    <form method="post" action="/ideas/{{ i['id'] }}/status" class="rowform status-form">
+      <select name="status">
+        <option value="nowy" {% if i['status']=='nowy' %}selected{% endif %}>nowy</option>
+        <option value="planowane" {% if i['status']=='planowane' %}selected{% endif %}>planowane</option>
+        <option value="zrobione" {% if i['status']=='zrobione' %}selected{% endif %}>zrobione</option>
+        <option value="odrzucone" {% if i['status']=='odrzucone' %}selected{% endif %}>odrzucone</option>
+      </select>
+      <button class="btn small">Zmień status</button>
+    </form>
+    {% endif %}
+  </div>
+{% else %}<p class="empty">Jeszcze nie ma pomysłów — dodaj pierwszy! 💡</p>{% endfor %}
+</div>
+{% endblock %}

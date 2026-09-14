@@ -1,0 +1,73 @@
+{% extends "base.html" %}{% block title %}Dodaj{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>➕ Dodaj coś nowego</h1></div>
+{% if request.query_params.get('msg') %}<div class="alert ok">{{ request.query_params.get('msg') | safe }}</div>{% endif %}
+
+<div class="add-grid">
+  <div class="add-card">
+    <div class="add-ico">🤖</div>
+    <h3>AI stworzy fiszki za Ciebie</h3>
+    <p class="sub small">Wklej notatkę, temat lekcji albo fragment rozdziału — Lisek 🦊 wygeneruje fiszki (max 6).</p>
+    <form method="post" action="/add/note" class="add-form">
+      <input name="title" placeholder="Nazwa talii (np. Przyroda: woda)">
+      <select name="deck">
+        <option value="">➕ nowa talia</option>
+        {% for d in decks %}<option value="{{ d['id'] }}">{{ d['name'] }}</option>{% endfor %}
+      </select>
+      <textarea name="note" rows="6" placeholder="Wklej cokolwiek: notatkę z lekcji, tekst z podręcznika, temat…&#10;&#10;Możesz też wpisać gotowe pary: pytanie - odpowiedz (po jednej w linii)" required></textarea>
+      <label class="ai-toggle"><input type="checkbox" name="ai" value="1" checked> 🤖 Niech AI stworzy fiszki za mnie</label>
+      <button class="btn primary big">Generuj fiszki ✨</button>
+    </form>
+  </div>
+
+  <div class="add-card">
+    <div class="add-ico">📷</div>
+    <h3>Zdjęcie → fiszka</h3>
+    <p class="sub small">Sfotografuj notatkę z tablicy albo zadanie — będzie fiszka z obrazkiem.</p>
+    <form method="post" action="/add/image" enctype="multipart/form-data" class="add-form">
+      <label class="photo-drop">
+        <input type="file" name="photo" accept="image/*" capture="environment" class="photo-input" id="photoInput">
+        <span id="photoLabel">📷 Kliknij albo zrób zdjęcie</span>
+      </label>
+      <input name="note" placeholder="Podpis (co jest na zdjęciu?)">
+      <select name="deck">
+        <option value="">➕ nowa talia</option>
+        {% for d in decks %}<option value="{{ d['id'] }}">{{ d['name'] }}</option>{% endfor %}
+      </select>
+      <button class="btn primary big">Zapisz zdjęcie 📸</button>
+    </form>
+  </div>
+
+  <div class="add-card">
+    <div class="add-ico">📄</div>
+    <h3>Plik / książka</h3>
+    <p class="sub small">PDF/EPUB/TXT: z parami „pytanie - odpowiedź" zrobi fiszki; książkę doda do biblioteki.</p>
+    <form method="post" action="/add/pdf" enctype="multipart/form-data" class="add-form">
+      <input type="file" name="pdffile" accept=".pdf,.epub,.txt" required>
+      <select name="deck">
+        <option value="">➕ nowa talia</option>
+        {% for d in decks %}<option value="{{ d['id'] }}">{{ d['name'] }}</option>{% endfor %}
+      </select>
+      <button class="btn primary big">Wygeneruj z pliku ⚡</button>
+    </form>
+    <form method="post" action="/library/upload" enctype="multipart/form-data" class="add-form">
+      <input name="title" placeholder="Tytuł książki" required>
+      <input name="subject" placeholder="Przedmiot">
+      <input type="file" name="file" accept=".pdf,.epub" required>
+      <button class="btn big">Do biblioteki 📚</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  const inp = document.getElementById('photoInput'), lab = document.getElementById('photoLabel');
+  if (!inp) return;
+  inp.addEventListener('change', () => {
+    lab.textContent = inp.files.length ? '🖼️ ' + inp.files[0].name : '📷 Kliknij albo zrób zdjęcie';
+    lab.parentElement.classList.add('has-photo');
+  });
+})();
+</script>
+{% endblock %}

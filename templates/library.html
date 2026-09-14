@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Biblioteka{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>📚 Biblioteka</h1>
+{% if user['role'] in ('admin','teacher') %}
+<form method="post" action="/library/upload" enctype="multipart/form-data" class="rowform">
+  <input name="title" placeholder="Tytuł">
+  <input name="subject" placeholder="Przedmiot">
+  <input name="grade" placeholder="Klasa">
+  <input type="file" name="file" accept=".pdf,.epub" required>
+  <button class="btn primary">Dodaj</button>
+</form>{% endif %}</div>
+
+<div class="bookgrid">
+{% for b in books %}
+  <a class="book" href="/read/{{ b['id'] }}">
+    <div class="cover">📄<b>{{ b['title'] }}</b></div>
+    <small>{{ b['subject'] or '—' }}{% if b['grade'] %} · kl. {{ b['grade'] }}{% endif %}</small>
+    {% if b['page'] %}<small>📄 str. {{ b['page'] }}{% if b['done'] %} ✅{% endif %}</small>{% endif %}
+  </a>
+{% else %}<p class="empty">Brak książek — dodaj pierwszą PDF/EPUB.</p>{% endfor %}
+</div>
+{% endblock %}

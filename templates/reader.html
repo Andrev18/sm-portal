@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Czytelnia{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>📖 {{ book['title'] }}</h1><a class="btn" href="/library">← Biblioteka</a></div>
+<div id="reader" data-book="{{ book['id'] }}" data-type="{{ book['filetype'] }}" data-page="{{ page }}"></div>
+<script>
+  window.__BOOK_FILENAME__ = "{{ book['filename'] }}";
+</script>
+<script src="/static/reader.js?v={{ v }}"></script>
+{% endblock %}

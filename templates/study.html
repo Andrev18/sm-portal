@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% block title %}Sesja fiszek{% endblock %}
+{% block content %}
+<div class="study">
+  <div class="study-progress"><div id="bar" style="width:6%"></div></div>
+  <div class="study-meta">Karta <span id="pos">1</span>/<span id="total">7</span> · seria <b id="combo">0</b> 🔥 · zdobyte XP: <b id="gained">0</b></div>
+
+  <div class="flip-scene" id="scene">
+    <div class="flip-card" id="card">
+      <div class="flip-face flip-front">
+        <div>
+          <div class="word" id="front">…</div>
+          <div class="flip-hint">kliknij, żeby odwrócić ↻</div>
+        </div>
+        <button class="speak-btn" id="speak1" title="Przeczytaj na głos">🔊</button>
+      </div>
+      <div class="flip-face flip-back">
+        <div><div class="word" id="back"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="swipe-hint muted small" id="hint">👇 Przesuń kartę albo kliknij · spacja = odwróć, ← nie umiem, → umiem</div>
+
+  <div class="studybtns" id="rates">
+    <button class="btn again" data-r="0">↩ Znowu</button>
+    <button class="btn hard" data-r="1">Trudne</button>
+    <button class="btn good" data-r="2">Dobre</button>
+    <button class="btn easy" data-r="3">Łatwe</button>
+  </div>
+</div>
+<script src="/static/study.js?v={{ v }}"></script>
+{% endblock %}

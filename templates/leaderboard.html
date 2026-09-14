@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Tablica wyników{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>🏆 Tablica wyników</h1><a class="btn" href="/">← Start</a></div>
+<table class="table">
+<tr><th>#</th><th>Uczeń</th><th>⭐ Punkty</th><th>🃏 Powtórki</th></tr>
+{% for b in board %}
+<tr class="{{ 'me-row' if b['id']==me }}">
+  <td>{{ loop.index if loop.index <= 3 else '' }}{% if loop.index==1 %} 🥇{% elif loop.index==2 %} 🥈{% elif loop.index==3 %} 🥉{% endif %}</td>
+  <td><b>{{ b['name'] }}</b>{% if b['id']==me %} <small>(Ty)</small>{% endif %}</td>
+  <td>{{ b['pts'] }}</td><td>{{ b['reviews'] }}</td>
+</tr>
+{% else %}<tr><td colspan="4" class="empty">Jeszcze nikt nie zdobył punktów — bądź pierwszy!</td></tr>{% endfor %}
+</table>
+<p class="muted small">Punkty: powtórka fiszki = ⭐1 (za "Znowu") / ⭐2 (za resztę). Nowe sposoby zdobywania będą dochodzić (quizy, lektury).</p>
+{% endblock %}

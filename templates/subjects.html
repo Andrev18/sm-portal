@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}Program Nauczania 5 Klasa{% endblock %}
+{% block content %}
+<div class="sec-header" style="margin-top:0; flex-direction:column; align-items:flex-start; gap:6px;">
+  <span class="badge badge-purple">📚 5 KLASA SZKOŁY PODSTAWOWEJ</span>
+  <h1 style="margin:0; font-size:1.6rem;">Program Nauczania (13 Przedmiotów)</h1>
+  <p style="color:var(--muted); margin:0; font-size:0.92rem;">Dostęp do podręczników, flipbooków, fiszek SRS i materiałów dydaktycznych dla każdego przedmiotu.</p>
+</div>
+
+{% if user['role'] in ('admin','teacher') %}
+<form method="post" action="/subjects" style="display:flex; gap:10px; margin-bottom:20px; background:var(--alt-bg); padding:12px; border-radius:8px; border:1px solid var(--outline);">
+  <input name="name" placeholder="Nazwa nowego przedmiotu" required style="flex:1; background:var(--surface); border:1px solid var(--outline); padding:8px 12px; border-radius:6px; color:var(--ink);">
+  <input name="icon" placeholder="Emoji" size="3" value="📘" style="background:var(--surface); border:1px solid var(--outline); padding:8px; border-radius:6px; color:var(--ink); text-align:center;">
+  <button class="btn primary">Dodaj przedmiot</button>
+</form>{% endif %}
+
+<div class="tiles" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:18px; margin-bottom:36px;">
+{% for s in subjects %}
+  <div class="tile" style="display:flex; flex-direction:column; justify-content:space-between; padding:20px;">
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span class="ico" style="font-size:2.4rem; margin:0;">{{ s['icon'] }}</span>
+        <span class="badge badge-blue">klasa 5</span>
+      </div>
+      <b style="font-size:1.25rem; margin-bottom:4px;">{{ s['name'] }}</b>
+      <small style="color:var(--muted); display:block; margin-bottom:12px;">📚 Materiały: {{ s['nbooks'] }} książek · 🃏 {{ s['ndecks'] }} talii fiszek</small>
+    </div>
+    <a class="btn primary small" href="/subject/{{ s['id'] }}" style="width:100%;">Otwórz materiały →</a>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

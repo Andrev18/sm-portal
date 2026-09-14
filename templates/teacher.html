@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% block title %}Panel nauczyciela{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>📊 Panel nauczyciela</h1></div>
+{% if flash %}<div class="alert ok">🔑 Konto utworzone/zmienione: <code>{{ flash }}</code> — zapisz hasło i przekaż uczniowi!</div>{% endif %}
+<h2>➕ Nowe konto</h2>
+<form method="post" action="/teacher/users" class="rowform">
+  <input name="login_" placeholder="Login (np. staszek)" required>
+  <input name="name" placeholder="Imię wyświetlane" required>
+  <select name="role"><option value="student">uczeń</option><option value="teacher">nauczyciel</option><option value="admin">admin</option></select>
+  <input name="password" placeholder="Hasło (puste = auto)">
+  <input name="pin" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="PIN 5 cyfr (uczeń)">
+  <button class="btn primary">Utwórz konto</button>
+</form>
+<table class="table">
+<tr><th>Uczeń</th><th>Ostatnio</th><th>Powtórki (7 dni)</th><th>Przeczytane ogł.</th><th>Reset hasła</th></tr>
+{% for s in students %}
+<tr><td>{{ s['name'] }} <small>({{ s['login'] }})</small></td>
+<td>{{ s['last_seen'] or 'nigdy' }}</td><td>{{ s['reviews7d'] }}</td><td>{{ s['reads_n'] }}</td>
+<td><form method="post" action="/teacher/users/{{ s['id'] }}/reset_password" class="inline">
+<input name="pin" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="nowy PIN" size="8">
+<button class="btn small">🔑 Reset</button></form></td></tr>
+{% endfor %}
+</table>
+<h2>Statystyki nauki</h2>
+<table class="table">
+<tr><th>Uczeń</th><th>Powtórki razem</th><th>"Znowu"</th></tr>
+{% for st in stats %}<tr><td>{{ st['name'] }}</td><td>{{ st['reviews'] or 0 }}</td><td>{{ st['again_n'] or 0 }}</td></tr>{% endfor %}
+</table>
+<h2>Przypisz materiał</h2>
+<form method="post" action="/teacher/assign" class="rowform">
+  <select name="student">{% for s in students %}<option value="{{ s['id'] }}">{{ s['name'] }}</option>{% endfor %}</select>
+  <select name="kind"><option value="deck">Talia fiszek</option><option value="book">Książka</option></select>
+  <input name="ref_id" type="number" placeholder="ID materiału">
+  <input name="note" placeholder="Notatka">
+  <input name="due_date" type="date">
+  <button class="btn primary">Przypisz</button>
+</form>
+{% endblock %}

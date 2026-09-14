@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}Twoj PIN{% endblock %}
+{% block content %}
+<div class="pin-scene">
+  <div class="gate-blobs"><span></span><span></span><span></span></div>
+  <div class="pin-card">
+    <div class="pin-mascot" id="mascot">🦊</div>
+    <h1>Wpisz swój PIN</h1>
+    <p class="sub">Pięć cyfr — a ja wiem, kim jesteś! 😉</p>
+    {% if msg %}<div class="shake alert">{{ msg }}</div>{% endif %}
+    <form method="post" action="/pin" id="pinForm">
+      <div class="otp-boxes" id="otpBoxes">
+        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 1">
+        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 2">
+        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 3">
+        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 4">
+        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 5">
+      </div>
+      <input type="hidden" name="pin" id="pinField">
+      <button class="btn primary big" type="submit" id="goBtn" disabled>Wejdź 🚀</button>
+    </form>
+    <details class="staff-login"><summary>Mam login i hasło</summary>
+      <form method="post" action="/login">
+        <input name="login_" placeholder="login" required>
+        <input name="password" type="password" placeholder="hasło" required>
+        <button class="btn">Wejdź</button>
+      </form>
+    </details>
+  </div>
+</div>
+<script src="/static/otp.js?v={{ v }}"></script>
+{% endblock %}

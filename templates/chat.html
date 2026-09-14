@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Chat{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>🗨️ Chat (24h)</h1></div>
+<div class="list" id="chatlog">
+{% for m in msgs %}<div class="rowitem"><b>{{ m['name'] }}</b><small>{{ m['created_at'] }}</small><p>{{ m['body'] }}</p></div>{% endfor %}
+</div>
+<form method="post" action="/chat/send" class="rowform">
+  <input name="body" placeholder="Napisz wiadomość..." autocomplete="off" required>
+  <button class="btn primary">Wyślij</button>
+</form>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · SP13{% endblock %}
+{% block content %}
+
+<!-- Notion Hero Header -->
+<div class="notion-hero" style="margin-bottom:24px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+    <div>
+      <span class="badge badge-blue" style="margin-bottom:8px;">🏫 E-DZIENNIK VULCAN · SP13 GLIWICE</span>
+      <h1 style="margin:4px 0 6px; font-size:1.6rem; letter-spacing:-0.5px;">Pulpit Ucznia: Stanisław Mikos (Kl. 5B)</h1>
+      <p style="color:var(--muted); margin:0; font-size:0.92rem;">Bieżący plan lekcji, oceny, terminarz sprawdzianów i zadania domowe pobrane z systemu VULCAN.</p>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <div style="background:var(--surface); border:1px solid var(--outline); padding:10px 16px; border-radius:10px; text-align:center;">
+        <span style="font-size:0.75rem; color:var(--muted); font-weight:600; display:block;">SZCZĘŚLIWY NUMEREK</span>
+        <b style="font-size:1.4rem; color:var(--cta);" id="numerekVal">🍀 --</b>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Navigation -->
+<div style="display:flex; gap:10px; border-bottom:1px solid var(--outline); padding-bottom:10px; margin-bottom:24px; flex-wrap:wrap;">
+  <button class="btn primary" id="tabPlanBtn" onclick="showTab('plan')">📅 Plan Lekcji</button>
+  <button class="btn ghost" id="tabTerminarzBtn" onclick="showTab('terminarz')">📝 Sprawdziany & Zadania</button>
+  <button class="btn ghost" id="tabOcenyBtn" onclick="showTab('oceny')">📊 Oceny & Średnie</button>
+</div>
+
+<!-- Tab 1: Plan Lekcji -->
+<div id="tab-plan">
+  <div class="sec-header" style="margin-top:0;">
+    <h2 class="sec-title">📅 Plan Lekcji (Tydzień)</h2>
+    <span style="font-size:0.85rem; color:var(--muted);" id="planSubtitle">Pobieranie z VULCANa…</span>
+  </div>
+  <div id="planGrid" class="tiles" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
+    <p style="color:var(--muted);">Ładowanie planu lekcji…</p>
+  </div>
+</div>
+
+<!-- Tab 2: Terminarz -->
+<div id="tab-terminarz" hidden>
+  <div class="sec-header" style="margin-top:0;">
+    <h2 class="sec-title">📝 Nadchodzące Sprawdziany i Zadania Domowe</h2>
+  </div>
+  <div id="terminarzList" style="display:flex; flex-direction:column; gap:12px;">
+    <p style="color:var(--muted);">Ładowanie terminarza…</p>
+  </div>
+</div>
+
+<!-- Tab 3: Oceny -->
+<div id="tab-oceny" hidden>
+  <div class="sec-header" style="margin-top:0;">
+    <h2 class="sec-title">📊 Oceny i Średnie Przedmiotowe</h2>
+  </div>
+  <div id="ocenyTable" style="display:flex; flex-direction:column; gap:12px;">
+    <p style="color:var(--muted);">Ładowanie ocen…</p>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let vulcanData = null;
+
+async function loadVulcanData() {
+  try {
+    const res = await fetch('/api/vulcan/data');
+    vulcanData = await res.json();
+    
+    // Update Szczęśliwy Numerek
+    if (vulcanData.numerek) {
+      document.getElementById('numerekVal').innerText = '🍀 ' + vulcanData.numerek;
+    }
+    
+    renderPlan();
+    renderTerminarz();
+    renderOceny();
+  } catch (err) {
+    console.error('Błąd pobierania danych VULCAN:', err);
+  }
+}
+
+function renderPlan() {
+  const container = document.getElementById('planGrid');
+  if (!vulcanData || !vulcanData.plan || vulcanData.plan.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Brak danych planu lekcji.</p>';
+    return;
+  }
+  
+  // Group lessons by date (d)
+  const days = {};
+  vulcanData.plan.forEach(l => {
+    const date = l.d || 'Plan';
+    if (!days[date]) days[date] = [];
+    days[date].push(l);
+  });
+
+  const dayNames = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+
+  let html = '';
+  Object.keys(days).sort().forEach(dateStr => {
+    const dObj = new Date(dateStr);
+    const dayName = isNaN(dObj.getDay()) ? dateStr : dayNames[dObj.getDay()];
+    
+    html += `<div class="tile" style="background:var(--surface); border:1px solid var(--outline); padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--outline); padding-bottom:6px;">
+        <b style="font-size:1.05rem; color:var(--ink);">${dayName}</b>
+        <span style="font-size:0.78rem; color:var(--muted);">${dateStr}</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">`;
+      
+    days[dateStr].sort((a,b) => (a.g || '').localeCompare(b.g || '')).forEach(l => {
+      html += `<div style="display:flex; justify-content:space-between; align-items:flex-start; font-size:0.86rem; background:var(--alt-bg); padding:8px 10px; border-radius:6px; border:1px solid var(--outline);">
+        <div>
+          <b style="color:var(--ink); font-size:0.92rem; display:block;">${l.p}</b>
+          <span style="color:var(--muted); font-size:0.78rem;">👨🏫 ${l.n || 'Nauczyciel'} · 🚪 ${l.s || 's. -'}</span>
+        </div>
+        <span style="font-weight:700; color:var(--cta); font-size:0.8rem;">${l.g}</span>
+      </div>`;
+    });
+    
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('planSubtitle').innerText = 'Liczba lekcji w tygodniu: ' + vulcanData.plan.length;
+}
+
+function renderTerminarz() {
+  const container = document.getElementById('terminarzList');
+  if (!vulcanData || !vulcanData.terminarz || vulcanData.terminarz.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Brak nadchodzących sprawdzianów lub zadań.</p>';
+    return;
+  }
+
+  let html = '';
+  vulcanData.terminarz.forEach(t => {
+    html += `<div class="tile" style="background:var(--surface); border:1px solid var(--outline); padding:16px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span class="badge badge-rose">${t.typ || 'Zadanie'}</span>
+        <span style="font-size:0.8rem; font-weight:700; color:var(--cta);">📅 ${t.data}</span>
+      </div>
+      <b style="font-size:1.1rem; color:var(--ink); display:block; margin-bottom:4px;">${t.przedmiot}</b>
+      <p style="margin:0; font-size:0.88rem; color:var(--muted); line-height:1.4;">${t.opis || 'Brak opisu'}</p>
+      <small style="color:var(--dim); font-size:0.78rem; display:block; margin-top:8px;">Autor: ${t.autor || 'Nauczyciel'}</small>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderOceny() {
+  const container = document.getElementById('ocenyTable');
+  if (!vulcanData || !vulcanData.oceny || vulcanData.oceny.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Brak wpisów ocen.</p>';
+    return;
+  }
+
+  let html = '';
+  vulcanData.oceny.forEach(o => {
+    html += `<div class="tile" style="background:var(--surface); border:1px solid var(--outline); padding:14px 18px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <b style="font-size:1.05rem; color:var(--ink);">${o.przedmiot}</b>
+        <span style="font-size:0.82rem; color:var(--muted); display:block;">Średnia: ${o.srednia ? o.srednia.toFixed(2) : '--'}</span>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <span style="font-size:0.85rem; color:var(--muted);">Prop: <b style="color:var(--cta); font-size:1rem;">${o.proponowana || '--'}</b></span>
+        <span style="font-size:0.85rem; color:var(--muted);">Okresowa: <b style="color:var(--accent-emerald); font-size:1rem;">${o.okresowa || '--'}</b></span>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function showTab(tabName) {
+  document.getElementById('tab-plan').hidden = (tabName !== 'plan');
+  document.getElementById('tab-terminarz').hidden = (tabName !== 'terminarz');
+  document.getElementById('tab-oceny').hidden = (tabName !== 'oceny');
+
+  document.getElementById('tabPlanBtn').className = (tabName === 'plan' ? 'btn primary' : 'btn ghost');
+  document.getElementById('tabTerminarzBtn').className = (tabName === 'terminarz' ? 'btn primary' : 'btn ghost');
+  document.getElementById('tabOcenyBtn').className = (tabName === 'oceny' ? 'btn primary' : 'btn ghost');
+}
+
+document.addEventListener('DOMContentLoaded', loadVulcanData);
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080a">
+<title>Dostęp · Klasa 5B</title>
+<link rel="stylesheet" href="/static/style.css?v=1">
+</head>
+<body style="display:flex; align-items:center; justify-content:center; min-height:100vh;">
+<div style="background:var(--surface); border:1px solid var(--outline); border-radius:16px; padding:32px; max-width:400px; width:100%; text-align:center;">
+  <div style="font-size:2.5rem; margin-bottom:12px;">🔐</div>
+  <h1 style="margin:0 0 8px 0; font-size:1.4rem;">Portal Edukacyjny Klasy 5B</h1>
+  <p style="color:var(--muted); font-size:0.88rem; margin:0 0 20px 0;">Wpisz kod dostępu, aby kontynuować.</p>
+  <form method="post" action="/gate" style="display:flex; flex-direction:column; gap:12px;">
+    <input name="code" placeholder="Kod dostępu" required autofocus autocomplete="off" style="background:var(--canvas); border:1px solid var(--outline); padding:12px; border-radius:8px; color:#fff; font-size:1rem; text-align:center;">
+    <button class="btn primary big">Wejdź do Portalu 🚀</button>
+  </form>
+</div>
+</body>
+</html>

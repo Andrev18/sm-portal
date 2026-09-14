@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    container_name: sm-portal-app
+    restart: unless-stopped
+    environment:
+      - PORTAL_SECRET=${PORTAL_SECRET}
+      - PORTAL_ADMIN_PASSWORD=${PORTAL_ADMIN_PASSWORD}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+    volumes:
+      - ./db:/data
+      - ./books:/data/books
+    ports:
+      - "3220:8000"
+  caddy:
+    image: caddy:2-alpine
+    container_name: sm-portal-caddy
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - "3221:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    # caddy dodaje rate-limit per IP przy przyszlym hardeningu; na razie reverse proxy + security headers

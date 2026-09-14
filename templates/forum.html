@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Forum{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>💬 Forum</h1></div>
+<form method="post" action="/forum/new" class="rowform">
+  <input name="title" placeholder="Tytuł wątku" required>
+  <input name="body" placeholder="Pierwszy post" required>
+  <button class="btn primary">Nowy wątek</button>
+</form>
+<div class="list">
+{% for t in threads %}
+  <a class="rowitem" href="/forum/thread/{{ t['id'] }}">
+    <b>{{ t['title'] }}</b><small>autor: {{ t['author_name'] }} · 💬 {{ t['replies'] }}{% if t['pinned'] %} · 📌{% endif %}</small>
+  </a>
+{% else %}<p class="empty">Cicho tu... Załóż pierwszy wątek!</p>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Fiszki{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>🃏 Fiszki</h1>
+{% if user['role'] in ('admin','teacher') %}
+<form method="post" action="/srs/deck" class="rowform">
+  <input name="name" placeholder="Nazwa talii" required>
+  <input name="subject" placeholder="Przedmiot">
+  <button class="btn primary">Nowa talia</button>
+</form>{% endif %}</div>
+<div class="bookgrid">
+{% for d in decks %}
+  <a class="book" href="/srs/deck/{{ d['id'] }}">
+    <div class="cover">🗂 <b>{{ d['name'] }}</b></div>
+    <small>{{ d['subject'] or '—' }} · {{ d['ncards'] }} fiszek</small>
+    {% if d['ndue'] %}<span class="badge">{{ d['ndue'] }} do powtórki</span>{% endif %}
+  </a>
+{% else %}<p class="empty">Brak tali — utwórz pierwszą i wrzuć fiszki (TSV: przód⇥tył).</p>{% endfor %}
+</div>
+{% endblock %}

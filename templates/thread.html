@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}{{ thread['title'] }}{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>💬 {{ thread['title'] }}</h1><a class="btn" href="/forum">← Forum</a></div>
+<div class="list">
+{% for p in posts %}
+  <div class="rowitem"><b>{{ p['author_name'] }}</b><small>{{ p['created_at'] }}</small><p>{{ p['body'] }}</p></div>
+{% endfor %}
+</div>
+<form method="post" action="/forum/thread/{{ thread['id'] }}/reply" class="rowform">
+  <input name="body" placeholder="Odpowiedz..." required>
+  <button class="btn primary">Odpowiedz</button>
+</form>
+{% endblock %}

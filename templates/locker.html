@@ -1,0 +1,75 @@
+{% extends "base.html" %}{% block title %}Choose a Pet · Petdex{% endblock %}
+{% block content %}
+
+<div style="max-width: 960px; margin: 0 auto; padding: 10px 0 40px 0;">
+  <!-- Header matching the screenshot -->
+  <div style="margin-bottom: 20px;">
+    <h1 style="font-size: 1.8rem; margin: 0 0 6px 0; font-weight: 700; letter-spacing: -0.5px;">Choose a pet</h1>
+    <p style="color: var(--muted); margin: 0; font-size: 0.95rem;">Picking one installs it and makes it active in your workspace.</p>
+  </div>
+
+  <!-- Search Input Bar -->
+  <div style="margin-bottom: 24px; position: relative;">
+    <input id="petSearchInput" placeholder="Search pets..." oninput="filterPets()" style="width: 100%; background: var(--alt-bg); border: 1px solid var(--outline); padding: 12px 16px; border-radius: 10px; color: var(--ink); font-size: 0.95rem; outline: none; transition: border-color 0.15s;">
+  </div>
+
+  {% if request.query_params.get('msg') %}
+  <div style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: var(--accent-blue); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;">
+    {{ request.query_params.get('msg') }}
+  </div>
+  {% endif %}
+
+  <!-- 3-Column Petdex Cards Grid -->
+  <div id="petsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+  {% for p in pets %}
+    <div class="pet-card-item" data-name="{{ p['name'] | lower }}" data-slug="{{ p['slug'] | lower }}" style="background: var(--surface); border: {% if p['is_active'] %}2px solid #38bdf8{% else %}1px solid var(--outline){% endif %}; border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 14px; transition: all 0.15s; {% if p['is_active'] %}box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);{% endif %}">
+      <div style="display: flex; align-items: center; gap: 14px; overflow: hidden;">
+        <!-- Left Thumbnail Frame -->
+        <div style="width: 52px; height: 52px; background: var(--alt-bg); border: 1px solid var(--outline); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <img src="{{ p['img'] }}" alt="{{ p['name'] }}" style="width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated;">
+        </div>
+
+        <!-- Text Info -->
+        <div style="overflow: hidden;">
+          <b style="font-size: 1.05rem; display: block; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p['name'] }}</b>
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); display: block; margin-top: 2px;">{{ p['slug'] }}</span>
+        </div>
+      </div>
+
+      <!-- Action Button / Badge -->
+      <div style="flex-shrink: 0;">
+        {% if p['is_active'] %}
+          <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; font-size: 0.72rem; padding: 5px 10px; border-radius: 99px;">Active</span>
+        {% elif p['is_unlocked'] %}
+          <form method="post" action="/api/avatar" onsubmit="window.selectPetdexPet && window.selectPetdexPet('{{ p['slug'] }}')">
+            <input type="hidden" name="item" value="{{ p['slug'] }}">
+            <button class="btn primary small" style="padding: 4px 12px; font-size: 0.8rem;">Select</button>
+          </form>
+        {% else %}
+          <span style="background: var(--alt-bg); color: var(--muted); border: 1px solid var(--outline); font-size: 0.72rem; padding: 4px 8px; border-radius: 6px; font-weight: 600;">🔒 🔥 {{ p['streak_req'] }}d</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterPets() {
+  const query = document.getElementById('petSearchInput').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.pet-card-item');
+  cards.forEach(card => {
+    const name = card.getAttribute('data-name');
+    const slug = card.getAttribute('data-slug');
+    if (name.includes(query) || slug.includes(query)) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}

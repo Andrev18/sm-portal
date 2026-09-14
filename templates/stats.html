@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Moje statystyki{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>📈 Moje statystyki</h1><a class="btn" href="/">← Start</a></div>
+<div class="scorebar wide">
+  <div class="score"><span class="big">⭐ {{ points }}</span><small>punktów</small></div>
+  <div class="score"><span class="big">🔥 {{ streak }} dni</span><small>streak</small></div>
+  <div class="score"><span class="big">🃏 {{ total }}</span><small>powtórek razem</small></div>
+  <div class="score"><span class="big">🎯 {{ accuracy }}%</span><small>trafność (nie "Znowu")</small></div>
+</div>
+<h3>Powtórki — ostatnie 14 dni</h3>
+<div class="chart">
+{% for d in days %}
+  <div class="bar-wrap" title="{{ d['d'] }}: {{ d['n'] }} powtórek">
+    <div class="bar" style="height: {{ (d['n'] / max_n * 100) | int }}%"></div>
+    <small>{{ d['d'][8:] }}.{{ d['d'][5:7] }}</small>
+  </div>
+{% else %}<p class="empty">Brak powtórek jeszcze — zacznij naukę fiszek!</p>{% endfor %}
+</div>
+{% endblock %}

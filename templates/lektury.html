@@ -1,0 +1,55 @@
+{% extends "base.html" %}{% block title %}Lektury & Książki 5B{% endblock %}
+{% block content %}
+<div class="sec-header" style="margin-top:0; flex-direction:column; align-items:flex-start; gap:6px;">
+  <span class="badge badge-rose">📖 LEKTURY & KSIAŻKI 5 KLASA</span>
+  <h1 style="margin:0; font-size:1.6rem;">Lektury Szkolne & Dysk Google</h1>
+  <p style="color:var(--muted); margin:0; font-size:0.92rem;">Pełne skany lektur, książki cyfrowe oraz folder Google Drive podpięty pod b2bgliwice@gmail.com.</p>
+</div>
+
+<!-- Dysk Google Card -->
+<div style="background:var(--alt-bg); border:1px solid var(--outline); border-radius:14px; padding:20px 24px; margin:20px 0 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:var(--card-shadow);">
+  <div style="display:flex; align-items:center; gap:16px;">
+    <span style="font-size:2.8rem;">📂</span>
+    <div>
+      <b style="font-size:1.15rem; color:var(--ink); display:block;">Folder Lektur na Dysku Google (b2bgliwice@gmail.com)</b>
+      <p style="margin:4px 0 0; color:var(--muted); font-size:0.88rem;">Chmura z materiałami, lekturami i opracowaniami przygotowanymi dla klasy 5.</p>
+    </div>
+  </div>
+  <a class="btn primary" href="https://drive.google.com/drive/u/0/my-drive" target="_blank">Otwórz Dysk Google 🚀</a>
+</div>
+
+<h2 class="sec-title" style="margin-bottom:16px;">📚 Katalog Lektur Szkolnych</h2>
+<div class="tiles" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:18px; margin-bottom:36px;">
+{% for l in lektury %}
+  <div class="tile" style="display:flex; flex-direction:column; justify-content:space-between; padding:20px;">
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <span class="ico" style="font-size:2.4rem; margin:0;">{{ l['icon'] }}</span>
+        <span class="badge badge-purple">{{ l['type'] }}</span>
+      </div>
+      <b style="font-size:1.15rem; margin-bottom:2px;">{{ l['title'] }}</b>
+      <small style="color:var(--cta); font-weight:600; display:block; margin-bottom:8px;">✍️ {{ l['author'] }}</small>
+      <p style="color:var(--muted); font-size:0.84rem; line-height:1.45; margin:0 0 16px;">{{ l['desc'] }}</p>
+    </div>
+    <a class="btn primary small" href="{{ l['drive_url'] }}" {% if l['drive_url'].startswith('http') %}target="_blank"{% endif %} style="width:100%;">Czytaj lekturę 📖</a>
+  </div>
+{% endfor %}
+</div>
+
+{% if books %}
+<h2 class="sec-title" style="margin-bottom:16px;">📄 Pliki PDF w Portalu</h2>
+<div class="tiles" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:16px; margin-bottom:36px;">
+{% for b in books %}
+  <a class="tile" href="/read/{{ b['id'] }}">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <span class="ico" style="margin:0;">📄</span>
+      <span class="badge badge-blue">{{ b['filetype'] or 'pdf' }}</span>
+    </div>
+    <b>{{ b['title'] }}</b>
+    <small>{{ b['subject'] or '—' }} · Czytaj w czytniku 📖</small>
+  </a>
+{% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

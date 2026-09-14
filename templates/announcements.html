@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}Ogłoszenia{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>📢 Ogłoszenia</h1>
+{% if user['role'] in ('admin','teacher') %}
+<form method="post" action="/announcements" class="rowform">
+  <input name="title" placeholder="Tytuł" required>
+  <input name="body" placeholder="Treść" required>
+  <input name="due_date" type="date">
+  <button class="btn primary">Dodaj</button>
+</form>{% endif %}</div>
+<div class="list">
+{% for a in items %}
+  <div class="rowitem {% if not a['read_flag'] %}unread{% endif %}">
+    <b>{{ a['title'] }}</b><small>{{ a['author_name'] }}{% if a['due_date'] %} · termin: {{ a['due_date'] }}{% endif %}</small>
+    <p>{{ a['body'] }}</p>
+    {% if not a['read_flag'] %}<form method="post" action="/announcements/{{ a['id'] }}/read"><button class="btn small">Oznacz jako przeczytane</button></form>{% endif %}
+  </div>
+{% else %}<p class="empty">Brak ogłoszeń.</p>{% endfor %}
+</div>
+{% endblock %}

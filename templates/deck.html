@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}Talia{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>🗂 {{ deck['name'] }}</h1><a class="btn" href="/srs">← Fiszki</a>
+<a class="btn primary" href="/srs/study/{{ deck['id'] }}">▶ Ucz się</a></div>
+{% if user['role'] in ('admin','teacher') %}
+<details class="rowform"><summary>+ Dodaj fiszki</summary>
+  <form method="post" action="/srs/deck/{{ deck['id'] }}/cards" class="rowform">
+    <input name="front" placeholder="Przód" required>
+    <input name="back" placeholder="Tył" required>
+    <button class="btn primary">Dodaj</button>
+  </form>
+  <form method="post" action="/srs/deck/{{ deck['id'] }}/apkg" enctype="multipart/form-data" class="rowform">
+    <input type="file" name="file" accept=".apkg,.tsv,.txt">
+    <button class="btn">Import (.apkg/.tsv)</button>
+  </form>
+</details>
+{% endif %}
+<div class="cardlist">
+{% for c in cards %}<div class="cardrow"><b>{{ c['front'] }}</b></div>{% endfor %}
+</div>
+{% endblock %}
