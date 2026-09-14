@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-text overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-all;
+  }
+  
+  .glass-panel {
+    @apply bg-white/[0.03] border border-white/5 backdrop-blur-xl;
+  }
+  
+  .glass-panel-hover {
+    @apply bg-white/[0.03] border border-white/5 backdrop-blur-xl hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300;
+  }
+}
