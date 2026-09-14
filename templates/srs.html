@@ -1,19 +1,58 @@
-{% extends "base.html" %}{% block title %}Fiszki{% endblock %}
+{% extends "base.html" %}{% block title %}Fiszki SRS · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-<div class="pagehead"><h1>🃏 Fiszki</h1>
-{% if user['role'] in ('admin','teacher') %}
-<form method="post" action="/srs/deck" class="rowform">
-  <input name="name" placeholder="Nazwa talii" required>
-  <input name="subject" placeholder="Przedmiot">
-  <button class="btn primary">Nowa talia</button>
-</form>{% endif %}</div>
-<div class="bookgrid">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px;">
+      🃏 Fiszki & Powtórki (SM-2)
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 14px;">
+      Inteligentny algorytm powtórek przestrzennych dla Klasy 5B.
+    </p>
+  </div>
+
+  {% if user['role'] in ('admin','teacher') %}
+  <form method="post" action="/srs/deck" style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <input name="name" placeholder="Nazwa nowej talii..." required style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none;">
+    <input name="subject" placeholder="Przedmiot (np. Geografia)" style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none;">
+    <button class="btn btn-primary">
+      <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Utwórz talię
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<!-- Grid Talii -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
 {% for d in decks %}
-  <a class="book" href="/srs/deck/{{ d['id'] }}">
-    <div class="cover">🗂 <b>{{ d['name'] }}</b></div>
-    <small>{{ d['subject'] or '—' }} · {{ d['ncards'] }} fiszek</small>
-    {% if d['ndue'] %}<span class="badge">{{ d['ndue'] }} do powtórki</span>{% endif %}
+  <a href="/srs/deck/{{ d['id'] }}" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(158, 127, 255, 0.1); border: 1px solid rgba(158, 127, 255, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-purple);">
+          <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+        </div>
+        <span class="status-badge badge-purple" style="font-size: 11px;">{{ d['ncards'] }} fiszek</span>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 600; margin-bottom: 6px; color: #fff;">{{ d['name'] }}</h3>
+      <div style="font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
+        {{ d['subject'] or 'Przedmiot ogólny' }}
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+      {% if d['ndue'] %}
+        <span class="status-badge badge-orange">🔥 {{ d['ndue'] }} do powtórki</span>
+      {% else %}
+        <span class="status-badge badge-emerald">✓ Na bieżąco</span>
+      {% endif %}
+      <span style="font-size: 13px; color: var(--accent-purple); font-weight: 600;">Otwórz →</span>
+    </div>
   </a>
-{% else %}<p class="empty">Brak tali — utwórz pierwszą i wrzuć fiszki (TSV: przód⇥tył).</p>{% endfor %}
+{% else %}
+  <div class="glass-card" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+    <i data-lucide="inbox" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+    <h3 style="font-size: 18px; margin-bottom: 8px;">Brak aktywnych talii</h3>
+    <p style="color: var(--text-secondary); font-size: 14px;">Utwórz pierwszą talię powyżej, aby rozpocząć naukę z algorytmem SM-2.</p>
+  </div>
+{% endfor %}
 </div>
 {% endblock %}
