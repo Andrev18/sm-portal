@@ -1,64 +1,57 @@
-{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · SP13{% endblock %}
+{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-
-<!-- Notion Hero Header -->
-<div class="notion-hero" style="margin-bottom:24px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-    <div>
-      <span class="badge badge-blue" style="margin-bottom:8px;">🏫 E-DZIENNIK VULCAN · SP13 GLIWICE</span>
-      <h1 style="margin:4px 0 6px; font-size:1.6rem; letter-spacing:-0.5px;">Pulpit Ucznia: Stanisław Mikos (Kl. 5B)</h1>
-      <p style="color:var(--muted); margin:0; font-size:0.92rem;">Bieżący plan lekcji, oceny, terminarz sprawdzianów i zadania domowe pobrane z systemu VULCAN.</p>
-    </div>
-    <div style="display:flex; gap:12px; align-items:center;">
-      <div style="background:var(--surface); border:1px solid var(--outline); padding:10px 16px; border-radius:10px; text-align:center;">
-        <span style="font-size:0.75rem; color:var(--muted); font-weight:600; display:block;">SZCZĘŚLIWY NUMEREK</span>
-        <b style="font-size:1.4rem; color:var(--cta);" id="numerekVal">🍀 --</b>
-      </div>
-    </div>
+<div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
+  <div>
+    <div class="status-badge badge-cyan" style="margin-bottom: 8px;">🏫 E-DZIENNIK VULCAN · SP13 GLIWICE</div>
+    <h1 style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px;">
+      Pulpit Ucznia: {{ user['name'] }}
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 14px;">
+      Bieżący plan lekcji, oceny, terminarz sprawdzianów i zadania domowe.
+    </p>
+  </div>
+  <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 10px 16px; border-radius: 12px; text-align: center; color: var(--accent-emerald);">
+    <span style="font-size: 10px; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;">Szczęśliwy Numerek</span>
+    <b style="font-size: 24px; font-weight: 700;" id="numerekVal">🍀 --</b>
   </div>
 </div>
 
 <!-- Tab Navigation -->
-<div style="display:flex; gap:10px; border-bottom:1px solid var(--outline); padding-bottom:10px; margin-bottom:24px; flex-wrap:wrap;">
-  <button class="btn primary" id="tabPlanBtn" onclick="showTab('plan')">📅 Plan Lekcji</button>
-  <button class="btn ghost" id="tabTerminarzBtn" onclick="showTab('terminarz')">📝 Sprawdziany & Zadania</button>
-  <button class="btn ghost" id="tabOcenyBtn" onclick="showTab('oceny')">📊 Oceny & Średnie</button>
+<div style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;">
+  <button id="tabPlanBtn" class="btn btn-primary" onclick="showTab('plan')" style="padding: 10px 20px;">
+    <i data-lucide="calendar"></i> Plan Lekcji
+  </button>
+  <button id="tabTerminarzBtn" class="btn btn-secondary" onclick="showTab('terminarz')" style="padding: 10px 20px;">
+    <i data-lucide="calendar-check"></i> Sprawdziany
+  </button>
+  <button id="tabOcenyBtn" class="btn btn-secondary" onclick="showTab('oceny')" style="padding: 10px 20px;">
+    <i data-lucide="bar-chart-2"></i> Oceny
+  </button>
 </div>
 
 <!-- Tab 1: Plan Lekcji -->
 <div id="tab-plan">
-  <div class="sec-header" style="margin-top:0;">
-    <h2 class="sec-title">📅 Plan Lekcji (Tydzień)</h2>
-    <span style="font-size:0.85rem; color:var(--muted);" id="planSubtitle">Pobieranie z VULCANa…</span>
+  <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="font-size: 18px; font-weight: 600; color: #fff;">Plan Lekcji (Home Assistant Live Sync)</h2>
+    <span id="planSubtitle" style="font-size: 13px; color: var(--text-secondary);">Ładowanie danych...</span>
   </div>
-  <div id="planGrid" class="tiles" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
-    <p style="color:var(--muted);">Ładowanie planu lekcji…</p>
+  <div id="planGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+    <!-- Rendered by JS -->
   </div>
 </div>
 
-<!-- Tab 2: Terminarz -->
-<div id="tab-terminarz" hidden>
-  <div class="sec-header" style="margin-top:0;">
-    <h2 class="sec-title">📝 Nadchodzące Sprawdziany i Zadania Domowe</h2>
-  </div>
-  <div id="terminarzList" style="display:flex; flex-direction:column; gap:12px;">
-    <p style="color:var(--muted);">Ładowanie terminarza…</p>
-  </div>
+<!-- Tab 2: Sprawdziany i Zadania -->
+<div id="tab-terminarz" class="hidden">
+  <h2 style="font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px;">Nadchodzące Sprawdziany i Zadania Domowe</h2>
+  <div id="terminarzList" style="display: flex; flex-direction: column; gap: 12px;"></div>
 </div>
 
 <!-- Tab 3: Oceny -->
-<div id="tab-oceny" hidden>
-  <div class="sec-header" style="margin-top:0;">
-    <h2 class="sec-title">📊 Oceny i Średnie Przedmiotowe</h2>
-  </div>
-  <div id="ocenyTable" style="display:flex; flex-direction:column; gap:12px;">
-    <p style="color:var(--muted);">Ładowanie ocen…</p>
-  </div>
+<div id="tab-oceny" class="hidden">
+  <h2 style="font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px;">Oceny i Średnie</h2>
+  <div id="ocenyTable" style="display: flex; flex-direction: column; gap: 12px;"></div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script>
 let vulcanData = null;
 
@@ -67,7 +60,6 @@ async function loadVulcanData() {
     const res = await fetch('/api/vulcan/data');
     vulcanData = await res.json();
     
-    // Update Szczęśliwy Numerek
     if (vulcanData.numerek) {
       document.getElementById('numerekVal').innerText = '🍀 ' + vulcanData.numerek;
     }
@@ -76,18 +68,18 @@ async function loadVulcanData() {
     renderTerminarz();
     renderOceny();
   } catch (err) {
-    console.error('Błąd pobierania danych VULCAN:', err);
+    console.error('Błąd VULCAN API:', err);
+    document.getElementById('planGrid').innerHTML = '<div class="glass-card"><p>Błąd ładowania danych z Home Assistant (brak integracji / tokena).</p></div>';
   }
 }
 
 function renderPlan() {
   const container = document.getElementById('planGrid');
   if (!vulcanData || !vulcanData.plan || vulcanData.plan.length === 0) {
-    container.innerHTML = '<p style="color:var(--muted);">Brak danych planu lekcji.</p>';
+    container.innerHTML = '<div class="glass-card" style="text-align:center;"><p>Brak lekcji w systemie VULCAN.</p></div>';
     return;
   }
   
-  // Group lessons by date (d)
   const days = {};
   vulcanData.plan.forEach(l => {
     const date = l.d || 'Plan';
@@ -102,20 +94,20 @@ function renderPlan() {
     const dObj = new Date(dateStr);
     const dayName = isNaN(dObj.getDay()) ? dateStr : dayNames[dObj.getDay()];
     
-    html += `<div class="tile" style="background:var(--surface); border:1px solid var(--outline); padding:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--outline); padding-bottom:6px;">
-        <b style="font-size:1.05rem; color:var(--ink);">${dayName}</b>
-        <span style="font-size:0.78rem; color:var(--muted);">${dateStr}</span>
+    html += `<div class="glass-card" style="padding: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+        <b style="font-size:15px; color:#fff;">${dayName}</b>
+        <span style="font-size:12px; color:var(--text-secondary);">${dateStr}</span>
       </div>
-      <div style="display:flex; flex-direction:column; gap:10px;">`;
+      <div style="display:flex; flex-direction:column; gap:8px;">`;
       
     days[dateStr].sort((a,b) => (a.g || '').localeCompare(b.g || '')).forEach(l => {
-      html += `<div style="display:flex; justify-content:space-between; align-items:flex-start; font-size:0.86rem; background:var(--alt-bg); padding:8px 10px; border-radius:6px; border:1px solid var(--outline);">
+      html += `<div style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.03); padding:10px 12px; border-radius:8px; border: 1px solid var(--border-subtle);">
         <div>
-          <b style="color:var(--ink); font-size:0.92rem; display:block;">${l.p}</b>
-          <span style="color:var(--muted); font-size:0.78rem;">👨🏫 ${l.n || 'Nauczyciel'} · 🚪 ${l.s || 's. -'}</span>
+          <b style="color:#fff; font-size:13px; display:block; margin-bottom:2px;">${l.p}</b>
+          <span style="color:var(--text-muted); font-size:11px;">${l.n || 'Nauczyciel'} · sala ${l.s || '-'}</span>
         </div>
-        <span style="font-weight:700; color:var(--cta); font-size:0.8rem;">${l.g}</span>
+        <span style="font-weight:600; color:var(--accent-cyan); font-size:12px;">${l.g}</span>
       </div>`;
     });
     
@@ -123,64 +115,65 @@ function renderPlan() {
   });
 
   container.innerHTML = html;
-  document.getElementById('planSubtitle').innerText = 'Liczba lekcji w tygodniu: ' + vulcanData.plan.length;
+  document.getElementById('planSubtitle').innerText = 'Pobrano z integracji Home Assistant';
 }
 
 function renderTerminarz() {
   const container = document.getElementById('terminarzList');
   if (!vulcanData || !vulcanData.terminarz || vulcanData.terminarz.length === 0) {
-    container.innerHTML = '<p style="color:var(--muted);">Brak nadchodzących sprawdzianów lub zadań.</p>';
+    container.innerHTML = '<div class="glass-card"><p style="color: var(--text-secondary); text-align: center;">Mamy to! Brak nadchodzących sprawdzianów na koncie UONET+.</p></div>';
     return;
   }
-
   let html = '';
   vulcanData.terminarz.forEach(t => {
-    html += `<div class="tile" style="background:var(--surface); border:1px solid var(--outline); padding:16px; text-align:left;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span class="badge badge-rose">${t.typ || 'Zadanie'}</span>
-        <span style="font-size:0.8rem; font-weight:700; color:var(--cta);">📅 ${t.data}</span>
+    html += `<div class="glass-card" style="padding: 16px; border-left: 3px solid var(--accent-rose);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span class="status-badge badge-rose">${t.typ || 'Zadanie'}</span>
+        <span style="font-size:12px; font-weight:600; color:var(--accent-cyan);">📅 ${t.data}</span>
       </div>
-      <b style="font-size:1.1rem; color:var(--ink); display:block; margin-bottom:4px;">${t.przedmiot}</b>
-      <p style="margin:0; font-size:0.88rem; color:var(--muted); line-height:1.4;">${t.opis || 'Brak opisu'}</p>
-      <small style="color:var(--dim); font-size:0.78rem; display:block; margin-top:8px;">Autor: ${t.autor || 'Nauczyciel'}</small>
+      <b style="font-size:15px; color:#fff; display:block; margin-bottom:4px;">${t.przedmiot}</b>
+      <p style="margin:0; font-size:13px; color:var(--text-secondary); line-height:1.5;">${t.opis || 'Brak opisu z VULCAN'}</p>
     </div>`;
   });
-
   container.innerHTML = html;
 }
 
 function renderOceny() {
   const container = document.getElementById('ocenyTable');
   if (!vulcanData || !vulcanData.oceny || vulcanData.oceny.length === 0) {
-    container.innerHTML = '<p style="color:var(--muted);">Brak wpisów ocen.</p>';
+    container.innerHTML = '<div class="glass-card"><p style="color: var(--text-secondary); text-align: center;">Brak ocen wyciągniętych przez czujnik Home Assistant.</p></div>';
     return;
   }
-
   let html = '';
   vulcanData.oceny.forEach(o => {
-    html += `<div class="tile" style="background:var(--surface); border:1px solid var(--outline); padding:14px 18px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    html += `<div class="glass-card" style="padding: 16px; display:flex; justify-content:space-between; align-items:center;">
       <div>
-        <b style="font-size:1.05rem; color:var(--ink);">${o.przedmiot}</b>
-        <span style="font-size:0.82rem; color:var(--muted); display:block;">Średnia: ${o.srednia ? o.srednia.toFixed(2) : '--'}</span>
+        <b style="font-size:15px; color:#fff; display:block; margin-bottom:4px;">${o.przedmiot}</b>
+        <span style="font-size:12px; color:var(--text-secondary);">Średnia z dziennika VULCAN</span>
       </div>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <span style="font-size:0.85rem; color:var(--muted);">Prop: <b style="color:var(--cta); font-size:1rem;">${o.proponowana || '--'}</b></span>
-        <span style="font-size:0.85rem; color:var(--muted);">Okresowa: <b style="color:var(--accent-emerald); font-size:1rem;">${o.okresowa || '--'}</b></span>
+      <div style="display:flex; gap:16px; align-items:center;">
+        <div style="text-align: right;">
+          <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; display:block;">Średnia</span>
+          <b style="color:var(--accent-cyan); font-size:18px;">${o.srednia ? o.srednia.toFixed(2) : '--'}</b>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; display:block;">Przewidywana</span>
+          <b style="color:var(--accent-emerald); font-size:18px;">${o.proponowana || '--'}</b>
+        </div>
       </div>
     </div>`;
   });
-
   container.innerHTML = html;
 }
 
 function showTab(tabName) {
-  document.getElementById('tab-plan').hidden = (tabName !== 'plan');
-  document.getElementById('tab-terminarz').hidden = (tabName !== 'terminarz');
-  document.getElementById('tab-oceny').hidden = (tabName !== 'oceny');
+  document.getElementById('tab-plan').classList.toggle('hidden', tabName !== 'plan');
+  document.getElementById('tab-terminarz').classList.toggle('hidden', tabName !== 'terminarz');
+  document.getElementById('tab-oceny').classList.toggle('hidden', tabName !== 'oceny');
 
-  document.getElementById('tabPlanBtn').className = (tabName === 'plan' ? 'btn primary' : 'btn ghost');
-  document.getElementById('tabTerminarzBtn').className = (tabName === 'terminarz' ? 'btn primary' : 'btn ghost');
-  document.getElementById('tabOcenyBtn').className = (tabName === 'oceny' ? 'btn primary' : 'btn ghost');
+  document.getElementById('tabPlanBtn').className = (tabName === 'plan' ? 'btn btn-primary' : 'btn btn-secondary');
+  document.getElementById('tabTerminarzBtn').className = (tabName === 'terminarz' ? 'btn btn-primary' : 'btn btn-secondary');
+  document.getElementById('tabOcenyBtn').className = (tabName === 'oceny' ? 'btn btn-primary' : 'btn btn-secondary');
 }
 
 document.addEventListener('DOMContentLoaded', loadVulcanData);
