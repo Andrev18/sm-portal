@@ -253,7 +253,7 @@
       backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center; /* Wyśrodkowanie */
       padding: 0 24px;
       flex-shrink: 0;
       position: sticky;
@@ -264,8 +264,16 @@
       display: flex;
       align-items: center;
       gap: 16px;
+      position: absolute;
+      left: 24px;
     }
-    .sidebar-toggle-btn {
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: absolute;
+      right: 24px;
+    }
       background: transparent;
       border: 1px solid var(--border-subtle);
       color: var(--text-secondary);
@@ -448,6 +456,9 @@
       box-shadow: 0 0 8px var(--accent-emerald);
       display: inline-block;
     }
+    .hidden { display: none !important; }
+    .grid-card-interactive { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .grid-card-interactive:hover { transform: translateY(-3px); }
   </style>
 </head>
 <body>
@@ -490,67 +501,79 @@
       </div>
 
       <div class="nav-category">
-        <div class="nav-category-title">Przedmioty Klasy 5B</div>
-        <a href="/subjects" class="nav-link">
-          <i data-lucide="calculator"></i>
-          <span class="hide-on-collapse">Matematyka</span>
-        </a>
-        <a href="/subjects" class="nav-link">
-          <i data-lucide="book-marked"></i>
-          <span class="hide-on-collapse">Język Polski</span>
-        </a>
-        <a href="/subjects" class="nav-link">
-          <i data-lucide="globe-2"></i>
-          <span class="hide-on-collapse">J. Angielski (FreeLingo)</span>
-        </a>
-        <a href="/subjects" class="nav-link">
-          <i data-lucide="compass"></i>
-          <span class="hide-on-collapse">Geografia & Przyroda</span>
-        </a>
+        <div class="nav-category-title" style="display: flex; justify-content: space-between; cursor: pointer;" onclick="document.getElementById('nav-przedmioty').classList.toggle('hidden')">
+          <span>Przedmioty Klasy 5B</span>
+          <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
+        </div>
+        <div id="nav-przedmioty">
+          <a href="/subjects" class="nav-link">
+            <i data-lucide="calculator"></i>
+            <span class="hide-on-collapse">Matematyka</span>
+          </a>
+          <a href="/subjects" class="nav-link">
+            <i data-lucide="book-marked"></i>
+            <span class="hide-on-collapse">Język Polski</span>
+          </a>
+          <a href="/subjects" class="nav-link">
+            <i data-lucide="globe-2"></i>
+            <span class="hide-on-collapse">J. Angielski (FreeLingo)</span>
+          </a>
+          <a href="/subjects" class="nav-link">
+            <i data-lucide="compass"></i>
+            <span class="hide-on-collapse">Geografia & Przyroda</span>
+          </a>
+        </div>
       </div>
 
       <div class="nav-category">
-        <div class="nav-category-title">Aplikacje & Narzędzia</div>
-        <a href="/serwisy" class="nav-link">
-          <i data-lucide="grid"></i>
-          <span class="hide-on-collapse">Ekosystem Serwisów</span>
-        </a>
-        <a href="/leaderboard" class="nav-link">
-          <i data-lucide="trophy"></i>
-          <span class="hide-on-collapse">Ranking Klasowy</span>
-        </a>
-        <a href="/forum" class="nav-link">
-          <i data-lucide="message-square"></i>
-          <span class="hide-on-collapse">Forum Uczniów</span>
-        </a>
-        {% if user and user['role'] in ['teacher', 'admin'] %}
-        <a href="/teacher" class="nav-link">
-          <i data-lucide="shield-check"></i>
-          <span class="hide-on-collapse">Panel Nauczyciela</span>
-        </a>
-        {% endif %}
+        <div class="nav-category-title" style="display: flex; justify-content: space-between; cursor: pointer;" onclick="document.getElementById('nav-narzedzia').classList.toggle('hidden')">
+          <span>Aplikacje & Narzędzia</span>
+          <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
+        </div>
+        <div id="nav-narzedzia">
+          <a href="/serwisy" class="nav-link">
+            <i data-lucide="grid"></i>
+            <span class="hide-on-collapse">Ekosystem Serwisów</span>
+          </a>
+          <a href="/leaderboard" class="nav-link">
+            <i data-lucide="trophy"></i>
+            <span class="hide-on-collapse">Ranking Klasowy</span>
+          </a>
+          <a href="/forum" class="nav-link">
+            <i data-lucide="message-square"></i>
+            <span class="hide-on-collapse">Forum Uczniów</span>
+          </a>
+        <!-- Theme Picker w Sidebarze -->
+      <div class="theme-switch" style="margin-top: auto; padding: 24px; border-top: 1px solid var(--border-subtle);">
+        <p class="hide-on-collapse" style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px 0; font-weight: 600; letter-spacing: 0.5px;">Wybór Motywu</p>
+        <div style="display: flex; gap: 12px;" class="hide-on-collapse">
+          <button style="width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); background: #09090b; cursor: pointer; transition: transform 0.2s;" onclick="document.documentElement.setAttribute('data-theme', 'obsidian'); localStorage.setItem('theme', 'obsidian');" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Obsidian"></button>
+          <button style="width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); background: #0f172a; cursor: pointer; transition: transform 0.2s;" onclick="document.documentElement.setAttribute('data-theme', 'deepblue'); localStorage.setItem('theme', 'deepblue');" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Deep Blue"></button>
+          <button style="width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); background: #052e16; cursor: pointer; transition: transform 0.2s;" onclick="document.documentElement.setAttribute('data-theme', 'emerald'); localStorage.setItem('theme', 'emerald');" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Emerald"></button>
+        </div>
       </div>
     </nav>
   </aside>
 
   <!-- MAIN VIEW -->
   <div class="main-wrapper">
-    <header class="top-header">
-      <div class="header-left">
+    <header class="top-header" style="justify-content: center; position: sticky; top: 0; z-index: 30; display: flex; align-items: center; border-bottom: 1px solid var(--border-subtle); background: rgba(9, 9, 11, 0.7); backdrop-filter: blur(16px); padding: 0 24px;">
+      <div class="header-left" style="position: absolute; left: 24px; display: flex; align-items: center; gap: 16px;">
         <button class="sidebar-toggle-btn" onclick="document.getElementById('mainSidebar').classList.toggle('collapsed')" title="Zwiń / Rozwiń panel">
           <i data-lucide="panel-left-close"></i>
         </button>
-
-        <div class="nav-tabs">
-          <a href="/" class="nav-tab-item active">Pulpit</a>
-          <a href="/srs" class="nav-tab-item">Fiszki</a>
-          <a href="/vulcan" class="nav-tab-item">Vulcan</a>
-          <a href="/serwisy" class="nav-tab-item">Aplikacje</a>
-          <a href="/leaderboard" class="nav-tab-item">Ranking</a>
-        </div>
       </div>
 
-      <div class="header-right">
+      <!-- Wypośrodkowane menu nawigacyjne Top-Tabs -->
+      <div class="nav-tabs" style="display: flex; gap: 20px; align-items: center;">
+        <a href="/" class="nav-tab-item active" style="font-weight: 500; text-decoration: none;">Pulpit</a>
+        <a href="/srs" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Fiszki</a>
+        <a href="/vulcan" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Vulcan</a>
+        <a href="/serwisy" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Aplikacje</a>
+        <a href="/leaderboard" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Ranking</a>
+      </div>
+
+      <div class="header-right" style="position: absolute; right: 24px; display: flex; align-items: center; gap: 12px;">
         <div class="search-pill">
           <i data-lucide="search" style="width: 14px; height: 14px;"></i>
           <span>Szukaj...</span>
@@ -559,8 +582,7 @@
 
         {% if user %}
         <div style="display: flex; align-items: center; gap: 10px; margin-left: 8px;">
-          <span style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">{{ user['name'] }}</span>
-          <a href="/logout" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Wyloguj</a>
+          <a href="/logout" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i data-lucide="log-out" style="width: 14px; height: 14px; margin-right: 6px;"></i> Wyloguj</a>
         </div>
         {% endif %}
       </div>
@@ -568,17 +590,6 @@
 
     <div class="content-scroll">
       <div class="content-container">
-        <!-- Theme Picker Widget -->
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); padding: 6px; border-radius: 12px; display: flex; gap: 8px;">
-            <button onclick="document.documentElement.setAttribute('data-theme', 'obsidian'); localStorage.setItem('theme', 'obsidian')" 
-                    style="width: 24px; height: 24px; border-radius: 50%; background: #09090b; border: 2px solid #38bdf8; cursor: pointer;" title="Ciemny (Obsidian)"></button>
-            <button onclick="document.documentElement.setAttribute('data-theme', 'deepblue'); localStorage.setItem('theme', 'deepblue')" 
-                    style="width: 24px; height: 24px; border-radius: 50%; background: #0f172a; border: 2px solid #8b5cf6; cursor: pointer;" title="Głębinowy (Deep Blue)"></button>
-            <button onclick="document.documentElement.setAttribute('data-theme', 'emerald'); localStorage.setItem('theme', 'emerald')" 
-                    style="width: 24px; height: 24px; border-radius: 50%; background: #052e16; border: 2px solid #10b981; cursor: pointer;" title="Leśny (Emerald)"></button>
-          </div>
-        </div>
         
         {% block content %}{% endblock %}
       </div>
