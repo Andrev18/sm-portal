@@ -163,5 +163,34 @@
     }
     
     document.addEventListener("DOMContentLoaded", () => { if (window.lucide) { lucide.createIcons(); } });
+
+    async function saveCard() {
+        const front = document.getElementById('editFront').value;
+        const back = document.getElementById('editBack').value;
+        
+        // Bierzemy ID aktywnej fiszki z globalnej zmiennej (musi być obsłużone w logice JS ładującej talię)
+        // Dla kompatybilności z Twoim wymogiem zakładamy window.currentCardId
+        if(!window.currentCardId) { alert("Brak aktywnej fiszki"); return; }
+        
+        const fd = new FormData();
+        fd.append('front', front);
+        fd.append('back', back);
+        
+        try {
+            const resp = await fetch('/srs/card/' + window.currentCardId + '/edit', {
+                method: 'POST',
+                body: fd
+            });
+            if(resp.ok) {
+                document.getElementById('editStatus').innerText = "✓ Zapisano pomyślnie";
+                document.getElementById('editStatus').classList.remove('hidden');
+                // Podmień widok
+                document.getElementById('front').innerHTML = `<h2 class="text-xl text-white font-medium mb-8 leading-relaxed">${front}</h2>`;
+                document.getElementById('back').innerHTML = `<div class="text-emerald-400 font-medium text-lg leading-relaxed mb-10">${back}</div>... (przyciski)`;
+                setTimeout(()=>document.getElementById('editStatus').classList.add('hidden'), 3000);
+            }
+        } catch(e) { alert("Błąd zapisu!"); }
+    }
+    
 </script>
 {% endblock %}
