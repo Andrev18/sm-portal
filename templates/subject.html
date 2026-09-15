@@ -137,7 +137,7 @@
   {% else %}
     <div class="glass-card" style="padding: 24px; text-align: center; grid-column: 1 / -1; border-style: dashed; background: rgba(255,255,255,0.01);">
       <p style="color: var(--text-muted); margin-bottom: 12px;">Nie masz jeszcze talii fiszek przypisanej do tego przedmiotu.</p>
-      <button class="btn btn-secondary" onclick="alert('Wkrótce: Auto-generowanie bazy wiedzy ze skanów pdf')"><i data-lucide="wand-2"></i> Stwórz pierwszą mądrą talię (AI)</button>
+      <form method="post" action="/srs/deck" style="display:inline-block;"><input type="hidden" name="name" value="{{ subject['name'] }} - Baza Wiedzy"><input type="hidden" name="subject" value="{{ subject['name'] }}"><button type="submit" class="btn btn-secondary border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10" style="display:flex; align-items:center; gap:8px;"><i data-lucide="wand-2" style="width:16px;height:16px;"></i> Aktywuj Fiszkomat AI i utwórz Talię</button></form>
     </div>
   {% endfor %}
 </div>
