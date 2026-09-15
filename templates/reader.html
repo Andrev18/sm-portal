@@ -1,9 +1,180 @@
-{% extends "base.html" %}{% block title %}Czytelnia{% endblock %}
+{% extends "base.html" %}{% block title %}Tryb Czytania · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-<div class="pagehead"><h1>📖 {{ book['title'] }}</h1><a class="btn" href="/library">← Biblioteka</a></div>
-<div id="reader" data-book="{{ book['id'] }}" data-type="{{ book['filetype'] }}" data-page="{{ page }}"></div>
+<style>
+  body { overflow: hidden; }
+  .top-header, .sidebar { display: none !important; }
+  
+  .reader-app-wrapper {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .focus-top-bar {
+    height: 64px;
+    background: rgba(9, 9, 11, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    flex-shrink: 0;
+  }
+
+  .floating-progress-container {
+    width: 60%;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .focus-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  
+  .focus-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .reader-main-area {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .side-overlay-panel {
+    width: 250px;
+    background: rgba(9, 9, 11, 0.7);
+    border-right: 1px solid var(--border-subtle);
+    backdrop-filter: blur(16px);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .pdf-viewer-container {
+    flex: 1;
+    background: #18181b;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+  }
+  .page-nav-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.4); color: var(--accent-cyan); }
+  .page-nav-prev { left: 24px; }
+  .page-nav-next { right: 24px; }
+
+  #pdfFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+  }
+</style>
+
+<div class="reader-app-wrapper">
+  <div class="focus-top-bar">
+    <a href="/subjects" class="btn btn-secondary" style="background: rgba(255,255,255,0.05); border:none;"><i data-lucide="arrow-left" style="width: 16px;"></i> Zamknij</a>
+    
+    <div class="floating-progress-container">
+      <span style="font-size: 11px; font-weight: 600; color: var(--accent-cyan); white-space: nowrap;">Strona <span id="currentPg">0</span></span>
+      <div class="focus-progress-bar">
+        <div class="focus-progress-fill" id="progFill"></div>
+      </div>
+    </div>
+    
+    <div style="width: 100px;"></div> 
+  </div>
+
+  <div class="reader-main-area">
+    <div class="side-overlay-panel">
+      <div>
+        <div style="text-transform: uppercase; font-size: 10px; font-weight: 700; color: var(--accent-purple); letter-spacing: 1px; margin-bottom: 12px;">Aktualnie czytasz</div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+          <h2 style="font-size: 16px; font-weight: 600; color: #fff; margin: 0 0 6px 0;">{{ book['title'] }}</h2>
+          <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">{{ book['grade'] }} · {{ book['subject'] }}</p>
+        </div>
+      </div>
+
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px;">
+        <i data-lucide="brain" style="color: var(--accent-emerald); width: 24px; height: 24px; margin-bottom: 8px;"></i>
+        <h4 style="color: #fff; font-size: 13px; font-weight: 600; margin: 0 0 4px 0;">Opanuj Materiał</h4>
+        <p style="color: var(--text-secondary); font-size: 11px; margin: 0;">Rozpisuj najważniejsze informacje w postaci fiszek.</p>
+      </div>
+    </div>
+
+    <div class="pdf-viewer-container">
+      <button class="page-nav-btn page-nav-prev" onclick="simPage(-1)"><i data-lucide="chevron-left" style="width: 32px; height: 32px;"></i></button>
+      <button class="page-nav-btn page-nav-next" onclick="simPage(1)"><i data-lucide="chevron-right" style="width: 32px; height: 32px;"></i></button>
+      
+      <iframe id="pdfFrame" src="/books/{{ book['filename']|urlencode }}#toolbar=0&navpanes=0&scrollbar=0"></iframe>
+    </div>
+  </div>
+</div>
+
 <script>
-  window.__BOOK_FILENAME__ = "{{ book['filename'] }}";
+  const bookId = "{{ book['id'] }}";
+  let currentPage = {{ page|default(1) }};
+  const totalPages = 100;
+  
+  function simPage(delta) {
+    currentPage += delta;
+    if (currentPage < 1) currentPage = 1;
+    updateUI();
+    saveProgress(false);
+  }
+
+  function updateUI() {
+    document.getElementById('currentPg').innerText = currentPage;
+    const proc = (currentPage / totalPages) * 100;
+    document.getElementById('progFill').style.width = proc + "%";
+  }
+
+  function saveProgress(useBeacon) {
+    const payload = JSON.stringify({page: currentPage, done: false});
+    if (useBeacon) {
+      navigator.sendBeacon('/read/' + bookId + '/progress', new Blob([payload], {type: 'application/json'}));
+    } else {
+      fetch('/read/' + bookId + '/progress', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: payload});
+    }
+  }
+
+  window.addEventListener('load', updateUI);
+  const iv = setInterval(() => saveProgress(false), 15000); 
+  window.addEventListener('beforeunload', () => { clearInterval(iv); saveProgress(true); });
+  if (window.lucide) lucide.createIcons();
 </script>
-<script src="/static/reader.js?v={{ v }}"></script>
 {% endblock %}
