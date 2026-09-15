@@ -14,7 +14,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root {
+    /* THEMES DEFINITION */
+    :root, [data-theme="obsidian"] {
       --bg-dark: #09090b;
       --bg-surface: #121215;
       --bg-sidebar: #0d0d10;
@@ -32,6 +33,49 @@
       --accent-emerald: #10b981;
       --accent-amber: #f59e0b;
       --accent-rose: #f43f5e;
+      --theme-label: 'Ciemny (Obsidian)';
+    }
+    
+    [data-theme="deepblue"] {
+      --bg-dark: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-sidebar: #020617;
+      --bg-elevated: #334155;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --border-focus: rgba(255, 255, 255, 0.25);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-cyan: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --theme-label: 'Głębinowy (Deep Blue)';
+    }
+
+    [data-theme="emerald"] {
+      --bg-dark: #052e16;
+      --bg-surface: #064e3b;
+      --bg-sidebar: #022c22;
+      --bg-elevated: #065f46;
+      --border-subtle: rgba(16, 185, 129, 0.15);
+      --border-focus: rgba(16, 185, 129, 0.4);
+      --text-primary: #ecfdf5;
+      --text-secondary: #a7f3d0;
+      --text-muted: #6ee7b7;
+      
+      --accent-cyan: #2dd4bf;
+      --accent-indigo: #0ea5e9;
+      --accent-purple: #3b82f6;
+      --accent-pink: #f43f5e;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --theme-label: 'Leśny (Emerald)';
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -524,6 +568,18 @@
 
     <div class="content-scroll">
       <div class="content-container">
+        <!-- Theme Picker Widget -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); padding: 6px; border-radius: 12px; display: flex; gap: 8px;">
+            <button onclick="document.documentElement.setAttribute('data-theme', 'obsidian'); localStorage.setItem('theme', 'obsidian')" 
+                    style="width: 24px; height: 24px; border-radius: 50%; background: #09090b; border: 2px solid #38bdf8; cursor: pointer;" title="Ciemny (Obsidian)"></button>
+            <button onclick="document.documentElement.setAttribute('data-theme', 'deepblue'); localStorage.setItem('theme', 'deepblue')" 
+                    style="width: 24px; height: 24px; border-radius: 50%; background: #0f172a; border: 2px solid #8b5cf6; cursor: pointer;" title="Głębinowy (Deep Blue)"></button>
+            <button onclick="document.documentElement.setAttribute('data-theme', 'emerald'); localStorage.setItem('theme', 'emerald')" 
+                    style="width: 24px; height: 24px; border-radius: 50%; background: #052e16; border: 2px solid #10b981; cursor: pointer;" title="Leśny (Emerald)"></button>
+          </div>
+        </div>
+        
         {% block content %}{% endblock %}
       </div>
     </div>
@@ -541,6 +597,12 @@
   </div>
 
   <script>
+    // Inicjalizacja motywu z localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+    
     lucide.createIcons();
   </script>
 </body>
