@@ -1,32 +1,167 @@
-{% extends "base.html" %}{% block title %}Sesja fiszek{% endblock %}
+{% extends "base.html" %}
+{% block title %}Panel Nauki - Fiszki & AI{% endblock %}
 {% block content %}
-<div class="study">
-  <div class="study-progress"><div id="bar" style="width:6%"></div></div>
-  <div class="study-meta">Karta <span id="pos">1</span>/<span id="total">7</span> · seria <b id="combo">0</b> 🔥 · zdobyte XP: <b id="gained">0</b></div>
-
-  <div class="flip-scene" id="scene">
-    <div class="flip-card" id="card">
-      <div class="flip-face flip-front">
+<div class="pb-12 text-sm">
+    <header class="flex items-center justify-between mb-6">
         <div>
-          <div class="word" id="front">…</div>
-          <div class="flip-hint">kliknij, żeby odwrócić ↻</div>
+            <h1 class="text-xl font-bold text-white mb-1">Fiszkoteka (SR)</h1>
+            <p class="text-xs text-gray-400">Interaktywny moduł nauki bazujący na algorytmie SM-2 & Ollama LLM</p>
         </div>
-        <button class="speak-btn" id="speak1" title="Przeczytaj na głos">🔊</button>
-      </div>
-      <div class="flip-face flip-back">
-        <div><div class="word" id="back"></div></div>
-      </div>
+        <a href="/srs" class="px-3 py-1.5 border border-synth-500 bg-synth-700 hover:bg-synth-600 rounded text-gray-200 text-xs font-semibold">
+            &larr; Wyjście
+        </a>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Obszar Fiszki -->
+        <div class="lg:col-span-2 space-y-4">
+            
+            <div id="error-box" class="hidden transition-all duration-300 bento bg-red-950/20 border-red-900/50 p-4 relative overflow-hidden flex items-start gap-3">
+                <i data-lucide="alert-circle" class="text-red-400 mt-0.5" id="error-icon"></i>
+                <div>
+                    <h3 class="font-semibold text-red-200 text-xs uppercase" id="error-title">Weryfikacja</h3>
+                    <p class="text-gray-400 text-xs mt-1 leading-relaxed" id="error-msg">Należy podać prawidłową treść/wartość.</p>
+                </div>
+            </div>
+
+            <div class="bento p-6 min-h-[320px] flex flex-col justify-center items-center shadow-lg cursor-pointer hover:border-indigo-500/50 transition-colors relative" id="flashcard" onclick="flip()">
+                
+                <!-- Tagi fiszki -->
+                <div class="absolute top-4 left-4 flex gap-1.5">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase">Ważna / Sprawdzian</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-synth-700 text-gray-300 border border-synth-600">Rozdział 4</span>
+                </div>
+                
+                <div id="front" class="text-center w-full mt-6">
+                    <h2 class="text-lg text-white font-medium mb-8">Czy wirusy posiadają budowę komórkową?</h2>
+                    <p class="text-[10px] text-gray-500 uppercase font-semibold">Kliknij, aby odwrócić</p>
+                </div>
+                
+                <div id="back" class="text-center w-full mt-6 hidden">
+                    <h2 class="text-lg text-emerald-400 font-bold mb-8">Nie, wirusy są formami bezkomórkowymi.</h2>
+                    
+                    <div class="grid grid-cols-4 gap-2 w-full max-w-sm mx-auto">
+                        <button onclick="rate(1, event)" class="py-2.5 flex flex-col items-center bento hover:bg-red-950/40 hover:border-red-900 text-gray-400 transition-colors">
+                            <span class="text-xs font-bold text-red-200">Znowu 🗙</span><span class="text-[10px]">1m</span>
+                        </button>
+                        <button onclick="rate(2, event)" class="py-2.5 flex flex-col items-center bento hover:bg-orange-950/40 text-gray-400 transition-colors">
+                            <span class="text-xs font-bold text-orange-200">Trudno</span><span class="text-[10px]">6m</span>
+                        </button>
+                        <button onclick="rate(3, event)" class="py-2.5 flex flex-col items-center bento hover:bg-green-950/40 text-gray-400 transition-colors">
+                            <span class="text-xs font-bold text-green-200">Dobrze</span><span class="text-[10px]">10m</span>
+                        </button>
+                        <button onclick="rate(4, event)" class="py-2.5 flex flex-col items-center bento hover:bg-blue-950/40 text-gray-400 transition-colors">
+                            <span class="text-xs font-bold text-blue-200">Łatwo ✓</span><span class="text-[10px]">4d</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Sidebar Narzędzi AI -->
+        <div class="space-y-4">
+            <h3 class="text-xs font-bold text-gray-300 uppercase flex items-center gap-1.5"><i data-lucide="cpu"></i> Laboratorium Modeli</h3>
+            
+            <div class="bento p-4">
+                <p class="text-[11px] text-gray-400 mb-4 line-clamp-3">Użyj LLM by stworzyć odmiany tego ćwiczenia np. by przećwiczyć trudniejsze ujęcie tematu.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1.5 font-bold">Poziom Trudności</label>
+                        <div class="grid grid-cols-3 gap-1 bg-synth-900 border border-synth-600 rounded p-1">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="lvl" value="Łatwiej" class="peer hidden">
+                                <div class="text-center py-1.5 rounded text-[10px] text-gray-400 peer-checked:bg-synth-600 peer-checked:text-white transition-all font-semibold">💡 Łatwiej</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="lvl" value="Taki sam" class="peer hidden" checked>
+                                <div class="text-center py-1.5 rounded text-[10px] text-gray-400 peer-checked:bg-synth-600 peer-checked:text-indigo-400 font-semibold">Taki Sam</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="lvl" value="Trudniej" class="peer hidden">
+                                <div class="text-center py-1.5 rounded text-[10px] text-gray-400 peer-checked:bg-synth-600 peer-checked:text-white transition-all font-semibold">🔥 Trudniej</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1.5 font-bold">Rodzaj generacji</label>
+                        <select class="w-full bg-synth-900 border border-synth-600 rounded px-2 py-1.5 text-xs text-gray-300 outline-none">
+                            <option>Pytanie klasyczne, pisane</option>
+                            <option>Luka (Cloze deletion)</option>
+                            <option>Tylko Podcast Audio (Słuchana)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="gen()" class="w-full bg-indigo-500 hover:bg-indigo-400 text-white border border-indigo-400 rounded py-2 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Stwórz Wariant 
+                    </button>
+                    <!-- Loading state -->
+                    <div id="loader" class="hidden text-center text-xs text-indigo-400 mt-2">
+                        <span class="animate-pulse">Model myśli...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <div class="swipe-hint muted small" id="hint">👇 Przesuń kartę albo kliknij · spacja = odwróć, ← nie umiem, → umiem</div>
-
-  <div class="studybtns" id="rates">
-    <button class="btn again" data-r="0">↩ Znowu</button>
-    <button class="btn hard" data-r="1">Trudne</button>
-    <button class="btn good" data-r="2">Dobre</button>
-    <button class="btn easy" data-r="3">Łatwe</button>
-  </div>
 </div>
-<script src="/static/study.js?v={{ v }}"></script>
+
+<script>
+    function flip() {
+        document.getElementById('front').classList.toggle('hidden');
+        document.getElementById('back').classList.toggle('hidden');
+    }
+
+    function showErr(title, msg, type) {
+        const e = document.getElementById('error-box');
+        e.classList.remove('hidden', 'bg-red-950/20', 'border-red-900/50', 'bg-indigo-950/20', 'border-indigo-900/50');
+        e.classList.add(type === 'ai' ? 'bg-indigo-950/20' : 'bg-red-950/20');
+        e.classList.add(type === 'ai' ? 'border-indigo-900/50' : 'border-red-900/50');
+        
+        document.getElementById('error-title').innerText = title;
+        document.getElementById('error-title').className = type === 'ai' 
+            ? 'font-semibold text-indigo-300 text-xs uppercase' 
+            : 'font-semibold text-red-300 text-xs uppercase';
+            
+        document.getElementById('error-msg').innerText = msg;
+        
+        const i = document.getElementById('error-icon');
+        if (window.lucide) { lucide.createIcons(); }
+        i.outerHTML = `<i data-lucide="${type === 'ai' ? 'bot' : 'alert-circle'}" class="${type === 'ai' ? 'text-indigo-400' : 'text-red-400'} mt-0.5" id="error-icon"></i>`;
+        if (window.lucide) { lucide.createIcons(); }
+    }
+
+    function rate(val, ev) {
+        ev.stopPropagation();
+        if(val === 1) {
+            showErr('Walidacja / Interwał', 'Karta oceniona jako pomyłka. Algorytm ustawi ponowne jej wyświetlenie w kolejce dzisiaj.', 'err');
+        }
+        setTimeout(() => flip(), 500); // Reload next
+    }
+
+    async function gen() {
+        const diffs = document.getElementsByName('lvl');
+        let sel = '';
+        diffs.forEach(d => { if(d.checked) sel = d.value; });
+        showErr('Przetwarzanie AI (' + sel + ')', 'Trwa generowanie nowych fiszek przez silnik LLM. Proszę czekać na wygenerowane zestawy.', 'ai');
+        
+        document.getElementById('loader').classList.remove('hidden');
+        try {
+            const resp = await fetch('/srs/generate-variant', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({"level": sel, "type": document.querySelector('select').value})
+            });
+            const data = await resp.json();
+            document.getElementById('loader').classList.add('hidden');
+            showErr('Sukces AI (' + sel + ')', 'Warianty fiszek wygenerowane i zapisane w bazie: ' + data.detail, 'ai');
+        } catch (e) {
+            document.getElementById('loader').classList.add('hidden');
+            showErr('Błąd Modelu', 'Zbyt długi czas oczekiwania na model lub usterka serwisu ZimaOS.', 'err');
+        }
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => { if (window.lucide) { lucide.createIcons(); } });
+</script>
 {% endblock %}
