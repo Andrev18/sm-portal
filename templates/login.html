@@ -1,31 +1,215 @@
-{% extends "base.html" %}{% block title %}Twoj PIN{% endblock %}
+{% extends "base.html" %}{% block title %}Twoj PIN · Ośrodek Core{% endblock %}
 {% block content %}
-<div class="pin-scene">
-  <div class="gate-blobs"><span></span><span></span><span></span></div>
-  <div class="pin-card">
-    <div class="pin-mascot" id="mascot">🦊</div>
-    <h1>Wpisz swój PIN</h1>
-    <p class="sub">Pięć cyfr — a ja wiem, kim jesteś! 😉</p>
-    {% if msg %}<div class="shake alert">{{ msg }}</div>{% endif %}
-    <form method="post" action="/pin" id="pinForm">
-      <div class="otp-boxes" id="otpBoxes">
-        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 1">
-        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 2">
-        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 3">
-        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 4">
-        <input class="otp" type="tel" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="cyfra 5">
-      </div>
-      <input type="hidden" name="pin" id="pinField">
-      <button class="btn primary big" type="submit" id="goBtn" disabled>Wejdź 🚀</button>
+<style>
+/* Apple-style PIN minimalistyczny design */
+.apple-pin-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  position: relative;
+  z-index: 10;
+}
+.apple-pin-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(18, 18, 21, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+.apple-pin-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-focus);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+.apple-pin-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+.apple-pin-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0 0 32px 0;
+}
+.apple-dots-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+  height: 16px;
+  align-items: center;
+}
+.apple-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border-focus);
+  background: transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.apple-dot.filled {
+  background: #fff;
+  border-color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255,255,255,0.4);
+}
+.apple-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 24px;
+  width: inset;
+  justify-items: center;
+}
+.apple-key {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.apple-key:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.95);
+}
+.apple-key.empty {
+  visibility: hidden;
+}
+.apple-key.action-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+}
+.apple-key.action-delete:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+.shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes shake {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(4px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+  40%, 60% { transform: translate3d(8px, 0, 0); }
+}
+.hidden-form { display: none; }
+</style>
+
+<div class="apple-pin-scene">
+  <div class="apple-pin-card" id="pinCard">
+    <div class="apple-pin-avatar">🦊</div>
+    <h1 class="apple-pin-title">Witaj w Ośrodku</h1>
+    <p class="apple-pin-subtitle">Wprowadź swój PIN (5 cyfr)</p>
+
+    <!-- Kropki wpisanych cyfr -->
+    <div class="apple-dots-container" id="dotsContainer">
+      <div class="apple-dot"></div>
+      <div class="apple-dot"></div>
+      <div class="apple-dot"></div>
+      <div class="apple-dot"></div>
+      <div class="apple-dot"></div>
+    </div>
+
+    <!-- Klawiatura numeryczna -->
+    <div class="apple-keypad">
+      <div class="apple-key" onclick="pressKey(1)">1</div>
+      <div class="apple-key" onclick="pressKey(2)">2</div>
+      <div class="apple-key" onclick="pressKey(3)">3</div>
+      <div class="apple-key" onclick="pressKey(4)">4</div>
+      <div class="apple-key" onclick="pressKey(5)">5</div>
+      <div class="apple-key" onclick="pressKey(6)">6</div>
+      <div class="apple-key" onclick="pressKey(7)">7</div>
+      <div class="apple-key" onclick="pressKey(8)">8</div>
+      <div class="apple-key" onclick="pressKey(9)">9</div>
+      <div class="apple-key empty"></div>
+      <div class="apple-key" onclick="pressKey(0)">0</div>
+      <div class="apple-key action-delete" onclick="deleteKey()"><i data-lucide="delete"></i></div>
+    </div>
+
+    {% if msg %}
+    <div style="color: var(--accent-rose); font-size: 13px; margin-top: 24px; font-weight: 500;">
+      Niepoprawny kod PIN
+    </div>
+    <script>
+      document.getElementById('pinCard').classList.add('shake');
+      setTimeout(() => document.getElementById('pinCard').classList.remove('shake'), 500);
+    </script>
+    {% endif %}
+
+    <!-- Niewidzialny formularz wysyłany po wpisaniu 5 znaków -->
+    <form method="post" action="/pin" id="hiddenPinForm" class="hidden-form">
+      <input type="hidden" name="pin" id="hiddenPinField">
     </form>
-    <details class="staff-login"><summary>Mam login i hasło</summary>
-      <form method="post" action="/login">
-        <input name="login_" placeholder="login" required>
-        <input name="password" type="password" placeholder="hasło" required>
-        <button class="btn">Wejdź</button>
-      </form>
-    </details>
   </div>
 </div>
-<script src="/static/otp.js?v={{ v }}"></script>
+
+<script>
+  let currentPin = '';
+  const maxDigits = 5;
+  const dots = document.querySelectorAll('.apple-dot');
+
+  function updateDots() {
+    dots.forEach((dot, idx) => {
+      if (idx < currentPin.length) dot.classList.add('filled');
+      else dot.classList.remove('filled');
+    });
+
+    if (currentPin.length === maxDigits) {
+      setTimeout(() => {
+        document.getElementById('hiddenPinField').value = currentPin;
+        document.getElementById('hiddenPinForm').submit();
+      }, 100);
+    }
+  }
+
+  function pressKey(num) {
+    if (currentPin.length < maxDigits) {
+      currentPin += num;
+      updateDots();
+    }
+  }
+
+  function deleteKey() {
+    if (currentPin.length > 0) {
+      currentPin = currentPin.slice(0, -1);
+      updateDots();
+    }
+  }
+
+  // Obsługa klawiatury fizycznej
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') {
+      pressKey(e.key);
+    } else if (e.key === 'Backspace') {
+      deleteKey();
+    }
+  });
+</script>
 {% endblock %}
