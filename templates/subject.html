@@ -144,11 +144,23 @@
 
 <!-- SEKCJA: BIBLIOTEKA (Książki, Ćwiczenia) -->
 <h2 class="bento-section-title"><i data-lucide="book-open" style="color: var(--accent-cyan);"></i> Materiały & Ćwiczenia</h2>
+
+{% if not podreczniki and not cwiczenia and not links %}
+  <div class="glass-card" style="padding: 20px; text-align: center;">
+    <span style="color: var(--text-muted); font-size: 13px;">Nie wgrano podręczników ani zasobów dla tego przedmiotu.</span>
+  </div>
+{% endif %}
+
+<!-- PODRĘCZNIKI -->
+{% if podreczniki %}
+<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px; margin: 16px 0 12px 0;">
+  <i data-lucide="book" style="width: 14px; height: 14px;"></i> Podręczniki teoretyczne
+</div>
 <div class="bento-grid-cards">
-  {% for b in books %}
+  {% for b in podreczniki %}
     <a href="/read/{{ b['id'] }}" class="bento-mini-card">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <div style="font-size: 24px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 12px;">📚</div>
+        <div style="font-size: 24px; background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.2);">📚</div>
         <span class="status-badge badge-cyan">{{ b['filetype'] | upper or 'PDF' }}</span>
       </div>
       <div>
@@ -156,17 +168,43 @@
         <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">Klasa 5 · Otwórz w czytniku</p>
       </div>
     </a>
-  {% else %}
-    <div class="glass-card" style="padding: 20px; text-align: center; grid-column: 1 / -1;">
-      <span style="color: var(--text-muted); font-size: 13px;">Nie wgrano podręczników PDF.</span>
-    </div>
   {% endfor %}
+</div>
+{% endif %}
 
-  <!-- Linki webowe z VULCAN/Zewnętrzne -->
+<!-- ZESZYTY ĆWICZEŃ -->
+{% if cwiczenia %}
+<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-pink); display: flex; align-items: center; gap: 6px; margin: 24px 0 12px 0;">
+  <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Zeszyty Ćwiczeń i Karty Pracy
+</div>
+<div class="bento-grid-cards">
+  {% for c in cwiczenia %}
+    <a href="/read/{{ c['id'] }}" class="bento-mini-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), transparent);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div style="font-size: 24px; background: rgba(236, 72, 153, 0.1); color: var(--accent-pink); padding: 8px; border-radius: 12px; border: 1px solid rgba(236, 72, 153, 0.2);">
+          <i data-lucide="pen-tool" style="width: 24px; height: 24px;"></i>
+        </div>
+        <span class="status-badge badge-rose">{{ c['filetype'] | upper or 'PDF' }}</span>
+      </div>
+      <div>
+        <h4 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 600; color: #fff;">{{ c['title'] }}</h4>
+        <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">Klasa 5 · Otwórz w czytniku</p>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ZEWNĘTRZNE WTYCZKI -->
+{% if links %}
+<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-emerald); display: flex; align-items: center; gap: 6px; margin: 24px 0 12px 0;">
+  <i data-lucide="globe-2" style="width: 14px; height: 14px;"></i> Web & Linki Zewnętrzne
+</div>
+<div class="bento-grid-cards">
   {% for l in links %}
     <a href="{{ l['url'] }}" target="_blank" class="bento-mini-card">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <div style="color: var(--accent-emerald); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 12px;">
+        <div style="color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
           <i data-lucide="external-link" style="width: 24px; height: 24px;"></i>
         </div>
         <span class="status-badge badge-emerald">WEB</span>
@@ -178,6 +216,7 @@
     </a>
   {% endfor %}
 </div>
+{% endif %}
 
 
 {% if user['role'] in ('admin','teacher') %}

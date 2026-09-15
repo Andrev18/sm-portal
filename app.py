@@ -1112,13 +1112,28 @@ def subject_view(request: Request, sid: int):
     sub = conn.execute("SELECT * FROM subjects WHERE id=?", (sid,)).fetchone()
     if not sub:
         raise HTTPException(404)
-    books = conn.execute("SELECT * FROM books WHERE subject=? ORDER BY title", (sub["name"],)).fetchall()
+        
+    books_raw = conn.execute("SELECT * FROM books WHERE subject=? ORDER BY title", (sub["name"],)).fetchall()
     decks = conn.execute("SELECT * FROM decks WHERE subject=? ORDER BY name", (sub["name"],)).fetchall()
     conn.close()
+    
     import json as _json
     links = _json.loads(sub["links"] or "[]")
-    return templates.TemplateResponse(request, "subject.html",
-                                      {"user": user, "sub": sub, "books": books, "decks": decks, "links": links})
+    
+    # Dodatkowa kategoryzacja e-książek per przedmiot
+    podreczniki = []
+    cwiczenia = []
+    for b in books_raw:
+        tl = b["title"].lower()
+        if "ćwicz" in tl or "cwicz" in tl or "workbook" in tl or "skan" in tl:
+            cwiczenia.append(b)
+        else:
+            podreczniki.append(b)
+            
+    return templates.TemplateResponse(request, "subject.html", {
+        "user": user, "sub": sub, "decks": decks, "links": links,
+        "podreczniki": podreczniki, "cwiczenia": cwiczenia
+    })
 
 
 @app.post("/subject/{sid}/link")
