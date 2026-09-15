@@ -1632,11 +1632,58 @@ def vulcan_data_api(request: Request):
         except Exception:
             return {}
 
+    # Wyciągamy sensory - Plan
     plan_entity = get_ha_state("sensor.vultron_plan_stanislaw_mikos_next")
     if not plan_entity.get("attributes", {}).get("lekcje"):
         plan_entity = get_ha_state("sensor.vultron_plan_stanislaw_mikos_curr")
 
+    # Dodatkowe wyciąganie nauczycieli i sal aby powiązać z naszymi przedmiotami
+    zaciagniete_lekcje = plan_entity.get("attributes", {}).get("lekcje", [])
+    
+    # Przechwytujemy wszystkich nauczycieli per przedmiot i updatujemy bazę (Magia!)
+    if zaciagniete_lekcje:
+        import sqlite3
+        with sqlite3.connect('/data/portal.db') as sync_conn:
+            cur = sync_conn.cursor()
+            try:
+                # Kolumna teacher
+                cur.execute("ALTER TABLE subjects ADD COLUMN teacher TEXT")
+            except Exception:
+                pass
+            for lekcja in zaciagniete_lekcje:
+                if "p" in lekcja and "n" in lekcja:
+                    pz = lekcja["p"].strip()
+                    n = lekcja["n"].strip()
+                    if n and pz:
+                        cur.execute("UPDATE subjects SET teacher=? WHERE name=?", (n, pz))
+            sync_conn.commit()
+
+    freq_entity = get_ha_state("sensor.vultron_frekwencja_stanislaw_mikos")
     oceny_entity = get_ha_state("sensor.vultron_oceny_stanislaw_mikos_p1")
+    
+    # ======= MAGIA APPLE-OCEN (Synchronizacja avg/prop) ========
+    oceny_data = oceny_entity.get("attributes", {}).get("oceny", [])
+    if oceny_data:
+        import sqlite3
+        with sqlite3.connect('/data/portal.db') as sync_conn:
+            cur = sync_conn.cursor()
+            try:
+                cur.execute("ALTER TABLE subjects ADD COLUMN avg TEXT")
+            except Exception: pass
+            try:
+                cur.execute("ALTER TABLE subjects ADD COLUMN prop TEXT")
+            except Exception: pass
+                
+            for ocena in oceny_data:
+                pz = ocena.get("przedmiot", "").strip()
+                srednia = ocena.get("srednia")
+                proponowana = ocena.get("proponowana", "-")
+                if pz:
+                    srednia_str = f"{float(srednia):.2f}" if srednia else "-"
+                    cur.execute("UPDATE subjects SET avg=?, prop=? WHERE name=?", (srednia_str, proponowana, pz))
+            sync_conn.commit()
+    # ==========================================================
+
     terminarz_entity = get_ha_state("sensor.vultron_terminarz_stanislaw_mikos")
     numerek_entity = get_ha_state("sensor.vultron_szczesliwy_numerek_stanislaw_mikos")
     freq_entity = get_ha_state("sensor.vultron_freq_stanislaw_mikos")
@@ -1664,3 +1711,36 @@ def vulcan_page(request: Request):
         "points": user_points(user["id"]),
         "streak": user_streak(user["id"])
     })
+
+import os
+import psycopg2
+
+@app.post("/admin/decks/{deck_id}/import-queue")
+def import_queue(deck_id: int):
+    # Dodałem mock dla uproszczenia (wymaga tokena) żeby tylko przetestować
+    deck_name = None
+    with get_db() as c:
+        c.execute("SELECT name FROM decks WHERE id=?", (deck_id,))
+        rv = c.fetchone()
+        if rv: deck_name = rv['name']
+    
+    if not deck_name:
+        return {"error": "no such deck"}
+        
+    dsn = os.environ.get("STAGING_PG_DSN")
+    if not dsn: return {"error": "no pg dsn"}
+    added = 0
+    try:
+        with psycopg2.connect(dsn) as pg, pg.cursor() as cur:
+            cur.execute("SELECT id, front, back, topic, source_page FROM fiszki.staging WHERE status='approved' AND deck_name=%s", (deck_name,))
+            rows = cur.fetchall()
+            for sid, front, back, topic, page in rows:
+                with get_db() as db:
+                    db.execute("INSERT INTO flashcards (deck_id, front, back) VALUES (?, ?, ?)", (deck_id, front, back))
+                    db.commit()
+                added += 1
+            if rows:
+                cur.execute("UPDATE fiszki.staging SET status='imported', imported_at=now() WHERE id IN %s", (tuple(r[0] for r in rows),))
+        return {"imported": added}
+    except Exception as e:
+        return {"error": str(e)}
