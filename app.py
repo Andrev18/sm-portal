@@ -1243,8 +1243,32 @@ def library(request: Request):
         """SELECT b.*, p.page, p.done FROM books b
            LEFT JOIN reading_progress p ON p.book_id=b.id AND p.user_id=?
            ORDER BY b.subject, b.title""", (user["id"],)).fetchall()
+           
+    # Pobieramy przedmioty z bazy żeby mieć ikonki i kolory
+    subjects_db = conn.execute("SELECT name, icon, color FROM subjects").fetchall()
     conn.close()
-    return templates.TemplateResponse(request, "library.html", {"user": user, "books": books})
+    
+    # Przetwarzanie i kategoryzacja
+    subj_map = {s["name"]: {"icon": s["icon"], "color": s["color"]} for s in subjects_db}
+    
+    library_data = {}
+    for b in books:
+        subj = b["subject"] or "Ogólne"
+        if subj not in library_data:
+            library_data[subj] = {
+                "icon": subj_map.get(subj, {}).get("icon", "📚"),
+                "color": subj_map.get(subj, {}).get("color", "#6366f1"),
+                "podreczniki": [],
+                "cwiczenia": []
+            }
+            
+        title_lower = b["title"].lower()
+        if "ćwicz" in title_lower or "cwicz" in title_lower or "workbook" in title_lower:
+            library_data[subj]["cwiczenia"].append(b)
+        else:
+            library_data[subj]["podreczniki"].append(b)
+
+    return templates.TemplateResponse(request, "library.html", {"user": user, "library_data": library_data})
 
 
 @app.post("/library/upload")

@@ -1,22 +1,152 @@
-{% extends "base.html" %}{% block title %}Biblioteka{% endblock %}
+{% extends "base.html" %}{% block title %}E-Podręczniki · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-<div class="pagehead"><h1>📚 Biblioteka</h1>
-{% if user['role'] in ('admin','teacher') %}
-<form method="post" action="/library/upload" enctype="multipart/form-data" class="rowform">
-  <input name="title" placeholder="Tytuł">
-  <input name="subject" placeholder="Przedmiot">
-  <input name="grade" placeholder="Klasa">
-  <input type="file" name="file" accept=".pdf,.epub" required>
-  <button class="btn primary">Dodaj</button>
-</form>{% endif %}</div>
+<style>
+  .subject-section { margin-bottom: 40px; }
+  .subject-header { 
+    display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);
+  }
+  .subject-icon {
+    font-size: 24px; width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
+  }
+  .book-category {
+    font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);
+    margin-bottom: 12px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;
+  }
+  .books-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;
+  }
+  .book-card {
+    position: relative; padding: 20px; border-radius: 16px; text-decoration: none;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 16px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .book-card:hover {
+    transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+    border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04);
+  }
+  .book-format {
+    position: absolute; top: 16px; right: 16px;
+    font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 8px;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .pdf-badge { color: var(--accent-pink); }
+  .epub-badge { color: var(--accent-cyan); }
+  .book-title {
+    font-size: 15px; font-weight: 600; color: #fff; line-height: 1.4; margin-top: 12px;
+  }
+  .book-progress {
+    margin-top: 12px; font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 6px;
+  }
+</style>
 
-<div class="bookgrid">
-{% for b in books %}
-  <a class="book" href="/read/{{ b['id'] }}">
-    <div class="cover">📄<b>{{ b['title'] }}</b></div>
-    <small>{{ b['subject'] or '—' }}{% if b['grade'] %} · kl. {{ b['grade'] }}{% endif %}</small>
-    {% if b['page'] %}<small>📄 str. {{ b['page'] }}{% if b['done'] %} ✅{% endif %}</small>{% endif %}
-  </a>
-{% else %}<p class="empty">Brak książek — dodaj pierwszą PDF/EPUB.</p>{% endfor %}
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+  <div>
+    <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+      E-Podręczniki i Zeszyty Ćwiczeń
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+      Twoja cyfrowa biblioteka. Kliknij, aby przejść do czytnika w trybie Focus Mode.
+    </p>
+  </div>
+  {% if user['role'] in ('admin','teacher') %}
+  <form method="post" action="/library/upload" enctype="multipart/form-data" style="display: flex; gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); align-items: center;">
+    <input name="title" placeholder="Tytuł ksiązki" required style="background: var(--bg-surface); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 8px; color: #fff; font-size: 12px;">
+    <input name="subject" placeholder="Przedmiot" required style="background: var(--bg-surface); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 8px; color: #fff; font-size: 12px; width: 120px;">
+    <input type="file" name="file" accept=".pdf,.epub" required style="color: var(--text-secondary); font-size: 12px; max-width: 180px;">
+    <button class="btn primary">Wgraj plik</button>
+  </form>
+  {% endif %}
 </div>
+
+{% if not library_data %}
+<div class="bento" style="padding: 48px; text-align: center;">
+  <i data-lucide="library" style="width: 48px; height: 48px; color: var(--text-muted); margin: 0 auto 16px auto; opacity: 0.5;"></i>
+  <h3 style="color: #fff; font-weight: 600; font-size: 16px; margin-bottom: 8px;">Biblioteka jest pusta</h3>
+  <p style="color: var(--text-secondary); font-size: 13px;">Poproś nauczyciela o wgranie pierwszych e-podręczników.</p>
+</div>
+{% endif %}
+
+{% for subject, data in library_data.items() %}
+<div class="subject-section">
+  <div class="subject-header">
+    <div class="subject-icon" style="box-shadow: 0 0 20px {{ data.color }}30; color: {{ data.color }};">
+      {{ data.icon }}
+    </div>
+    <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0;">{{ subject }}</h2>
+  </div>
+
+  {% if data.podreczniki %}
+  <div class="book-category">
+    <i data-lucide="book-open" style="width: 14px; height: 14px; color: var(--accent-cyan);"></i> Podręczniki
+  </div>
+  <div class="books-grid">
+    {% for b in data.podreczniki %}
+    <a href="/read/{{ b.id }}" class="book-card">
+      <div class="book-format {% if 'epub' in (b.filetype|default('pdf'))|lower %}epub-badge{% else %}pdf-badge{% endif %}">
+        {{ b.filetype|default('PDF')|upper }}
+      </div>
+      <div>
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, {{ data.color }}20, {{ data.color }}05); border: 1px solid {{ data.color }}30; display: flex; align-items: center; justify-content: center; color: {{ data.color }}; margin-bottom: 12px;">
+          <i data-lucide="book" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="book-title">{{ b.title }}</div>
+      </div>
+      
+      {% if b.page %}
+      <div class="book-progress">
+        <i data-lucide="bookmark" style="width: 12px; height: 12px; color: {% if b.done %}var(--accent-emerald){% else %}var(--accent-purple){% endif %};"></i>
+        <span>Strona {{ b.page }} {% if b.done %}(Ukończono){% endif %}</span>
+      </div>
+      {% else %}
+      <div class="book-progress">
+        <span style="opacity: 0.5;">Oczekuje na start</span>
+      </div>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if data.cwiczenia %}
+  <div class="book-category" style="margin-top: 24px;">
+    <i data-lucide="pen-tool" style="width: 14px; height: 14px; color: var(--accent-pink);"></i> Zeszyty Ćwiczeń &amp; Materiały
+  </div>
+  <div class="books-grid">
+    {% for b in data.cwiczenia %}
+    <a href="/read/{{ b.id }}" class="book-card" style="background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);">
+      <div class="book-format {% if 'epub' in (b.filetype|default('pdf'))|lower %}epub-badge{% else %}pdf-badge{% endif %}">
+        {{ b.filetype|default('PDF')|upper }}
+      </div>
+      <div>
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent-pink)20, transparent); border: 1px solid var(--accent-pink)30; display: flex; align-items: center; justify-content: center; color: var(--accent-pink); margin-bottom: 12px;">
+          <i data-lucide="edit-3" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="book-title">{{ b.title }}</div>
+      </div>
+      
+      {% if b.page %}
+      <div class="book-progress">
+        <i data-lucide="bookmark" style="width: 12px; height: 12px; color: {% if b.done %}var(--accent-emerald){% else %}var(--accent-pink){% endif %};"></i>
+        <span>Strona {{ b.page }} {% if b.done %}(Ukończono){% endif %}</span>
+      </div>
+      {% else %}
+      <div class="book-progress">
+        <span style="opacity: 0.5;">Oczekuje na start</span>
+      </div>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+<script>
+  if(window.lucide) { lucide.createIcons(); }
+</script>
 {% endblock %}
