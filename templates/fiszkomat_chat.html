@@ -3,81 +3,73 @@
 <style>
 /* Kontener główny aplikacji 2-kolumnowej */
 .workspace-container {
-    display: flex;
-    gap: 24px;
-    height: calc(100vh - 120px);
-    max-width: 1400px;
-    margin: 0 auto;
+    display: flex; gap: 24px; height: calc(100vh - 120px); max-width: 1400px; margin: 0 auto;
 }
 
 /* LEWA KOLUMNA: Konfigurator Bento */
 .config-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    overflow-y: auto;
-    padding-right: 8px;
+    flex: 1; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px;
 }
 
 .bento-box {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: 16px;
-    padding: 20px;
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;
 }
 .bento-header {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 16px;
 }
 
-/* Style kafelków książek */
+/* Źródła u góry side-by-side */
+.top-sources {
+    display: flex; gap: 16px; align-items: stretch; margin-bottom: 0;
+}
+.top-sources .box-left { flex: 3; display: flex; flex-direction: column; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px; }
+.top-sources .box-right { flex: 2; display: flex; flex-direction: column; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px; }
+
+/* Kafelki książek */
 .books-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; flex: 1;
 }
 .book-tile {
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-    padding: 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
-    display: flex; flex-direction: column; align-items: center; text-align: center;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center;
 }
 .book-tile:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); transform: translateY(-2px); }
 .book-tile.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent-indigo); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
-.b-icon { width: 32px; height: 32px; margin-bottom: 8px; color: var(--text-secondary); }
+.b-icon { width: 24px; height: 24px; margin-bottom: 6px; color: var(--text-secondary); }
 .book-tile.active .b-icon { color: var(--accent-indigo); }
-.b-title { font-size: 11px; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.b-title { font-size: 11px; font-weight: 600; color: #e2e8f0; line-height: 1.2; }
 
 /* Upload Area */
 .upload-zone {
-    border: 1px dashed var(--border-focus);
-    background: rgba(0,0,0,0.2);
-    border-radius: 12px; padding: 16px; text-align: center;
-    cursor: pointer; transition: all 0.2s;
+    border: 1px dashed var(--border-focus); background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px; text-align: center;
+    cursor: pointer; transition: all 0.2s; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
 }
 .upload-zone:hover { border-color: var(--accent-indigo); background: rgba(99, 102, 241, 0.05); }
 
-/* Format Options */
+/* Format Options (Multiselect) */
 .format-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;
 }
 .format-btn {
-    padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-    border-radius: 10px; color: var(--text-secondary); font-size: 11px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+    padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 10px; color: var(--text-secondary);
+    font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; user-select: none;
 }
 .format-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.format-btn.active { background: var(--accent-indigo); border-color: #4f46e5; color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+.format-btn.active { background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+.format-btn.active .f-chk { color: #10b981; }
 
-/* Inputy na numery stron */
-.page-inputs { display: flex; gap: 12px; margin-top: 12px; }
-.page-inp { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; }
+.f-chk { width: 14px; height: 14px; flex-shrink: 0; color: transparent; border: 1px solid var(--border-focus); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.format-btn.active .f-chk { border-color: #10b981; background: rgba(16, 185, 129, 0.2); }
+
+/* Inputy na szczegóły */
+.page-inputs { display: flex; gap: 8px; margin-top: 12px; }
+.page-inp { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 8px 10px; border-radius: 8px; color: white; font-size: 11px; outline: none; }
 .page-inp:focus { border-color: var(--accent-indigo); }
 
 
 /* PRAWA KOLUMNA: Czat */
 .chat-panel {
-    flex: 0 0 380px;
+    flex: 0 0 400px;
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
@@ -89,8 +81,7 @@
 }
 
 .chat-header-bar {
-    background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-subtle);
-    padding: 16px; display: flex; align-items: center; gap: 12px;
+    background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-subtle); padding: 16px; display: flex; align-items: center; gap: 12px;
 }
 .messages-area {
     flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
@@ -113,10 +104,10 @@
 .chat-btn:hover { background: #4f46e5; }
 .chat-btn:disabled { opacity: 0.5; }
 
-/* Media query na monitory < 1000px */
 @media (max-width: 900px) {
+    .top-sources { flex-direction: column; }
     .workspace-container { flex-direction: column; height: auto; }
-    .chat-panel { height: 500px; flex: none; }
+    .chat-panel { height: 600px; flex: none; }
 }
 </style>
 
@@ -125,56 +116,92 @@
     <!-- LEWA KOLUMNA: USTAWIENIA (Bento Grid) -->
     <div class="config-panel custom-scrollbar">
         
-        <!-- 1. Wybór Materiału Z Bazy -->
-        <div class="bento-box">
-            <div class="bento-header"><i data-lucide="book" class="text-indigo-400 w-5 h-5"></i> 1. Wybierz źródło wiedzy</div>
-            <div class="books-grid">
-                <div class="book-tile active" id="book-magia" onclick="selectBook(this, '📝 Notatki własne / Z głowy')">
-                    <div class="b-icon"><i data-lucide="sparkles"></i></div>
-                    <div class="b-title">Ogólna Wiedza AI</div>
+        <!-- Sekcja Górna - dwa panele obok siebie -->
+        <div class="top-sources">
+            <!-- 1. Wybór Materiału Z Bazy -->
+            <div class="box-left">
+                <div class="bento-header"><i data-lucide="book" class="text-indigo-400 w-5 h-5"></i> 1. Z jakiej książki się uczysz?</div>
+                <div class="books-grid">
+                    <div class="book-tile active" id="book-magia" onclick="selectBook(this, '📝 Notatki własne / Rozmowa / Wiedza ogólna')">
+                        <div class="b-icon"><i data-lucide="sparkles"></i></div>
+                        <div class="b-title">Ogólna Wiedza AI</div>
+                    </div>
+                    {% for b in books %}
+                    <div class="book-tile" onclick="selectBook(this, '{{ b['title'].replace("'", "\'") }}')">
+                        <div class="b-icon"><i data-lucide="book-open"></i></div>
+                        <div class="b-title">{{ b['title'] }}</div>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% for b in books %}
-                <div class="book-tile" onclick="selectBook(this, '{{ b['title'].replace("'", "\'") }}')">
-                    <div class="b-icon"><i data-lucide="book-open"></i></div>
-                    <div class="b-title">{{ b['title'] }}</div>
+                
+                <div style="font-size: 10px; color: var(--accent-cyan); margin-top: 12px; line-height: 1.3;">
+                    <i data-lucide="messages-square" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> Doprecyzuj w czacie obok (po prawej), z jakiego <b>rozdziału</b> lub <b>ćwiczenia</b> generujemy opcje. Możesz też wpisać zakres stron tutaj:
                 </div>
-                {% endfor %}
+                <div class="page-inputs">
+                    <input type="number" id="pStart" class="page-inp" placeholder="Str. od">
+                    <input type="number" id="pEnd" class="page-inp" placeholder="Str. do">
+                    <input type="text" id="pChapter" class="page-inp" placeholder="Nr Rozdziału" style="flex: 1.5;">
+                </div>
+            </div>
+
+            <!-- 2. Dodaj Załącznik (Własny Plik) - OBOK Materiału -->
+            <div class="box-right">
+                <div class="bento-header"><i data-lucide="upload-cloud" class="text-emerald-400 w-5 h-5"></i> Zewnętrzny skan</div>
+                <div class="upload-zone" onclick="document.getElementById('customFile').click()">
+                    <i data-lucide="file-up" style="color: var(--text-secondary); width: 32px; height: 32px; margin-bottom: 12px;"></i>
+                    <div style="font-size: 13px; font-weight: 600; color: #fff;">Wgraj plik lokalny</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 6px;" id="fileNameDisplay">PDF / JPG zdjęć z telefonu do analizy</div>
+                    <input type="file" id="customFile" accept=".pdf,image/*" style="display: none;" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name.substring(0,25) + '...'">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Format Docelowy - MULTISELECT -->
+        <div class="bento-box" style="margin-top: 10px;">
+            <div class="bento-header" style="justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="layers" class="text-pink-400 w-5 h-5"></i> 2. Formaty nauki (Możesz wybrać kilka naraz)</span>
             </div>
             
-            <div class="page-inputs">
-                <input type="number" id="pStart" class="page-inp" placeholder="Od strony (opcja)">
-                <input type="number" id="pEnd" class="page-inp" placeholder="Do strony (opcja)">
-            </div>
-            <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">Wpisz strony, by AI nie wygenerowało fiszek ze 100 stron naraz.</p>
-        </div>
-
-        <!-- 2. Dodaj Załącznik (Własny Plik) -->
-        <div class="bento-box">
-            <div class="bento-header"><i data-lucide="upload-cloud" class="text-emerald-400 w-5 h-5"></i> Lub wgraj zzewnątrz (Opcjonalnie)</div>
-            <div class="upload-zone" onclick="document.getElementById('customFile').click()">
-                <i data-lucide="file-up" style="color: var(--text-secondary); width: 24px; height: 24px; margin-bottom: 8px; display: block; margin: 0 auto 8px;"></i>
-                <div style="font-size: 12px; font-weight: 600; color: #fff;">Kliknij i wybierz PDF lub JPG zadania</div>
-                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;" id="fileNameDisplay">Brak pliku</div>
-                <input type="file" id="customFile" accept=".pdf,image/*" style="display: none;" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name">
-            </div>
-        </div>
-
-        <!-- 3. Format Docelowy -->
-        <div class="bento-box">
-            <div class="bento-header"><i data-lucide="settings-2" class="text-pink-400 w-5 h-5"></i> 2. Co chesz wygenerować?</div>
             <div class="format-grid">
-                <div class="format-btn active" onclick="selectFormat(this, 'Fiszki Q&A')">
-                    <i data-lucide="help-circle" class="w-4 h-4"></i> Fakty & Teoria
+                <!-- Klasyczne i SRS -->
+                <div class="format-btn active" onclick="toggleFormat(this, 'Fiszki Q&A (Standardowe)')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Fiszki Q&A (Klasyczne)
                 </div>
-                <div class="format-btn" onclick="selectFormat(this, 'Zdania z Lukami')">
-                    <i data-lucide="pen-tool" class="w-4 h-4"></i> Zdania z Lukami
+                <div class="format-btn" onclick="toggleFormat(this, 'Fiszki z Lukami (Cloze)')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Zadania z Lukami
                 </div>
-                <div class="format-btn" onclick="selectFormat(this, 'Sprawdzian Prawda/Fałsz')">
-                    <i data-lucide="check-square" class="w-4 h-4"></i> Prawda / Fałsz
+                <div class="format-btn" onclick="toggleFormat(this, 'Podcast / Podsumowanie Audio')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Generuj Podcast (Skrypt)
                 </div>
-                <div class="format-btn" onclick="selectFormat(this, 'Krótkie streszczenie do audio')">
-                    <i data-lucide="headphones" class="w-4 h-4"></i> Podcast (Podsumowanie)
+                <div class="format-btn" onclick="toggleFormat(this, 'Sprawdzian Prawda/Fałsz')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Krótki Quiz (P/F)
                 </div>
+                
+                <!-- Inspirowane liderami i prośbami gry -->
+                <div class="format-btn" onclick="toggleFormat(this, 'Gra: Dopasuj pary (Memory)')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Gryzwalizacja (Match/Memory)
+                </div>
+                <div class="format-btn" onclick="toggleFormat(this, 'Wygeneruj 10 PODOBNYCH ćwiczeń')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Stwórz Podobne Zadania
+                </div>
+                <div class="format-btn" onclick="toggleFormat(this, 'Baza słówek / E-Tutor styl')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Słowniczek (Tłumaczenia)
+                </div>
+                <div class="format-btn" onclick="toggleFormat(this, 'Eksport SRS (Interwały)')">
+                    <div class="f-chk"><i data-lucide="check" style="width: 10px; height: 10px;"></i></div> 
+                    Zoptymalizuj pod SR (Anki)
+                </div>
+            </div>
+            
+            <div style="font-size: 11px; margin-top: 12px; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.05);">
+                Wskazówka: Jeśli wybierasz opcję <b>"Podobne zadania"</b>, uściślij na czacie po prawej jaki poziom zadowala ucznia (np. "Wykreuj mi łatwiejsze", "Zrób to na poziom olimpiady", "Zmień tylko cyfry").
             </div>
         </div>
 
@@ -184,12 +211,12 @@
     <div class="chat-panel">
         <div class="chat-header-bar">
             <div style="width: 40px; height: 40px; background: rgba(0,0,0,0.5); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.3);">
-                <i data-lucide="bot" style="color: var(--accent-indigo); width: 20px;"></i>
+                <i data-lucide="bot" style="color: var(--accent-indigo); width: 22px;"></i>
             </div>
             <div>
-                <h2 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0 0 2px;">Tutor-Operator</h2>
+                <h2 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0 0 2px;">Twój Asystent Naukowy</h2>
                 <div style="font-size: 11px; color: var(--accent-cyan); display: flex; gap: 4px; align-items: center;">
-                    <span style="width:6px; height:6px; background:var(--accent-emerald); border-radius:50%;"></span> N8N Pipeline Gotowy
+                    <span style="width:6px; height:6px; background:var(--accent-emerald); border-radius:50%;"></span> Aktywna konwersacja z AI
                 </div>
             </div>
         </div>
@@ -198,9 +225,10 @@
             <div class="message-row bot">
                 <div class="msg-avatar bot"><i data-lucide="sparkles" style="width: 16px;"></i></div>
                 <div>
-                    <div class="msg-author">Tutor AI</div>
+                    <div class="msg-author">Asystent</div>
                     <div class="msg-bubble">
-                        Cześć! Skonfiguruj opcje z lewej strony, dodaj strony lub załącz plik.<br><br>Gdy będziesz gotowy, napisz "Start", a ja polecę wygenerować fiszki do wglądu.
+                        Cześć! Zaznacz po lewej stronie, czego masz ochotę się pouczyć i w jakiej formie robimy notatki (możesz wybrać wiele naraz!).<br><br>
+                        Napisz mi tutaj z jakiego działu lub ćwiczenia materiału będziemy korzystać.
                     </div>
                 </div>
             </div>
@@ -208,7 +236,7 @@
 
         <div class="input-container">
             <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
-                <input type="text" id="tmsg" class="chat-input" placeholder="Napisz do mnie..." autocomplete="off">
+                <input type="text" id="tmsg" class="chat-input" placeholder="np. 'Skup się na rozdziale 3, potrzebuję zadań o starożytności, ale zrób łatwiejsze...'" autocomplete="off">
                 <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 18px;"></i></button>
             </form>
         </div>
@@ -216,20 +244,24 @@
 </div>
 
 <script>
-    let conf = { src: '📝 Notatki własne / Z głowy', format: 'Fiszki Q&A' };
+    let conf = { src: '📝 Notatki własne / Rozmowa / Wiedza ogólna', formats: new Set(['Fiszki Q&A (Standardowe)']) };
 
     function selectBook(elem, title) {
         document.querySelectorAll('.book-tile').forEach(el => el.classList.remove('active'));
         elem.classList.add('active');
         conf.src = title;
-        addSystemLog("Zmieniono materiał na: " + title);
+        addSystemLog("Zmieniono materiał źródłowy na: " + title);
     }
     
-    function selectFormat(elem, fmt) {
-        document.querySelectorAll('.format-btn').forEach(el => el.classList.remove('active'));
-        elem.classList.add('active');
-        conf.format = fmt;
-        addSystemLog("Format paczki ustawiony na: " + fmt);
+    function toggleFormat(elem, fmt) {
+        if(conf.formats.has(fmt)) {
+            if(conf.formats.size === 1) return; // Nie pozwalamy odznaczyć ostatniego
+            conf.formats.delete(fmt);
+            elem.classList.remove('active');
+        } else {
+            conf.formats.add(fmt);
+            elem.classList.add('active');
+        }
     }
 
     const msgsContainer = document.getElementById('chat-msgs');
@@ -267,7 +299,7 @@
         div.innerHTML = `
             <div class="msg-avatar bot"><i data-lucide="bot" style="width: 16px;"></i></div>
             <div>
-                <div class="msg-author">Tutor AI</div>
+                <div class="msg-author">Asystent</div>
                 <div class="msg-bubble">${fmt}</div>
             </div>
         `;
@@ -291,16 +323,21 @@
 
         const sStart = document.getElementById('pStart').value;
         const sEnd = document.getElementById('pEnd').value;
+        const sChap = document.getElementById('pChapter').value;
         
         const attachStr = document.getElementById('customFile').files.length > 0 ? "Tak" : "Nie";
+        const formatStr = Array.from(conf.formats).join(", ");
 
-        const promptContext = `[Ukryty stan konfiguracji z lewej strony pulpitu użytkownika:
-1. Użytkownik wskazał wiedzę: ${conf.src}
-   - Wybrane Strony od: ${sStart || "Początek"} do: ${sEnd || "Koniec"}
-   - Użytkownik Dodał własny Załącznik (Upload File): ${attachStr}
-2. Chce wygenerować: ${conf.format}]
+        const promptContext = `[Ukryty stan konfiguracji panelu kreatora:
+1. Źródło: ${conf.src}
+   - Wybrane Strony od: ${sStart || "-"} do: ${sEnd || "-"}
+   - Wskazany Rozdział w UI: ${sChap || "brak - wyciągnij z czatu"}
+   - Plik użytkownika (Upload): ${attachStr}
+2. Pożądane formaty generacji: ${formatStr}]
 
-Uczeń pisze: ${txt}`;
+Uczeń instruuje: ${txt}
+[Pamiętaj reagować jeśli uczeń prosi o podobne zadania (modyfikacja cyfr/poziomu). Pytaj ucznia o poziom, jeśli tego nie sprecyzował.]
+`;
 
         try {
             const r = await fetch('/fiszkomat/chat/msg', {
@@ -311,7 +348,7 @@ Uczeń pisze: ${txt}`;
             const d = await r.json();
             addBot(d.msg || "Błąd odpowiedzi.");
         } catch(err) {
-            addBot("Brak połączenia z N8N/Asystentem.");
+            addBot("Brak połączenia z silnikiem Asystenta. (Błąd LLM)");
         }
 
         btn.innerHTML = '<i data-lucide="send" style="width: 18px;"></i>';
