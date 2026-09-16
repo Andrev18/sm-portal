@@ -47,14 +47,18 @@ templates.env.globals["v"] = BUILD_TS  # cache-busting: /static/x.css?v={{ v }}
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -146,14 +150,18 @@ def ai_speak_url(text: str) -> str:
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -564,14 +572,18 @@ _c.close()
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -637,14 +649,18 @@ def require_role(user, *roles):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -729,14 +745,18 @@ def user_streak(uid: int) -> int:
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -822,14 +842,18 @@ def _coins_spent(uid: int) -> int:
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -978,14 +1002,18 @@ def api_review(card_id: int, request: Request, rating: int = Form(...)):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -1038,14 +1066,18 @@ def gate_post(request: Request, code: str = Form("")):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -1115,14 +1147,18 @@ def manifest():
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -1461,14 +1497,18 @@ def serwisy_page(request: Request):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -1569,14 +1609,18 @@ def subject_new(request: Request, name: str = Form(""), icon: str = Form("📘")
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -1623,14 +1667,18 @@ def leaderboard(request: Request):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -1836,14 +1884,18 @@ def book_file(filename: str):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -2041,7 +2093,7 @@ def fiszkomat_chat_view(request: Request):
     if user['role'] not in ('admin', 'teacher'):
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT id, title, subject FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT id, title, subject FROM books").fetchall()]
     decks = conn.execute("SELECT id, name FROM decks").fetchall()
     conn.close()
     return templates.TemplateResponse(request, "fiszkomat_chat.html", {"user": user, "books": books, "decks": decks})
@@ -2107,14 +2159,18 @@ Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z 
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -2238,14 +2294,18 @@ def announcement_read(request: Request, aid: int):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
@@ -2365,14 +2425,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request):
+def admin_ocr_panel(request: Request, response: Response):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
-    books = conn.execute("SELECT * FROM books").fetchall()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.post("/admin/ocr/trigger")
 async def admin_ocr_trigger(request: Request):
