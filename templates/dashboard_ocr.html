@@ -43,7 +43,9 @@
         </table>
         
         
+        
         <script>
+        // Podpinamy lucide zeby na pewno renderowalo ikony z biegu
         async function fetchStatus() {
             try {
                 const res = await fetch('/admin/ocr/status');
@@ -52,31 +54,33 @@
                 document.querySelectorAll('.status-cell').forEach(cell => {
                     const bid = cell.getAttribute('data-book');
                     if (data[bid] && data[bid].length > 0) {
-                        let html = "";
+                        let innerHtml = "";
                         data[bid].forEach(job => {
                             if (job.status === "completed") {
-                                html += `<div style="margin-bottom:4px; font-weight:bold; color: #10b981;"><i data-lucide="check-circle" style="width:12px; height:12px; display:inline-block; vertical-align:-1px;"></i> Skan Str. ${job.pages}: 100% Zdigitalizowano</div>`;
+                                innerHtml += `<div style="margin-top:8px; font-weight:bold; color: #10b981; background: rgba(16,185,129,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2);"><i data-lucide="check-circle" style="width:14px; height:14px; display:inline-block; vertical-align:-2px;"></i> Zdigitalizowano strony: ${job.pages}</div>`;
                             } else if(job.status === "pending") {
-                                html += `<div style="margin-bottom:4px; color: var(--accent-cyan); font-weight:600;"><i data-lucide="loader" style="width:12px; height:12px; display:inline-block; vertical-align:-1px; animation: spin 2s linear infinite;"></i> Zadanie (Str. ${job.pages}): Przetwarzanie w pętli LLM... 🔄</div>`;
+                                innerHtml += `<div style="margin-top:8px; color: #38bdf8; font-weight:600; background: rgba(56,189,248,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2);"><i data-lucide="loader" style="width:14px; height:14px; display:inline-block; vertical-align:-2px; animation: spin 2s linear infinite;"></i> Zadanie (Str. ${job.pages}): Przetwarzanie w tle...</div>`;
                             } else {
-                                html += `<div style="margin-bottom:4px; color: #ef4444;"><i data-lucide="x-circle" style="width:12px; height:12px; display:inline-block; vertical-align:-1px;"></i> Str. ${job.pages}: Błąd OCR</div>`;
+                                innerHtml += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px;"><i data-lucide="x-circle" style="width:14px; height:14px; display:inline-block; vertical-align:-2px;"></i> Błąd OCR dla stron: ${job.pages}</div>`;
                             }
                         });
-                        cell.innerHTML = html;
+                        cell.innerHTML = innerHtml;
                     }
                 });
                 if(window.lucide) lucide.createIcons();
-            } catch(e) {}
+            } catch(e) {
+                console.error("Polling error", e);
+            }
         }
         
         async function startOCR(bookId, title) {
             const pages = document.getElementById('pages-'+bookId).value || "1-10";
-            if(!confirm(`Rozpocząć ekstrakcję AI OCR na ${title} (Strony: ${pages})?
-Zadanie trafi do potoku.`)) return;
+            if(!confirm(`Rozpocząć ekstrakcję AI OCR na ${title} (Strony: ${pages})?`)) return;
             
             try {
+                // UI Optymistyczne renderowanie
                 const reqCell = document.querySelector(`.status-cell[data-book='${bookId}']`);
-                reqCell.innerHTML += `<div style="margin-bottom:4px; color: var(--accent-cyan); font-weight:600;"><i data-lucide="loader" style="width:12px; height:12px; display:inline-block; vertical-align:-1px; animation: spin 2s linear infinite;"></i> Zadanie (Str. ${pages}): Wypuszczanie strumienia do modułu Docling... 🔄</div>`;
+                reqCell.innerHTML = `<div style="margin-top:8px; color: #38bdf8; font-weight:600; background: rgba(56,189,248,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2);"><i data-lucide="loader" style="width:14px; height:14px; display:inline-block; vertical-align:-2px; animation: spin 2s linear infinite;"></i> Zadanie (Str. ${pages}): Wypuszczanie strumienia LLM...</div>`;
                 if(window.lucide) lucide.createIcons();
                 
                 const res = await fetch('/admin/ocr/trigger', {
@@ -85,15 +89,16 @@ Zadanie trafi do potoku.`)) return;
                     body: JSON.stringify({ book_id: bookId, pages_range: pages, subject: title })
                 });
                 const d = await res.json();
-                
+                fetchStatus(); // Wymuś pollowanie DB od razu
             } catch (err) {
                 alert("Błąd połączenia: " + err);
             }
         }
         
-        setInterval(fetchStatus, 5000);
-        fetchStatus();
+        setInterval(fetchStatus, 3000);
+        setTimeout(fetchStatus, 500); // odpalamy ciut po załadowaniu
         </script>
+
 
     </div>
 </div>
