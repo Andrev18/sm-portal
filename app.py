@@ -799,7 +799,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- liga tygodniowa, tytuly, rajd klasowy
+    # liga tygodniowa, tytuly, rajd klasowy
 
 TITLES = [(1000, "Legenda 5B 🐉"), (500, "Władca Wiedzy 👑"), (250, "Mistrz Fiszek 🥋"),
           (100, "Pogromca Zadań ⚔️"), (0, "Nowicjusz 5B 🌱")]
