@@ -1,0 +1,280 @@
+{% extends "base.html" %}{% block title %}Asystent Fiszkomat AI · Baza Wiedzy 5B{% endblock %}
+{% block content %}
+<style>
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    max-width: 900px;
+    margin: 0 auto;
+}
+.chat-header {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(158, 127, 255, 0.05));
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.chat-window {
+    flex: 1;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.messages-area {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.message-row {
+    display: flex;
+    gap: 16px;
+    max-width: 85%;
+}
+.message-row.me {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+.msg-avatar {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: bold; flex-shrink: 0;
+}
+.msg-avatar.bot { background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); border: 1px solid rgba(99, 102, 241, 0.3); }
+.msg-avatar.user { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-subtle); text-transform: uppercase; }
+
+.msg-bubble {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+    padding: 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; color: #e2e8f0;
+}
+.message-row.bot .msg-bubble { border-top-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.message-row.me .msg-bubble { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); border-top-right-radius: 4px; color: #fff; }
+
+.msg-author { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; }
+.message-row.me .msg-author { text-align: right; }
+
+.input-area {
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid var(--border-subtle);
+}
+.context-bar {
+    display: flex; gap: 12px; margin-bottom: 12px;
+}
+.context-select {
+    flex: 1;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-subtle);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 12px;
+    outline: none;
+}
+.context-select:hover { border-color: var(--accent-indigo); }
+.chat-form {
+    display: flex; gap: 12px;
+}
+.chat-input {
+    flex: 1;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-focus);
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: 16px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+.chat-input:focus { border-color: var(--accent-indigo); box-shadow: inset 0 0 0 1px var(--accent-indigo); }
+.chat-btn {
+    border: none; background: var(--accent-indigo); color: white;
+    padding: 0 24px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.chat-btn:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+/* Wbudowany Loader */
+.thinking { opacity: 0.7; font-style: italic; }
+</style>
+
+<div class="chat-container">
+    <div class="deck-header" style="margin-bottom: 20px; padding: 20px 24px;">
+        <div style="background: rgba(0,0,0,0.4); width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.3);">
+            <i data-lucide="bot" style="color: var(--accent-indigo); width: 32px; height: 32px;"></i>
+        </div>
+        <div style="flex: 1;">
+            <h1 style="margin: 0 0 4px 0; font-size: 24px; color: #fff; font-weight: 700;">Asystent Fiszkomat AI</h1>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Podaj mi materiały źródłowe i wytyczne, a wygeneruję inteligentne paczki fiszek przez n8n.</p>
+        </div>
+    </div>
+
+    <div class="chat-window">
+        <div class="messages-area" id="chat-msgs">
+            <div class="message-row bot">
+                <div class="msg-avatar bot"><i data-lucide="sparkles" style="width: 20px;"></i></div>
+                <div>
+                    <div class="msg-author">Asystent Fiszkomatu</div>
+                    <div class="msg-bubble">
+                        Cześć {{ user['name'] }}! Jestem ekspertem od wyciągania wiedzy z materiałów dydaktycznych.<br><br>
+                        Wybierz książkę/ćwiczenia z menu poniżej (lub zostaw bez jeśli generujemy z ogólnej wiedzy), wskaż do której Talii mamy to zapisać, a potem powiedz mi:<br>
+                        <b style="color:var(--accent-cyan);">Jakie konkretnie fiszki chcesz bym wygenerował? Na których stronach się skupić?</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="input-area" style="position: relative;">
+            
+            <div style="position: absolute; top: -38px; left: 16px; right: 16px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;" class="custom-scrollbar">
+                <button type="button" onclick="quickFill('Zeszyty ćwiczeń i zadania z lukami')" class="quick-btn"><i data-lucide="pen-tool"></i> Chcę wygenerować fiszki do wypełniania luk z tego materiału</button>
+                <button type="button" onclick="quickFill('Krótki quiz raw/fałsz lub ABCD z podanego przedziału stron')" class="quick-btn"><i data-lucide="help-circle"></i> Zrób dla mnie prawda czy fałsz (Quiz)</button>
+                <button type="button" onclick="quickFill('Ekstrakcja dat, kluczowych pojęć w formule Faktologia / Pytanie-Odpowiedz')" class="quick-btn"><i data-lucide="search"></i> Wyłuskaj fakty i daty w Pytanie-Odpowiedź</button>
+            </div>
+
+            <style>
+                .quick-btn {
+                    white-space: nowrap; padding: 6px 14px; background: rgba(0,0,0,0.6); 
+                    border: 1px solid var(--border-subtle); color: var(--text-muted); 
+                    border-radius: 9999px; font-size: 11px; cursor: pointer; transition: all 0.2s;
+                    display: inline-flex; align-items: center; gap: 6px; font-weight: 600;
+                    backdrop-filter: blur(8px);
+                }
+                .quick-btn:hover { background: rgba(99, 102, 241, 0.15); color: #fff; border-color: rgba(99, 102, 241, 0.4); }
+                .quick-btn i { width: 12px; height: 12px; }
+            </style>
+
+            <div class="context-bar">
+                <select id="ctxBook" class="context-select">
+                    <option value="">📚 -- Pomiń książkę (Generuj z ogólnej bazy wiedzy AI) --</option>
+                    {% for b in books %}
+                    <option value="{{ b['id'] }}">📖 {{ b['title'] }} ({{ b['subject'] }})</option>
+                    {% endfor %}
+                </select>
+                <select id="ctxDeck" class="context-select">
+                    <option value="">🗂️ -- Wybierz docelową talię fiszek --</option>
+                    {% for d in decks %}
+                    <option value="{{ d['id'] }}">Talia: {{ d['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
+                <input type="text" id="tmsg" class="chat-input" placeholder="Wpisz lub kliknij podpowiedź po wskazaniu materiału..." autocomplete="off" required>
+                <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 20px;"></i></button>
+            </form>
+        </div>
+                <select id="ctxBook" class="context-select">
+                    <option value="">📚 -- Pomiń książkę (Generuj z ogólnej bazy wiedzy AI) --</option>
+                    {% for b in books %}
+                    <option value="{{ b['id'] }}">📖 {{ b['title'] }} ({{ b['subject'] }})</option>
+                    {% endfor %}
+                </select>
+                <select id="ctxDeck" class="context-select">
+                    <option value="">🗂️ -- Wybierz docelową talię fiszek --</option>
+                    {% for d in decks %}
+                    <option value="{{ d['id'] }}">Talia: {{ d['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
+                <input type="text" id="tmsg" class="chat-input" placeholder="Np. Stwórz 10 fiszek (Prawda/Fałsz) o komórce roślinnej bazując na stronach 15-18 z podręcznika..." autocomplete="off" required>
+                <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 20px;"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const msgs = document.getElementById('chat-msgs');
+    
+    
+    function quickFill(text) {
+        document.getElementById('tmsg').value = text;
+        document.getElementById('tbtn').click();
+    }
+    
+    function scrollToBottom() {
+        requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+    }
+
+    function addMe(txt) {
+        const div = document.createElement('div');
+        div.className = 'message-row me';
+        div.innerHTML = `
+            <div class="msg-avatar user">{{ user['name'][0] }}</div>
+            <div>
+                <div class="msg-author">Ty</div>
+                <div class="msg-bubble">${txt.replace(/</g,'&lt;')}</div>
+            </div>
+        `;
+        msgs.appendChild(div);
+        scrollToBottom();
+    }
+
+    function addBot(txt) {
+        let fmt = txt.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>').replace(/\n/g, '<br>');
+        const div = document.createElement('div');
+        div.className = 'message-row bot';
+        div.innerHTML = `
+            <div class="msg-avatar bot"><i data-lucide="bot" style="width: 20px;"></i></div>
+            <div>
+                <div class="msg-author">Asystent Fiszkomatu</div>
+                <div class="msg-bubble">${fmt}</div>
+            </div>
+        `;
+        msgs.appendChild(div);
+        if(window.lucide) lucide.createIcons();
+        scrollToBottom();
+    }
+
+    async function sendMsg(e) {
+        e.preventDefault();
+        const inp = document.getElementById('tmsg');
+        const txt = inp.value;
+        if(!txt.trim()) return;
+        
+        inp.value = '';
+        addMe(txt);
+        
+        const btn = document.getElementById('tbtn');
+        btn.innerHTML = '<i data-lucide="loader" style="width: 20px; animation: spin 2s linear infinite;"></i>';
+        btn.disabled = true;
+
+        const bookSelect = document.getElementById('ctxBook');
+        const deckSelect = document.getElementById('ctxDeck');
+        const bookName = bookSelect.options[bookSelect.selectedIndex].text;
+        const deckName = deckSelect.options[deckSelect.selectedIndex].text;
+
+        const promptContext = `Kontekst zapytania:
+Książka: ${bookSelect.value ? bookName : 'Brak (Wiedza Ogólna)'}
+Docelowa Talia: ${deckSelect.value ? deckName : 'Brak (Należy dopytać użytkownika)'}
+Wiadomość użytkownika: ${txt}`;
+
+        try {
+            const r = await fetch('/fiszkomat/chat/msg', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({msg: promptContext})
+            });
+            const d = await r.json();
+            addBot(d.msg || "Błąd odpowiedzi.");
+        } catch(err) {
+            addBot("Brak polaczenia z asystentem Fiszkomatu.");
+        }
+
+        btn.innerHTML = '<i data-lucide="send" style="width: 20px;"></i>';
+        btn.disabled = false;
+        if(window.lucide) lucide.createIcons();
+    }
+</script>
+{% endblock %}
