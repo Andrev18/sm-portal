@@ -46,7 +46,7 @@
         
         
         <script>
-        async function fetchStatus() {
+        async function fetchStatus3259() {
             try {
                 const res = await fetch('/admin/ocr/status');
                 const data = await res.json();
@@ -117,14 +117,14 @@
                     body: JSON.stringify({ book_id: bookId, pages_range: pages, subject: title })
                 });
                 const d = await res.json();
-                fetchStatus(); // Wymuś pollowanie DB
+                fetchStatus3259();
             } catch (err) {
                 alert("Błąd połączenia: " + err);
             }
         }
         
-        setInterval(fetchStatus, 3000);
-        setTimeout(fetchStatus, 500); 
+        setInterval(fetchStatus3259, 3000);
+        setTimeout(fetchStatus3259, 500); 
         </script>
 
 
