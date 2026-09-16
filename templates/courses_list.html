@@ -1,0 +1,167 @@
+
+<style>
+/* Bento Minimalist Dashboard UI */
+.courses-container { max-width: 1400px; margin: 32px auto; padding: 0 24px; font-family: 'Inter', sans-serif; }
+.c-header { margin-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end;}
+.c-title { font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+.c-desc { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin: 0; max-width: 600px; }
+.c-global-score { text-align: right; }
+.c-global-score span { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;}
+.c-global-score strong { font-size: 32px; color: #10b981; font-weight: 800; line-height: 1;}
+
+/* Grid of Subjects (Horizontal Layout Bento) */
+.course-grid { display: flex; flex-direction: column; gap: 24px; }
+
+/* Karta Przedmiotu (Horyzontalna, Bento) */
+.course-card {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px;
+    overflow: hidden; display: flex; align-items: stretch; transition: all 0.2s; position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.course-card:hover { border-color: var(--border-focus); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+
+/* Left Accent Hero area - very compressed now */
+.c-hero {
+    width: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-right: 1px solid rgba(255,255,255,0.05);
+}
+.c-hero-math { background: linear-gradient(180deg, rgba(56, 189, 248, 0.1), rgba(59, 130, 246, 0.02)); }
+.c-hero-eng { background: linear-gradient(180deg, rgba(236, 72, 153, 0.1), rgba(244, 63, 94, 0.02)); }
+.c-hero-pol { background: linear-gradient(180deg, rgba(168, 85, 247, 0.1), rgba(217, 70, 239, 0.02)); }
+
+.c-hero-icon { width: 24px; height: 24px; opacity: 0.9; }
+.c-hero-math .c-hero-icon { color: #38bdf8; }
+.c-hero-eng .c-hero-icon { color: #ec4899; }
+.c-hero-pol .c-hero-icon { color: #a855f7; }
+.c-subject-vert { writing-mode: vertical-rl; transform: rotate(180deg); margin-top: 16px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); opacity: 0.8;}
+
+/* Body splitted into 3 col: Meta, Materials, Actions */
+.c-body { flex: 1; padding: 24px; display: flex; gap: 32px; align-items: center; }
+
+/* Col 1: Meta info & Grade */
+.col-meta { width: 200px; }
+.c-subject-title { font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 12px 0; }
+.c-grades { display: flex; gap: 12px; margin-bottom: 12px;}
+.grade-box { background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 12px;}
+.grade-box span { display: block; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 2px;}
+.grade-box strong { font-size: 16px; color: #fff; font-weight: 700;}
+
+/* Progress tiny */
+.c-prog-wrap { width: 100%; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); font-weight: 500;}
+.c-prog-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; position: relative;}
+.c-prog-fill { height: 100%; background: #10b981; border-radius: 2px;}
+
+/* Col 2: Materials list (Compact list view) */
+.col-mats { flex: 1; display: flex; flex-direction: column; gap: 8px; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 32px;}
+.mat-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+.mat-row:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+.m-ic { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+.mat-row.theory .m-ic i { color: #94a3b8; }
+.mat-row.practice .m-ic i { color: #10b981; }
+.m-info { flex: 1; }
+.m-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin: 0; display:flex; align-items:center; gap: 8px;}
+.m-meta { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px;}
+.m-badge { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; color: var(--text-muted);}
+
+/* Col 3: Actions & Fast Play */
+.col-actions { display: flex; flex-direction: column; gap: 12px; width: 200px; padding-left: 24px; border-left: 1px solid rgba(255,255,255,0.05);}
+.btn-go {
+    width: 100%; padding: 12px; background: var(--accent-indigo); border: none; border-radius: 12px; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 6px;
+}
+.btn-go:hover { background: #4f46e5; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);}
+.btn-gen {
+    width: 100%; padding: 12px; background: rgba(56, 189, 248, 0.1); border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 12px; color: #38bdf8; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-gen:hover { background: rgba(56, 189, 248, 0.2); }
+</style>
+
+<div class="courses-container">
+    <div class="c-header">
+        <div>
+            <h1 class="c-title">Kursy E-Tutor</h1>
+            <p class="c-desc">Twoje strefy zadaniowe zbudowane z inteligentnych analiz OCR bazy podręcznikowej i ćwiczeń.</p>
+        </div>
+        <div class="c-global-score">
+            <span>Twój Poziom (XP)</span>
+            <strong>1240</strong>
+        </div>
+    </div>
+
+    <div class="course-grid">
+        {% for subject, data in bundled_courses.items() %}
+        <div class="course-card">
+            
+            <div class="c-hero 
+                {% if subject == 'Matematyka' %}c-hero-math
+                {% elif subject == 'Angielski' %}c-hero-eng
+                {% else %}c-hero-pol{% endif %}">
+                {% if subject == 'Matematyka' %}<i data-lucide="calculator" class="c-hero-icon"></i>
+                {% elif subject == 'Angielski' %}<i data-lucide="globe" class="c-hero-icon"></i>
+                {% else %}<i data-lucide="book-heart" class="c-hero-icon"></i>{% endif %}
+                <div class="c-subject-vert">{{ subject }}</div>
+            </div>
+            
+            <div class="c-body">
+                
+                <div class="col-meta">
+                    <h2 class="c-subject-title">{{ subject }}</h2>
+                    <div class="c-grades">
+                        <div class="grade-box">
+                            <span>Srednia</span>
+                            <strong>4.5</strong>
+                        </div>
+                        <div class="grade-box" style="flex:1;">
+                            <span>Trofea</span>
+                            <strong><i data-lucide="award" style="width: 14px; display:inline; color:#fbbf24; vertical-align:-2px;"></i> 2</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="c-prog-wrap">
+                        <span>0%</span>
+                        <div class="c-prog-bar"><div class="c-prog-fill" style="width: 0%;"></div></div>
+                        <span>Opanowano</span>
+                    </div>
+                </div>
+                
+                <div class="col-mats">
+                    {% if data.textbook %}
+                    <div class="mat-row theory" onclick="window.location.href='/courses/play/{{ data.textbook.book_id }}'">
+                        <div class="m-ic"><i data-lucide="book-open" style="width: 14px;"></i></div>
+                        <div class="m-info">
+                            <div class="m-title">Teoria (Podręcznik) <div class="m-badge">Audio/Tekst</div></div>
+                            <div class="m-meta">{{ data.textbook.title }}</div>
+                        </div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
+                    </div>
+                    {% endif %}
+
+                    {% if data.workbook %}
+                    <div class="mat-row practice" onclick="window.location.href='/courses/play/{{ data.workbook.book_id }}'">
+                        <div class="m-ic"><i data-lucide="edit-3" style="width: 14px;"></i></div>
+                        <div class="m-info">
+                            <div class="m-title">Warsztat (Zeszyt Ćw.) <div class="m-badge">Zadania</div></div>
+                            <div class="m-meta">{{ data.workbook.title }} &bull; Dostępnych {{ data.workbook.tasks_cnt }} zadań OCR</div>
+                        </div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-actions">
+                    <button class="btn-go" onclick="window.location.href='/courses/play/{% if data.textbook %}{{ data.textbook.book_id }}{% else %}{{ data.workbook.book_id }}{% endif %}'">
+                        <i data-lucide="play-circle" style="width:16px;"></i> Kontynuuj Nauka
+                    </button>
+                    <button class="btn-gen" onclick="window.location.href='/admin/ocr'">
+                        <i data-lucide="sparkles" style="width: 14px;"></i> Dostrój AI
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    if(window.lucide) lucide.createIcons();
+</script>
+{% endblock %}
