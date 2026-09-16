@@ -64,7 +64,7 @@ def ai_generate_cards(text: str, count: int = 6) -> list[tuple[str, str]]:
         req = urllib.request.Request(
             AI_URL.rstrip('/') + '/chat/completions',
             data=_json.dumps({
-                "model": "Gemini 3.6 Flash High",
+                "model": "GLM 5.3 Flash",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 1500, "temperature": 0.4,
             }).encode(),
@@ -829,7 +829,7 @@ def ai_tutor(request: Request, q: str = ""):
     try:
         req = urllib.request.Request(
             AI_URL.rstrip('/') + '/chat/completions',
-            data=_json.dumps({"model": "Gemini 3.6 Flash High",
+            data=_json.dumps({"model": "GLM 5.3 Flash",
                               "messages": [{"role": "user", "content": prompt}],
                               "max_tokens": 400, "temperature": 0.5}).encode(),
             headers={"Authorization": f"Bearer {AI_KEY}", "Content-Type": "application/json"},
@@ -1482,7 +1482,7 @@ async def post_subject_chat(request: Request):
     
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
-        "model": "Gemini 3.6 Flash High",
+        "model": "GLM 5.3 Flash",
         "messages": [
             {"role": "system", "content": f"Jesteś osobistym tutorem z przedmiotu {subj} dla ucznia szkoły podstawowej (11 lat). Twój uczeń to {user['name']}. Pomagasz edukacyjnie, wyjaśniasz, i odpytujesz jako fiszkomat z tego profilu, badając jego wiedzę! Bądź zwięzły."},
             {"role": "user", "content": msg}
@@ -1495,7 +1495,7 @@ async def post_subject_chat(request: Request):
         if not url.endswith("/chat/completions"):
             url = f"{url}/chat/completions"
             
-        r = requests.post(url, json=payload, headers=headers, timeout=20)
+        r = requests.post(url, json=payload, headers=headers, timeout=45)
         resp = r.json()
         if 'choices' in resp:
             return {"msg": resp['choices'][0]['message']['content']}
@@ -1545,7 +1545,7 @@ Bądź zwięzły i entuzjastyczny. Gdy masz wszystkie informacje podsumuj krótk
     
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
-        "model": "Gemini 3.6 Flash High",
+        "model": "GLM 5.3 Flash",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": msg}
@@ -1558,7 +1558,7 @@ Bądź zwięzły i entuzjastyczny. Gdy masz wszystkie informacje podsumuj krótk
         if not url.endswith("/chat/completions"):
             url = f"{url}/chat/completions"
             
-        r = requests.post(url, json=payload, headers=headers, timeout=20)
+        r = requests.post(url, json=payload, headers=headers, timeout=45)
         resp = r.json()
         if 'choices' in resp:
             return {"msg": resp['choices'][0]['message']['content']}
