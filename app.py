@@ -64,7 +64,7 @@ def ai_generate_cards(text: str, count: int = 6) -> list[tuple[str, str]]:
         req = urllib.request.Request(
             AI_URL.rstrip('/') + '/chat/completions',
             data=_json.dumps({
-                "model": "gemini-2.5-flash",
+                "model": "Gemini 3.6 Flash High",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 1500, "temperature": 0.4,
             }).encode(),
@@ -829,7 +829,7 @@ def ai_tutor(request: Request, q: str = ""):
     try:
         req = urllib.request.Request(
             AI_URL.rstrip('/') + '/chat/completions',
-            data=_json.dumps({"model": "gemini-2.5-flash",
+            data=_json.dumps({"model": "Gemini 3.6 Flash High",
                               "messages": [{"role": "user", "content": prompt}],
                               "max_tokens": 400, "temperature": 0.5}).encode(),
             headers={"Authorization": f"Bearer {AI_KEY}", "Content-Type": "application/json"},
@@ -1477,11 +1477,12 @@ async def post_subject_chat(request: Request):
     msg = data.get('msg')
     
     api_key = os.environ.get("OMNIROUTE_API_KEY")
+    if not api_key: api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
     
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
-        "model": "gemini-2.5-flash",
+        "model": "Gemini 3.6 Flash High",
         "messages": [
             {"role": "system", "content": f"Jesteś osobistym tutorem z przedmiotu {subj} dla ucznia szkoły podstawowej (11 lat). Twój uczeń to {user['name']}. Pomagasz edukacyjnie, wyjaśniasz, i odpytujesz jako fiszkomat z tego profilu, badając jego wiedzę! Bądź zwięzły."},
             {"role": "user", "content": msg}
@@ -1490,7 +1491,7 @@ async def post_subject_chat(request: Request):
     
     import requests
     try:
-        url = os.environ.get("OMNIROUTE_BASE_URL", "http://100.64.0.4:20128/v1/chat/completions")
+        url = os.environ.get("OMNIROUTE_BASE_URL", "http://10.10.10.157:20128/v1/chat/completions")
         if not url.endswith("/chat/completions"):
             url = f"{url}/chat/completions"
             
@@ -1525,6 +1526,7 @@ async def fiszkomat_chat_msg(request: Request):
     msg = data.get('msg')
     
     api_key = os.environ.get("OMNIROUTE_API_KEY")
+    if not api_key: api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
     
     # Prompt dla Agenta tworzącego fiszki w trybie konwersacyjnym
@@ -1543,7 +1545,7 @@ Bądź zwięzły i entuzjastyczny. Gdy masz wszystkie informacje podsumuj krótk
     
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
-        "model": "gemini-2.5-flash",
+        "model": "Gemini 3.6 Flash High",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": msg}
@@ -1552,7 +1554,7 @@ Bądź zwięzły i entuzjastyczny. Gdy masz wszystkie informacje podsumuj krótk
     
     import requests
     try:
-        url = os.environ.get("OMNIROUTE_BASE_URL", "http://100.64.0.4:20128/v1/chat/completions")
+        url = os.environ.get("OMNIROUTE_BASE_URL", "http://10.10.10.157:20128/v1/chat/completions")
         if not url.endswith("/chat/completions"):
             url = f"{url}/chat/completions"
             
