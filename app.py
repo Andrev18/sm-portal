@@ -1360,8 +1360,9 @@ def srs_home(request: Request):
         (SELECT COUNT(*) FROM card_state s JOIN cards c ON c.id=s.card_id
           WHERE c.deck_id=d.id AND s.user_id=? AND s.due<=datetime('now')) ndue
         FROM decks d ORDER BY d.name""", (user["id"],)).fetchall()
+    books = conn.execute("SELECT id, title, subject FROM books").fetchall()
     conn.close()
-    return templates.TemplateResponse(request, "srs.html", {"user": user, "decks": decks})
+    return templates.TemplateResponse(request, "srs.html", {"user": user, "decks": decks, "books": books})
 
 
 @app.get("/srs/study/{deck_id}", response_class=HTMLResponse)
