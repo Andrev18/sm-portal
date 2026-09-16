@@ -596,6 +596,9 @@
         <a href="/vulcan" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Vulcan</a>
         <a href="/serwisy" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Aplikacje</a>
         <a href="/leaderboard" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Ranking</a>
+        {% if user and user['role'] == 'admin' %}
+        <a href="/admin/ocr" class="nav-tab-item" style="font-weight: 500; text-decoration: none; color: var(--accent-cyan);"><i data-lucide="server" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i> Skaner OCR</a>
+        {% endif %}
       </div>
 
       <div class="header-right" style="position: absolute; right: 24px; display: flex; align-items: center; gap: 12px;">
