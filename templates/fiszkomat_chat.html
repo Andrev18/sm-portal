@@ -26,6 +26,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
 }
 .messages-area {
     flex: 1;
@@ -54,7 +55,7 @@
 
 .msg-bubble {
     background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-    padding: 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; color: #e2e8f0;
+    padding: 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; color: #e2e8f0;
 }
 .message-row.bot .msg-bubble { border-top-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .message-row.me .msg-bubble { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); border-top-right-radius: 4px; color: #fff; }
@@ -63,24 +64,57 @@
 .message-row.me .msg-author { text-align: right; }
 
 .input-area {
-    padding: 20px;
-    background: rgba(0,0,0,0.2);
+    padding: 24px;
+    background: rgba(0,0,0,0.3);
     border-top: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
+
+/* Quick Prompts Area */
+.quick-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.quick-btn {
+    padding: 8px 16px; 
+    background: rgba(255,255,255,0.05); 
+    border: 1px solid var(--border-subtle); 
+    color: var(--text-secondary); 
+    border-radius: 20px; 
+    font-size: 12px; 
+    cursor: pointer; 
+    transition: all 0.2s;
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-weight: 500;
+}
+.quick-btn:hover { background: rgba(99, 102, 241, 0.15); color: #fff; border-color: rgba(99, 102, 241, 0.4); transform: translateY(-1px); }
+.quick-btn i { width: 14px; height: 14px; color: var(--accent-indigo); }
+
 .context-bar {
-    display: flex; gap: 12px; margin-bottom: 12px;
+    display: flex; gap: 16px; align-items: center;
 }
 .context-select {
     flex: 1;
     background: var(--bg-dark);
     border: 1px solid var(--border-subtle);
     color: #fff;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 12px;
-    font-size: 12px;
+    font-size: 13px;
     outline: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 .context-select:hover { border-color: var(--accent-indigo); }
+.context-select:focus { border-color: var(--accent-indigo); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+
 .chat-form {
     display: flex; gap: 12px;
 }
@@ -89,7 +123,7 @@
     background: var(--bg-surface);
     border: 1px solid var(--border-focus);
     color: #fff;
-    padding: 14px 20px;
+    padding: 16px 24px;
     border-radius: 16px;
     font-size: 14px;
     outline: none;
@@ -98,96 +132,84 @@
 .chat-input:focus { border-color: var(--accent-indigo); box-shadow: inset 0 0 0 1px var(--accent-indigo); }
 .chat-btn {
     border: none; background: var(--accent-indigo); color: white;
-    padding: 0 24px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
+    padding: 0 28px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.chat-btn:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-
-/* Wbudowany Loader */
-.thinking { opacity: 0.7; font-style: italic; }
+.chat-btn:hover { background: #4f46e5; transform: scale(1.02); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4); }
+.chat-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 </style>
 
 <div class="chat-container">
-    <div class="deck-header" style="margin-bottom: 20px; padding: 20px 24px;">
-        <div style="background: rgba(0,0,0,0.4); width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.3);">
+    <div class="chat-header">
+        <div style="background: rgba(0,0,0,0.4); width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.3); flex-shrink: 0;">
             <i data-lucide="bot" style="color: var(--accent-indigo); width: 32px; height: 32px;"></i>
         </div>
-        <div style="flex: 1;">
-            <h1 style="margin: 0 0 4px 0; font-size: 24px; color: #fff; font-weight: 700;">Asystent Fiszkomat AI</h1>
-            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Podaj mi materiały źródłowe i wytyczne, a wygeneruję inteligentne paczki fiszek przez n8n.</p>
+        <div>
+            <h1 style="margin: 0 0 6px 0; font-size: 24px; color: #fff; font-weight: 700; letter-spacing: -0.5px;">Wirtualny Nauczyciel 5B</h1>
+            <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.4;">Wybierz książkę poniżej i powiedz, z czego chcesz się sprawdzić. Przygotuję dla Ciebie paczkę fiszek lub odpytam Cię od razu!</p>
         </div>
     </div>
 
     <div class="chat-window">
-        <div class="messages-area" id="chat-msgs">
+        <div class="messages-area custom-scrollbar" id="chat-msgs">
             <div class="message-row bot">
                 <div class="msg-avatar bot"><i data-lucide="sparkles" style="width: 20px;"></i></div>
                 <div>
-                    <div class="msg-author">Asystent Fiszkomatu</div>
+                    <div class="msg-author">Super Mózg AI</div>
                     <div class="msg-bubble">
-                        Cześć {{ user['name'] }}! Jestem ekspertem od wyciągania wiedzy z materiałów dydaktycznych.<br><br>
-                        Wybierz książkę/ćwiczenia z menu poniżej (lub zostaw bez jeśli generujemy z ogólnej wiedzy), wskaż do której Talii mamy to zapisać, a potem powiedz mi:<br>
-                        <b style="color:var(--accent-cyan);">Jakie konkretnie fiszki chcesz bym wygenerował? Na których stronach się skupić?</b>
+                        Cześć <b>{{ user['name'] }}</b>! 👋<br><br>
+                        Mam dostęp do <strong style="color: var(--accent-cyan);">{{ books|length }} materiałów i książek</strong> w Twoim systemie.<br>
+                        Wybierz książkę na dole ekranu, a potem kliknij jeden z przycisków, jeśli chcesz bym np. ułożył quiz Prawda / Fałsz. 🚀
                     </div>
                 </div>
             </div>
         </div>
 
-        
-        <div class="input-area" style="position: relative;">
+        <div class="input-area">
             
-            <div style="position: absolute; top: -38px; left: 16px; right: 16px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;" class="custom-scrollbar">
-                <button type="button" onclick="quickFill('Zeszyty ćwiczeń i zadania z lukami')" class="quick-btn"><i data-lucide="pen-tool"></i> Chcę wygenerować fiszki do wypełniania luk z tego materiału</button>
-                <button type="button" onclick="quickFill('Krótki quiz raw/fałsz lub ABCD z podanego przedziału stron')" class="quick-btn"><i data-lucide="help-circle"></i> Zrób dla mnie prawda czy fałsz (Quiz)</button>
-                <button type="button" onclick="quickFill('Ekstrakcja dat, kluczowych pojęć w formule Faktologia / Pytanie-Odpowiedz')" class="quick-btn"><i data-lucide="search"></i> Wyłuskaj fakty i daty w Pytanie-Odpowiedź</button>
-            </div>
-
-            <style>
-                .quick-btn {
-                    white-space: nowrap; padding: 6px 14px; background: rgba(0,0,0,0.6); 
-                    border: 1px solid var(--border-subtle); color: var(--text-muted); 
-                    border-radius: 9999px; font-size: 11px; cursor: pointer; transition: all 0.2s;
-                    display: inline-flex; align-items: center; gap: 6px; font-weight: 600;
-                    backdrop-filter: blur(8px);
-                }
-                .quick-btn:hover { background: rgba(99, 102, 241, 0.15); color: #fff; border-color: rgba(99, 102, 241, 0.4); }
-                .quick-btn i { width: 12px; height: 12px; }
-            </style>
-
+            <!-- Konteksty: co i gdzie -->
             <div class="context-bar">
-                <select id="ctxBook" class="context-select">
-                    <option value="">📚 -- Pomiń książkę (Generuj z ogólnej bazy wiedzy AI) --</option>
-                    {% for b in books %}
-                    <option value="{{ b['id'] }}">📖 {{ b['title'] }} ({{ b['subject'] }})</option>
-                    {% endfor %}
-                </select>
-                <select id="ctxDeck" class="context-select">
-                    <option value="">🗂️ -- Wybierz docelową talię fiszek --</option>
-                    {% for d in decks %}
-                    <option value="{{ d['id'] }}">Talia: {{ d['name'] }}</option>
-                    {% endfor %}
-                </select>
+                <div style="flex:1;">
+                    <div style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:6px; margin-left:4px;">1. Z jakiej książki się uczymy?</div>
+                    <select id="ctxBook" class="context-select" style="width:100%;">
+                        <option value="">🌍 Wiedza ogólna (z głowy!)</option>
+                        {% for b in books %}
+                        <option value="{{ b['id'] }}">📖 {{ b['title'] }} ({{ b['subject'] }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Jeśli użytkownik to admin, pokaż mu wybór talii wymuszeniowy. -->
+                {% if user['role'] in ('admin', 'teacher') %}
+                <div style="flex:1;">
+                    <div style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:6px; margin-left:4px;">Do jakiej Talii trafia pytania?</div>
+                    <select id="ctxDeck" class="context-select" style="width:100%;">
+                        <option value="">🤔 Nie wiem, zaproponuj</option>
+                        {% for d in decks %}
+                        <option value="{{ d['id'] }}">🗂️ Talia: {{ d['name'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
             </div>
-            <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
-                <input type="text" id="tmsg" class="chat-input" placeholder="Wpisz lub kliknij podpowiedź po wskazaniu materiału..." autocomplete="off" required>
-                <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 20px;"></i></button>
-            </form>
-        </div>
-                <select id="ctxBook" class="context-select">
-                    <option value="">📚 -- Pomiń książkę (Generuj z ogólnej bazy wiedzy AI) --</option>
-                    {% for b in books %}
-                    <option value="{{ b['id'] }}">📖 {{ b['title'] }} ({{ b['subject'] }})</option>
-                    {% endfor %}
-                </select>
-                <select id="ctxDeck" class="context-select">
-                    <option value="">🗂️ -- Wybierz docelową talię fiszek --</option>
-                    {% for d in decks %}
-                    <option value="{{ d['id'] }}">Talia: {{ d['name'] }}</option>
-                    {% endfor %}
-                </select>
+
+            <!-- Pre-zdefiniowane szybkie strzały - ułatwia start uczniowi! wrapowane swobodnie -->
+            <div class="quick-prompts">
+                <button type="button" onclick="quickFill('Zrób dla mnie krótki quiz Prawda czy Fałsz na podstawie wybranej książki.')" class="quick-btn">
+                    <i data-lucide="help-circle"></i> Szybki Quiz (Prawda/Fałsz)
+                </button>
+                <button type="button" onclick="quickFill('Wypisz najważniejsze daty i fakty i wygeneruj do nich fiszki.')" class="quick-btn">
+                    <i data-lucide="calendar"></i> Ważne fakty i daty
+                </button>
+                <button type="button" onclick="quickFill('Wyjaśnij mi najtrudniejsze pojęcia z tego działu prostymi słowami.')" class="quick-btn">
+                    <i data-lucide="message-square"></i> Wyjaśnij mi pojęcia
+                </button>
+                <button type="button" onclick="quickFill('Chcę przećwiczyć wypełnianie luk w zdaniach (Test Luki).')" class="quick-btn">
+                    <i data-lucide="pen-tool"></i> Trening z lukami
+                </button>
             </div>
+
             <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
-                <input type="text" id="tmsg" class="chat-input" placeholder="Np. Stwórz 10 fiszek (Prawda/Fałsz) o komórce roślinnej bazując na stronach 15-18 z podręcznika..." autocomplete="off" required>
+                <input type="text" id="tmsg" class="chat-input" placeholder="Wpisz lub kliknij podpowiedź po wskazaniu materiału u góry..." autocomplete="off" required>
                 <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 20px;"></i></button>
             </form>
         </div>
@@ -197,14 +219,13 @@
 <script>
     const msgs = document.getElementById('chat-msgs');
     
-    
-    function quickFill(text) {
-        document.getElementById('tmsg').value = text;
-        document.getElementById('tbtn').click();
-    }
-    
     function scrollToBottom() {
         requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+    }
+
+    function quickFill(text) {
+        document.getElementById('tmsg').value = text;
+        document.getElementById('tform').dispatchEvent(new Event('submit'));
     }
 
     function addMe(txt) {
@@ -228,7 +249,7 @@
         div.innerHTML = `
             <div class="msg-avatar bot"><i data-lucide="bot" style="width: 20px;"></i></div>
             <div>
-                <div class="msg-author">Asystent Fiszkomatu</div>
+                <div class="msg-author">Super Mózg AI</div>
                 <div class="msg-bubble">${fmt}</div>
             </div>
         `;
@@ -247,18 +268,22 @@
         addMe(txt);
         
         const btn = document.getElementById('tbtn');
+        const originalIcon = btn.innerHTML;
         btn.innerHTML = '<i data-lucide="loader" style="width: 20px; animation: spin 2s linear infinite;"></i>';
+        if(window.lucide) lucide.createIcons();
         btn.disabled = true;
 
         const bookSelect = document.getElementById('ctxBook');
-        const deckSelect = document.getElementById('ctxDeck');
         const bookName = bookSelect.options[bookSelect.selectedIndex].text;
-        const deckName = deckSelect.options[deckSelect.selectedIndex].text;
+        
+        const deckSelect = document.getElementById('ctxDeck');
+        const deckName = deckSelect ? deckSelect.options[deckSelect.selectedIndex].text : 'Brak';
 
-        const promptContext = `Kontekst zapytania:
-Książka: ${bookSelect.value ? bookName : 'Brak (Wiedza Ogólna)'}
-Docelowa Talia: ${deckSelect.value ? deckName : 'Brak (Należy dopytać użytkownika)'}
-Wiadomość użytkownika: ${txt}`;
+        const promptContext = `[Ukryte parametry systemowe:
+1. Uczeń użył książki: ${bookSelect.value ? bookName : "Ogólna wiedza bez podręcznika"}
+2. Docelowa talia do zapisu generacji: ${deckName}]
+
+Polecenie ucznia: ${txt}`;
 
         try {
             const r = await fetch('/fiszkomat/chat/msg', {
@@ -269,10 +294,10 @@ Wiadomość użytkownika: ${txt}`;
             const d = await r.json();
             addBot(d.msg || "Błąd odpowiedzi.");
         } catch(err) {
-            addBot("Brak polaczenia z asystentem Fiszkomatu.");
+            addBot("Brak połączenia z Asystentem. Upewnij się, że masz połącznie z AI Server.");
         }
 
-        btn.innerHTML = '<i data-lucide="send" style="width: 20px;"></i>';
+        btn.innerHTML = originalIcon;
         btn.disabled = false;
         if(window.lucide) lucide.createIcons();
     }
