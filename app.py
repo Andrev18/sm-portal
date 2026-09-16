@@ -91,7 +91,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- AI (DeepSeek)
+# ------------------------------------------------ AI (DeepSeek)
 AI_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 AI_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
 
@@ -174,7 +174,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- DB
+# ------------------------------------------------ DB
 
 
 def db() -> sqlite3.Connection:
@@ -598,7 +598,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- routing
+# ------------------------------------------------ routing
 
 
 def current_user(request: Request) -> Optional[sqlite3.Row]:
@@ -677,7 +677,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- PIN / gamifikacja
+# ------------------------------------------------ PIN / gamifikacja
 
 
 def pin_users():
@@ -874,7 +874,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
+    # API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
 
 PETDEX_LIST = [
     {"slug": "boxcat", "name": "Boxcat", "img": "/static/pets/boxcat.png", "streak_req": 0, "points_req": 0, "desc": "Rudo-biały kotek w kartonowym pudełku."},
@@ -1036,7 +1036,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- gate (haslo dostepu)
+# ------------------------------------------------ gate (haslo dostepu)
 
 
 def gate_ok(request: Request) -> bool:
@@ -1102,7 +1102,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- routing
+# ------------------------------------------------ routing
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -1185,7 +1185,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- dodawanie tresci: plik / zdjecie / notatka -> fiszki
+# dodawanie tresci: plik / zdjecie / notatka -> fiszki
 
 @app.get("/add", response_class=HTMLResponse)
 def add_page(request: Request):
@@ -1537,7 +1537,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- dzialy przedmiotow
+# dzialy przedmiotow
 
 @app.get("/subjects", response_class=HTMLResponse)
 def subjects_list(request: Request):
@@ -1651,7 +1651,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- tablica wynikow / statystyki
+# tablica wynikow / statystyki
 
 @app.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard(request: Request):
@@ -1711,7 +1711,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- pomysly / wishlist
+# pomysly / wishlist
 
 @app.get("/ideas", response_class=HTMLResponse)
 def ideas_page(request: Request):
@@ -1930,7 +1930,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- SRS (SM-2)
+# SRS (SM-2)
 
 @app.get("/srs", response_class=HTMLResponse)
 def srs_home(request: Request):
@@ -2207,7 +2207,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- Forum + chat + ogloszenia
+# Forum + chat + ogloszenia
 
 @app.get("/forum", response_class=HTMLResponse)
 def forum(request: Request):
@@ -2344,7 +2344,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- Panel nauczyciela
+# Panel nauczyciela
 
 @app.post("/teacher/users")
 def teacher_create_user(request: Request, login_: str = Form(""), name: str = Form(""), role: str = Form("student"), password: str = Form(""), pin: str = Form("")):
@@ -2477,7 +2477,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
------------------------------------------------- VULCAN e-Dziennik API & Page
+# ------------------------------------------------ VULCAN e-Dziennik API & Page
 @app.get("/api/vulcan/data")
 def vulcan_data_api(request: Request):
     user = require(current_user(request))
