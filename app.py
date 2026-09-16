@@ -61,7 +61,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -144,7 +144,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -568,7 +568,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -647,7 +647,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -745,7 +745,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -844,7 +844,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1006,7 +1006,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1072,7 +1072,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1155,7 +1155,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1507,7 +1507,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1621,7 +1621,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1681,7 +1681,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -1900,7 +1900,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -2177,7 +2177,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -2314,7 +2314,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
@@ -2447,7 +2447,7 @@ def courses_list(request: Request):
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
-        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
         for b in books:
             b_dict = dict(b)
             subj = b_dict['subject']
