@@ -1,144 +1,211 @@
 {% extends "base.html" %}{% block title %}Talia: {{ deck['name'] }}{% endblock %}
 {% block content %}
-<div class="mb-8 flex flex-wrap gap-4 items-end justify-between">
-    <div>
-        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 mb-1 flex items-center gap-2">
-            <i data-lucide="layers" class="w-6 h-6 text-indigo-400"></i> {{ deck['name'] }}
-        </h1>
-        <p class="text-xs text-gray-500">Przedmiot: <span class="text-gray-300 font-semibold">{{ deck['subject'] or 'Ogólny' }}</span></p>
+<style>
+.deck-header {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(158, 127, 255, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.deck-title-area h1 { margin: 0 0 8px 0; font-size: 28px; color: #fff; letter-spacing: -0.02em; }
+.deck-title-area p { margin: 0; color: var(--text-secondary); font-size: 14px; }
+.action-buttons { display: flex; gap: 12px; }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .deck-header { flex-direction: column; align-items: flex-start; }
+}
+
+.flashcard-list {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.ai-panel {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, var(--bg-surface) 100%);
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--accent-indigo);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.ai-panel::before {
+  content: "✨";
+  position: absolute;
+  top: -20px; right: -10px;
+  font-size: 100px;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; letter-spacing: 0.5px; }
+.form-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-family: inherit;
+  outline: none;
+}
+.form-input:focus { border-color: var(--accent-indigo); }
+
+.upload-box {
+  border: 1px dashed var(--border-focus);
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.upload-box:hover { border-color: var(--accent-indigo); background: rgba(99, 102, 241, 0.05); }
+
+.card-item {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-subtle);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.card-side { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.card-side strong { display: block; color: var(--text-muted); font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
+</style>
+
+<div class="deck-header">
+    <div class="deck-title-area">
+        <h1>{{ deck['name'] }}</h1>
+        <p>Przedmiot: <b style="color: #fff;">{{ deck['subject'] or 'Ogólny' }}</b></p>
     </div>
-    <div class="flex gap-3">
-        <a class="px-4 py-2 bg-synth-800 border border-synth-600 hover:border-synth-500 text-gray-300 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5" href="/srs">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Wszystkie Talie
-        </a>
-        <a class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-indigo-900/20 transition-all flex items-center gap-2" href="/srs/study/{{ deck['id'] }}">
-            <i data-lucide="play-circle" class="w-4 h-4"></i> Tryb Nauki SRS
-        </a>
+    <div class="action-buttons">
+        <a class="btn" href="/srs" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="arrow-left" style="width:16px;"></i> Wróć do Talii</a>
+        <a class="btn primary" href="/srs/study/{{ deck['id'] }}" style="display: flex; align-items: center; gap: 6px; background: var(--accent-indigo); border-color: rgba(255,255,255,0.2); font-weight: 600;"><i data-lucide="play" style="width:16px;"></i> Tryb Nauki SRS</a>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-    
-    <!-- Lektura / Fiszki (Lista) -->
-    <div class="lg:col-span-2 space-y-4">
-        <div class="glass-bento p-5 border-t-4 border-t-indigo-500">
-            <div class="flex justify-between items-center mb-4 pb-4 border-b border-synth-700/50">
-                <h2 class="text-sm font-bold text-gray-200 uppercase tracking-widest flex items-center gap-2">
-                    <i data-lucide="layout-list" class="w-4 h-4 text-indigo-400"></i> Lista Fiszek
-                </h2>
-                <span class="px-2.5 py-1 bg-synth-900 border border-synth-700 rounded text-[10px] text-gray-400 font-mono">
-                    Łącznie: {{ cards|length }}
-                </span>
-            </div>
-            
-            {% if cards %}
-            <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+<div class="dashboard-grid">
+    <!-- Kolumna Lewa: Aktualne Fiszki -->
+    <div class="flashcard-list">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="list-checks" style="color: var(--accent-indigo);"></i> Lista Fiszek
+            </h2>
+            <span class="badge badge-purple">Karty: {{ cards|length }}</span>
+        </div>
+        
+        {% if cards %}
+            <div style="max-height: 600px; overflow-y: auto; padding-right: 8px;">
                 {% for c in cards %}
-                <div class="p-3 bg-synth-900 border border-synth-700/50 rounded-lg group hover:border-indigo-500/30 transition-colors flex justify-between items-start">
-                    <div class="w-1/2 pr-4 border-r border-synth-800">
-                        <span class="text-[9px] text-gray-600 font-bold uppercase block mb-1">Przód</span>
-                        <div class="text-xs text-gray-300 leading-relaxed">{{ c['front'] }}</div>
+                <div class="card-item">
+                    <div class="card-side" style="border-right: 1px solid var(--border-subtle); padding-right: 16px;">
+                        <strong>Przód (Pytanie)</strong>
+                        <span style="color: #e2e8f0;">{{ c['front'] }}</span>
                     </div>
-                    <div class="w-1/2 pl-4 relative">
-                        <span class="text-[9px] text-gray-600 font-bold uppercase block mb-1">Tył</span>
-                        <div class="text-xs text-indigo-200/80 leading-relaxed blur-sm group-hover:blur-none transition-all duration-300">
-                            {{ c['back'] }}
-                        </div>
+                    <div class="card-side">
+                        <strong>Tył (Odpowiedź)</strong>
+                        <span style="color: var(--accent-cyan);">{{ c['back'] }}</span>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="text-center py-10">
-                <i data-lucide="inbox" class="w-12 h-12 text-zinc-700 mx-auto mb-3"></i>
-                <p class="text-sm text-gray-500 font-medium">Brak fiszek w tej talii.</p>
-                <p class="text-[10px] text-gray-600 mt-1">Użyj generatora po prawej stronie lub dodaj ręcznie.</p>
+        {% else %}
+            <div style="text-align: center; padding: 48px 24px;">
+                <i data-lucide="inbox" style="width: 48px; height: 48px; color: var(--text-muted); margin: 0 auto 16px auto;"></i>
+                <p style="color: var(--text-secondary); margin: 0;">Brak fiszek w tej talii. Użyj Fiszkomatu AI obok lub dodaj z palca.</p>
             </div>
-            {% endif %}
-        </div>
+        {% endif %}
     </div>
 
-    <!-- PANEL NAUCZYCIELA & AI -->
+    <!-- Kolumna Prawa: Fiszkomat i Zarządzanie -->
     {% if user['role'] in ('admin','teacher') %}
-    <div class="space-y-4">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
         
-        <!-- 1. Generator AI Fiszkomat -->
-        <div class="glass-bento border border-indigo-500/30 bg-gradient-to-b from-indigo-900/10 to-transparent relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-3 opacity-20 pointer-events-none">
-                <i data-lucide="cpu" class="w-24 h-24 text-indigo-400"></i>
-            </div>
-            
-            <div class="p-5 relative z-10">
-                <h3 class="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-2">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i> Fiszkomat AI
-                </h3>
-                <p class="text-[10px] text-indigo-200/70 mb-5 leading-relaxed">
-                    Automatycznie wyodrębnij wiedzę i testy z podręcznika używając (Docling OCR + OmniRoute/Gemini). Fiszki trafią do <strong>kolejki NocoDB</strong> do Twojej akceptacji.
-                </p>
+        <!-- FISZKOMAT AI -->
+        <div class="ai-panel">
+            <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="bot" style="color: var(--accent-indigo);"></i> Fiszkomat AI
+            </h3>
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px;">
+                Wrzuć skan PDF. Narzędzia LLM wyciągną wiedzę i stworzą mądre fiszki.
+            </p>
 
-                <form id="genForm" onsubmit="generateCards(event)" class="space-y-3">
-                    <div>
-                        <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Skan Podręcznika (PDF)</label>
-                        <input type="file" id="pdfFile" accept=".pdf" required class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 cursor-pointer bg-synth-900 border border-synth-700 rounded-lg p-1.5">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Ile m.in. kart wygenerować?</label>
-                        <input type="number" id="cardCount" value="10" min="1" max="50" class="w-full bg-synth-900 border border-synth-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
-                    </div>
-                    
-                    <button type="submit" id="btnGen" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow mt-2 transition-all flex justify-center items-center gap-2 disabled:opacity-50">
-                        <i data-lucide="zap" class="w-3.5 h-3.5"></i> Uruchom Pipeline AI
-                    </button>
-                    <p id="genStatus" class="text-[10px] text-emerald-400 hidden mt-2 font-mono text-center"></p>
-                </form>
-            </div>
+            <form id="genForm" onsubmit="generateCards(event)">
+                <div class="form-group">
+                    <label>Skan Podręcznika (.PDF)</label>
+                    <input type="file" id="pdfFile" accept=".pdf" required class="form-input" style="padding: 8px; font-size: 12px; border: 1px dashed var(--border-focus); background: rgba(0,0,0,0.2);">
+                </div>
+                
+                <div class="form-group">
+                    <label>Docelowa L. Zadań (Fiszek)</label>
+                    <input type="number" id="cardCount" value="10" min="1" max="50" class="form-input">
+                </div>
+                
+                <button type="submit" id="btnGen" class="btn primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 13px; font-weight: 600; margin-top: 8px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #fff;">
+                    <i data-lucide="zap" style="width: 16px;"></i> Przemiel to przez AI
+                </button>
+                <div id="genStatus" style="font-size: 11px; margin-top: 12px; text-align: center; color: var(--accent-cyan); display: none;"></div>
+            </form>
         </div>
 
-        <!-- 2. Nocodb & Import Kolejki -->
-        <div class="glass-bento p-5 border border-emerald-500/20">
-            <h3 class="text-xs font-bold text-gray-200 uppercase tracking-widest flex items-center gap-2 mb-3">
-                <i data-lucide="inbox" class="w-4 h-4 text-emerald-400"></i> Kolejka Oczekująca
+        <!-- ODBIÓR Z KOLEJKI -->
+        <div class="ai-panel" style="border-top-color: var(--accent-cyan); background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, var(--bg-surface) 100%);">
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px 0; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="check-square" style="color: var(--accent-cyan);"></i> Moderacja (NocoDB)
             </h3>
-            <p class="text-[10px] text-gray-400 mb-4">
-                Zaakceptuj wygenerowane karty w NocoDB, a następnie zaimportuj je do tej talii.
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">
+                Gdy AI skończy zadanie, musisz zatwierdzić materiał ręcznie zanim trafi do uczniów. 
             </p>
-            
-            <div class="flex gap-2">
-                <a href="http://100.64.0.2:40438" target="_blank" class="flex-1 text-center py-2 bg-synth-800 hover:bg-synth-700 border border-synth-600 rounded-lg text-[10px] uppercase font-bold text-gray-300 transition-colors">
-                    NocoDB (Moderuj)
-                </a>
-                <button onclick="importApproved({{ deck['id'] }})" class="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/50 rounded-lg text-[10px] uppercase font-bold text-emerald-400 transition-colors flex items-center justify-center gap-1.5">
-                    <i data-lucide="download" class="w-3 h-3"></i> Odbierz
+            <div style="display: flex; gap: 12px;">
+                <a href="http://100.64.0.2:40438" target="_blank" class="btn" style="flex: 1; text-align: center; justify-content: center; font-size: 11px;">1. Podgląd</a>
+                <button onclick="importApproved({{ deck['id'] }})" class="btn primary" style="flex: 1; justify-content: center; font-size: 11px; background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.4);">
+                    <i data-lucide="download" style="width: 14px;"></i> 2. Odbierz
                 </button>
             </div>
         </div>
 
-        <!-- 3. Ręczne dodawanie oldschool -->
-        <details class="glass-bento group">
-            <summary class="p-4 cursor-pointer text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between outline-none list-none marker:hidden">
-                <span class="flex items-center gap-2"><i data-lucide="pencil" class="w-3.5 h-3.5"></i> Dodaj ręcznie / Import z innej aplikacji</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 group-open:rotate-180 transition-transform"></i>
+        <!-- RĘCZNY DODATEK -->
+        <details class="ai-panel" style="border-top-color: var(--text-secondary); background: var(--bg-surface); cursor: pointer;">
+            <summary class="form-group" style="margin: 0; outline: none; list-style: none; font-size: 13px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="pencil" style="width: 16px;"></i> Dodaj ręcznie / stary Import
             </summary>
             
-            <div class="p-4 border-t border-synth-700 bg-synth-900/50 space-y-4">
-                <form method="post" action="/srs/deck/{{ deck['id'] }}/cards" class="space-y-3">
-                    <input name="front" placeholder="Przód (pytanie)" required class="w-full bg-black border border-synth-700 rounded px-3 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
-                    <input name="back" placeholder="Tył (odpowiedź)" required class="w-full bg-black border border-synth-700 rounded px-3 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
-                    <button class="w-full py-1.5 bg-synth-700 hover:bg-synth-600 rounded text-xs text-white font-medium">Dodaj pojedynczą</button>
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+                <form method="post" action="/srs/deck/{{ deck['id'] }}/cards" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <textarea name="front" placeholder="Pytanie" required class="form-input" rows="2"></textarea>
+                    <textarea name="back" placeholder="Odpowiedź" required class="form-input" rows="2"></textarea>
+                    <button class="btn" style="justify-content: center;">Dodaj pojedyńczą</button>
                 </form>
-                
-                <hr class="border-synth-700 my-2">
-                
-                <form method="post" action="/srs/deck/{{ deck['id'] }}/apkg" enctype="multipart/form-data" class="space-y-3">
-                    <input type="file" name="file" accept=".apkg,.tsv,.txt" class="block w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-synth-800 file:text-gray-300">
-                    <button class="w-full py-1.5 bg-synth-700 hover:bg-synth-600 rounded text-xs text-white font-medium">Zaimportuj paczkę .apkg</button>
+                <form method="post" action="/srs/deck/{{ deck['id'] }}/apkg" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 12px;">
+                    <input type="file" name="file" accept=".apkg,.tsv,.txt" class="form-input" style="font-size: 11px; padding: 6px;">
+                    <button class="btn" style="justify-content: center;">Zaciągnij .apkg</button>
                 </form>
             </div>
         </details>
 
     </div>
     {% endif %}
-
 </div>
 
 {% if user['role'] in ('admin','teacher') %}
@@ -149,58 +216,49 @@
         const status = document.getElementById('genStatus');
         const fileInput = document.getElementById('pdfFile');
         const count = document.getElementById('cardCount').value;
-        const deckName = "{{ deck['name'] }}";
 
         if (!fileInput.files[0]) return;
 
         btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Wysyłam (n8n)...';
+        btn.innerHTML = '<i data-lucide="loader" style="width:16px; animation: spin 2s linear infinite;"></i> Pracuje (n8n)...';
         lucide.createIcons();
 
         try {
             const formData = new FormData();
-            formData.append('deck_name', deckName);
             formData.append('card_count', count);
             formData.append('upload', fileInput.files[0]);
-            const deckId = "{{ deck['id'] }}";
 
-            // HEADSCALE ADDRESS: n8n webhook na Mikrusie
-            const response = await fetch(`/admin/decks/${deckId}/generate-ai`, {
+            const response = await fetch(`/admin/decks/{{ deck['id'] }}/generate-ai`, {
                 method: 'POST',
-                headers: {
-                    /* headers removed as FastAPI handles it */
-                },
                 body: formData
             });
 
             if(response.ok) {
-                status.innerText = "✓ Wysłano do kolejki Pomyślnie!";
+                status.innerText = "✓ Wysłano kod do analizy. Karty za chwile trafia do kolejki.";
             } else {
-                status.innerText = "❌ Wystąpił błąd komunikacji: " + response.status;
-                status.classList.replace('text-emerald-400', 'text-red-400');
+                status.innerText = "❌ Wystąpił błąd backendu: " + response.status;
+                status.style.color = '#f43f5e';
             }
         } catch(error) {
-            status.innerText = "❌ Błąd CORS / Sieci (sprawdź VPN).";
-            status.classList.replace('text-emerald-400', 'text-red-400');
+            status.innerText = "❌ Błąd CORS / Sieci.";
+            status.style.color = '#f43f5e';
             console.error(error);
         }
         
-        status.classList.remove('hidden');
-        btn.innerHTML = '<i data-lucide="zap" class="w-3.5 h-3.5"></i> Uruchom Pipeline AI';
+        status.style.display = 'block';
+        btn.innerHTML = '<i data-lucide="zap" style="width:16px;"></i> Przemiel to przez AI';
         btn.disabled = false;
         lucide.createIcons();
     }
 
     async function importApproved(deckId) {
-        if(!confirm("Czy chcesz zaimportować pobrane i zaakceptowane (approved) karty z NocoDB dla tej talii?")) return;
-        
         try {
             const response = await fetch(`/admin/decks/${deckId}/import-queue`, {
                 method: 'POST'
             });
             const data = await response.json();
             if(data.imported !== undefined) {
-                alert(`Pomyślnie zaimportowano ${data.imported} kart z bazy Staging!`);
+                alert(`Pomyślnie zaimportowano ${data.imported} kart z bazy zatwierdzonych!`);
                 window.location.reload();
             } else if(data.error) {
                 alert('Błąd importu: ' + data.error);
@@ -211,12 +269,4 @@
     }
 </script>
 {% endif %}
-
-<style>
-/* Custom Scrollbar for flashcard list */
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #27272A; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
-</style>
 {% endblock %}
