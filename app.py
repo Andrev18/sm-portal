@@ -1946,18 +1946,14 @@ def import_queue(deck_id: int):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
+def admin_ocr_panel(request: Request):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
     conn = db()
     books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
     conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books}, headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"})
 
 @app.get("/admin/ocr/status")
 def admin_ocr_status(request: Request):
