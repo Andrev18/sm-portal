@@ -19,7 +19,7 @@
                     <th style="padding: 12px; width: 30%;">Book (Źródło danych)</th>
                     <th style="padding: 12px; width: 15%;">Zakres Stron</th>
                     <th style="padding: 12px; width: 35%;">Status w Bazie OCR</th>
-                    <th style="padding: 12px; text-align: right; width: 20%;">Generuj</th>
+                    <th style="padding: 12px; text-align: center; width: 10%;">Zaplanuj</th><th style="padding: 12px; text-align: right; width: 15%;">Natychmiast Limit</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,15 +35,23 @@
                     <td id="status-cell-{{ b.id }}" style="padding: 16px 12px; color: var(--text-muted); font-size: 12px;">
                         Ładowanie statusów...
                     </td>
-                    <td style="padding: 16px 12px; text-align: right;">
-                        <button onclick="startOCR_{{ b.id }}()" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer; transition: all 0.2s;">
-                            <i data-lucide="play" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px; margin-right: 4px;"></i> Uruchom Skan OCR
+                    
+                    <td style="padding: 16px 12px; text-align: center;">
+                        <button onclick="queueOCR_{{ b.id }}()" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer;">
+                            <i data-lucide="clock" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> W Kolejke
                         </button>
                     </td>
+                    <td style="padding: 16px 12px; text-align: right;">
+                        <button onclick="startOCR_{{ b.id }}()" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer;">
+                            <i data-lucide="play" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> Teraz!
+                        </button>
+                    </td>
+
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        
         
         <script>
         async function poller() {
@@ -51,7 +59,6 @@
                 const res = await fetch('/admin/ocr/status?t=' + Date.now());
                 const data = await res.json();
                 
-                // Uzupełnij stany statyczne
                 let allIds = [];
                 {% for b in books %}
                 allIds.push({{ b.id }});
@@ -66,16 +73,23 @@
                         data[bid].forEach(job => {
                             if (job.status === "completed") {
                                 htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Pomyślnie zdigitalizowano do bazy)</span><span>100%</span></div>
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Wyciągnięte do bazy)</span><span>100%</span></div>
                                     <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
                                         <div style="width: 100%; height: 100%; background: #10b981;"></div>
                                     </div>
                                 </div>`;
                             } else if(job.status === "pending") {
                                 htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (W kolejce N8N / Analiza LLM...)</span><span>W toku</span></div>
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Przetwarzanie Docling LLM...)</span><span style="animation: pulse 1s infinite;">Teraz!</span></div>
                                     <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
-                                        <div style="width: 35%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
+                                        <div style="width: 50%; height: 100%; background: #38bdf8; border-radius:4px; position:absolute; animation: progress-indeterminate 1.5s infinite ease-in-out;"></div>
+                                    </div>
+                                </div>`;
+                            } else if(job.status === "queued") {
+                                htmlChunk += `<div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#fbbf24; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Oczekuje na odnowienie limitów)</span><span>Wstrzymano</span></div>
+                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
+                                        <div style="width: 10%; height: 100%; background: #fbbf24; border-radius:4px;"></div>
                                     </div>
                                 </div>`;
                             } else {
@@ -91,35 +105,46 @@
         }
         
         {% for b in books %}
+        async function queueOCR_{{ b.id }}() {
+            const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
+            try {
+                const res = await fetch('/admin/ocr/trigger?queue=1', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
+                });
+                poller(); 
+            } catch (err) { }
+        }
+        
         async function startOCR_{{ b.id }}() {
             const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
-            if(!confirm(`Czy zatwierdzasz operację AI Docling dla "{{ b.title }}" (Strony: ${pages})?
-Skrypt ląduje do N8N!`)) return;
-            
+            if(!confirm(`Czy zatwierdzasz natychmiastowe przepalenie limitów na "${{ b.title }}" (Strony: ${pages})?`)) return;
             try {
-                const reqCell = document.getElementById('status-cell-{{ b.id }}');
-                reqCell.innerHTML = `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Połączenie z serwerem i tworzenie zlecenia...</span><span>...</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
-                                        <div style="width: 10%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
-                                    </div>
-                                </div>`;
-                
                 const res = await fetch('/admin/ocr/trigger', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
                 });
                 poller(); 
-            } catch (err) {
-                alert("Błąd połączenia z serwerem: " + err);
-            }
+            } catch (err) { }
         }
         {% endfor %}
 
-        setInterval(poller, 4000);
-        setTimeout(poller, 300);
+        setInterval(poller, 2000);
+        setTimeout(poller, 500);
         </script>
+        <style>
+            @keyframes progress-indeterminate {
+                0% { left: -50%; }
+                100% { left: 100%; }
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+            }
+        </style>
+
     </div>
 </div>
 {% endblock %}

@@ -1986,17 +1986,17 @@ async def admin_ocr_trigger(request: Request):
     bd = data.get("book_id")
     pg = data.get("pages_range", "1-10")
     subj = data.get("subject", "Nieznany")
+    is_queue = request.query_params.get("queue") == "1"
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    
+    status_to_insert = "queued" if is_queue else "pending"
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, ?)", (bd, pg, "Porcja z API", status_to_insert))
     conn.commit()
     conn.close()
     
     if not b:
-        return JSONResponse({"msg": "Nie znaleziono id powiazanej księgi do parsowania."})
+        return JSONResponse({"msg": "Nie znaleziono księgi."})
         
-    try:
-        return JSONResponse({"msg": "Polecenie wysłano na szynę."})
-    except Exception as e:
-         return JSONResponse({"msg": f"Błąd N8N: {e}"})
+    return JSONResponse({"msg": "Dodano do kolejki."})
