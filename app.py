@@ -2131,3 +2131,13 @@ def courses_play(request: Request, book_id: int):
         "tasks": tasks,
         "raw_ocr_text": raw_ocr_text
     })
+
+@app.get("/srs/deck/{deck_id}/cards-raw")
+def srs_deck_cards_raw(request: Request, deck_id: int):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    conn = db()
+    cards = [dict(r) for r in conn.execute("SELECT id, front, back FROM cards WHERE deck_id=?", (deck_id,)).fetchall()]
+    conn.close()
+    return JSONResponse(cards)
