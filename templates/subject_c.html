@@ -1,0 +1,151 @@
+{% extends "base.html" %}{% block title %}{{ sub['name'] }} Tutor · Baza Wiedzy 5B{% endblock %}
+{% block content %}
+<div class="h-[calc(100vh-140px)] flex flex-col pt-2 pb-6 max-w-5xl mx-auto">
+
+    <!-- Tutor Header -->
+    <div class="flex items-center justify-between mb-4 glass-bento px-6 py-4 border-indigo-500/30 bg-gradient-to-b from-indigo-900/10 to-transparent">
+        <div>
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center gap-2 m-0">
+                <span class="text-3xl filter drop-shadow-md pb-1 mr-1">{{ sub['icon'] }}</span>
+                Mentor AI: {{ sub['name'] }}
+            </h1>
+            <p class="text-[11px] text-gray-400 font-semibold mt-1">Interaktywny tutor sprzężony z algorytmem (SRS). Podpowiada i generuje testy z przedmiotu.</p>
+        </div>
+        <div class="hidden sm:flex gap-3">
+             <div class="text-center px-4 border-r border-synth-700">
+                <div class="text-[9px] text-gray-500 uppercase font-bold tracking-wider">Podręczniki</div>
+                <div class="text-lg font-bold text-white">{{ books|length }}</div>
+             </div>
+             <div class="text-center px-4">
+                <div class="text-[9px] text-gray-500 uppercase font-bold tracking-wider">Przerobione Słówka</div>
+                <div class="text-lg font-bold text-indigo-400">{{ cards|length }}</div>
+             </div>
+        </div>
+    </div>
+
+    <!-- Czat Area -->
+    <div class="flex-1 glass-bento overflow-hidden flex flex-col relative border-synth-700">
+        
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+            <!-- Powitalne -->
+            <div class="flex gap-4">
+                <div class="w-8 h-8 rounded bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 mt-1">
+                    <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+                </div>
+                <div>
+                    <div class="text-[9px] text-indigo-300 font-bold uppercase tracking-wider mb-1">Tutor • {{ sub['name'] }}</div>
+                    <div class="text-[13px] text-gray-200 leading-relaxed bg-synth-900 border border-synth-700 p-4 rounded-xl rounded-tl-none inline-block">
+                        Cześć {{ user['name'] }}! Jestem Twoim wirtualnym korepetytorem. 
+                        Widzę, że masz do nauki <b>{{ cards|length }}</b> fiszek / zagadnień z tego przedmiotu i wgrane bazowe materiały.
+                        W czym mogę Ci dzisiaj pomóc? Chcesz bym Cię z czegoś odpytał (SRS), czy próbujemy wspólnie rozwiązać jakieś zagadnienie?
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <div class="p-4 border-t border-synth-700 bg-synth-900/50">
+            <form id="tform" onsubmit="sendMsg(event)" class="flex gap-3 relative">
+                <!-- Podpowiedzi (Quick Actions) -->
+                <div class="absolute -top-12 left-0 right-0 flex gap-2 overflow-x-auto custom-scrollbar px-1 py-2">
+                    <button type="button" onclick="quick('Odpytaj mnie z dzisiejszych Fiszki (Zrób Test Mnemotechniczny)')" class="whitespace-nowrap px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[10px] text-zinc-300 rounded-full transition-colors font-semibold">🎲 Zrób mi test wiedzy z Fiszki</button>
+                    <button type="button" onclick="quick('Wyjaśnij mi najtrudniejsze zagadnienie szkolne z mojej bazy z ktorym sobie nie radze')" class="whitespace-nowrap px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[10px] text-zinc-300 rounded-full transition-colors font-semibold">🎯 Wyjaśnij trudną Fiszke</button>
+                    <button type="button" onclick="quick('Zrób dla mnie 3 krótkie, podchwytliwe prawda czy fałsz z obecnego przerabianego tematu')" class="whitespace-nowrap px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[10px] text-zinc-300 rounded-full transition-colors font-semibold">❓ Prawda czy Fałsz</button>
+                </div>
+
+                <input type="text" id="tmsg" autocomplete="off" placeholder="Napisz do tutora AI..." required 
+                    class="flex-1 bg-black border border-synth-600 rounded-xl px-4 py-3 text-white text-[13px] outline-none focus:border-indigo-500 transition-colors shadow-inner">
+                
+                <button type="submit" id="tbtn" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-6 font-semibold border border-indigo-500/50 shadow-lg transition-all flex items-center justify-center">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const msgs = document.getElementById('chat-messages');
+
+    function quick(txt) {
+        document.getElementById('tmsg').value = txt;
+        document.getElementById('tform').dispatchEvent(new Event('submit'));
+    }
+
+    function addMe(txt) {
+        msgs.innerHTML += `
+        <div class="flex gap-4 flex-row-reverse">
+            <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center flex-shrink-0 mt-1 uppercase font-bold text-[10px] text-zinc-400">
+                {{ user['name'][0] }}
+            </div>
+            <div class="flex flex-col items-end">
+                <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Ty</div>
+                <div class="text-[13px] text-black leading-relaxed bg-indigo-400 p-4 rounded-xl rounded-tr-none inline-block shadow">
+                    ${txt.replace(/</g,'&lt;')}
+                </div>
+            </div>
+        </div>`;
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function addTutor(txt) {
+        // Simple markdown naive parser
+        let fmt = txt.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>').replace(/\n/g, '<br>');
+        
+        msgs.innerHTML += `
+        <div class="flex gap-4">
+            <div class="w-8 h-8 rounded bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 mt-1">
+                <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+            </div>
+            <div>
+                <div class="text-[9px] text-indigo-300 font-bold uppercase tracking-wider mb-1">Tutor • {{ sub['name'] }}</div>
+                <div class="text-[13px] text-gray-200 leading-relaxed bg-synth-900 border border-synth-700 p-4 rounded-xl rounded-tl-none inline-block shadow-sm">
+                    ${fmt}
+                </div>
+            </div>
+        </div>`;
+        msgs.scrollTop = msgs.scrollHeight;
+        if(window.lucide) { lucide.createIcons(); }
+    }
+
+    async function sendMsg(e) {
+        e.preventDefault();
+        const inp = document.getElementById('tmsg');
+        const txt = inp.value;
+        if(!txt) return;
+        
+        inp.value = '';
+        addMe(txt);
+        
+        const btn = document.getElementById('tbtn');
+        btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
+        if(window.lucide) { lucide.createIcons(); }
+        btn.disabled = true;
+
+        try {
+            const r = await fetch('/c/msg', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({subject: "{{ sub['name'] }}", msg: txt})
+            });
+            const d = await r.json();
+            addTutor(d.msg || "Błąd odpowiedzi.");
+        } catch(err) {
+            addTutor("Brak polaczenia z AI. Sprobuj pozniej.");
+        }
+
+        btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i>';
+        btn.disabled = false;
+        if(window.lucide) { lucide.createIcons(); }
+    }
+</script>
+
+<style>
+/* Zgodne ze stylem */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #27272A; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
+</style>
+{% endblock %}

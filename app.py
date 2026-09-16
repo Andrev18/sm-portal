@@ -1458,6 +1458,48 @@ def deck_view(request: Request, deck_id: int):
     return templates.TemplateResponse(request, "deck.html", {"user": user, "deck": deck, "cards": cards})
 
 
+
+@app.get("/c/{subject_id}", response_class=HTMLResponse)
+def get_subject_chat(request: Request, subject_id: int):
+    user = require(current_user(request))
+    conn = db()
+    sub = conn.execute("SELECT * FROM subjects WHERE id=?", (subject_id,)).fetchone()
+    books = conn.execute("SELECT * FROM books WHERE subject=?", (sub['name'],)).fetchall()
+    cards = conn.execute("SELECT c.id, c.front, c.back, cs.ease FROM cards c JOIN decks d ON c.deck_id = d.id LEFT JOIN card_state cs ON cs.card_id=c.id AND cs.user_id=? WHERE d.subject=?", (user['id'], sub['name'])).fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "subject_c.html", {"user": user, "sub": sub, "books": books, "cards": cards})
+
+@app.post("/c/msg")
+async def post_subject_chat(request: Request):
+    user = require(current_user(request))
+    data = await request.json()
+    subj = data.get('subject')
+    msg = data.get('msg')
+    
+    api_key = os.environ.get("OMNIROUTE_API_KEY")
+    if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
+    
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": f"Jesteś osobistym tutorem z przedmiotu {subj} dla ucznia szkoły podstawowej (11 lat). Twój uczeń to {user['name']}. Pomagasz edukacyjnie, wyjaśniasz, i odpytujesz jako fiszkomat z tego profilu, badając jego wiedzę! Bądź zwięzły."},
+            {"role": "user", "content": msg}
+        ]
+    }
+    
+    import requests
+    try:
+        url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+        if not url.endswith("/chat/completions"):
+            url = f"{url}/chat/completions"
+            
+        r = requests.post(url, json=payload, headers=headers, timeout=25)
+        resp = r.json()
+        return {"msg": resp['choices'][0]['message']['content']}
+    except Exception as e:
+        return {"msg": f"Ups! Błąd połączenia z modelem AI: {str(e)}"}
+
 # ---------------- Forum + chat + ogloszenia
 
 @app.get("/forum", response_class=HTMLResponse)

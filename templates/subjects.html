@@ -1,31 +1,137 @@
-{% extends "base.html" %}{% block title %}Program Nauczania 5 Klasa{% endblock %}
+{% extends "base.html" %}{% block title %}Twoje Przedmioty · Ośrodek Core{% endblock %}
 {% block content %}
-<div class="sec-header" style="margin-top:0; flex-direction:column; align-items:flex-start; gap:6px;">
-  <span class="badge badge-purple">📚 5 KLASA SZKOŁY PODSTAWOWEJ</span>
-  <h1 style="margin:0; font-size:1.6rem;">Program Nauczania (13 Przedmiotów)</h1>
-  <p style="color:var(--muted); margin:0; font-size:0.92rem;">Dostęp do podręczników, flipbooków, fiszek SRS i materiałów dydaktycznych dla każdego przedmiotu.</p>
+<style>
+.subject-hero {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.subject-hero-icon {
+  font-size: 48px;
+  background: rgba(0,0,0,0.4);
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.subject-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+.stat-val { font-size: 24px; font-weight: 700; color: #fff; }
+.stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px; }
+.bento-section { margin-bottom: 32px; }
+.bento-header { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.task-item {
+  background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle);
+  padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.task-item.urgent { border-left: 3px solid #f43f5e; }
+.task-item.done { opacity: 0.6; }
+</style>
+
+<div class="subject-hero">
+  <div class="subject-hero-icon">📘</div>
+  <div>
+    <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Przeglądasz: Moduł Ogólny</h1>
+    <p style="color: var(--text-secondary); font-size: 14px; max-width: 500px; margin: 0;">
+      Kliknij konkretny przedmiot z lewego menu w zakładce "Przedmioty Klasy 5B", aby zobaczyć szczegóły — książki, nadchodzące zadania i status powtórek fiszek.
+    </p>
+  </div>
 </div>
 
-{% if user['role'] in ('admin','teacher') %}
-<form method="post" action="/subjects" style="display:flex; gap:10px; margin-bottom:20px; background:var(--alt-bg); padding:12px; border-radius:8px; border:1px solid var(--outline);">
-  <input name="name" placeholder="Nazwa nowego przedmiotu" required style="flex:1; background:var(--surface); border:1px solid var(--outline); padding:8px 12px; border-radius:6px; color:var(--ink);">
-  <input name="icon" placeholder="Emoji" size="3" value="📘" style="background:var(--surface); border:1px solid var(--outline); padding:8px; border-radius:6px; color:var(--ink); text-align:center;">
-  <button class="btn primary">Dodaj przedmiot</button>
-</form>{% endif %}
-
-<div class="tiles" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:18px; margin-bottom:36px;">
-{% for s in subjects %}
-  <div class="tile" style="display:flex; flex-direction:column; justify-content:space-between; padding:20px;">
+<div class="subject-stats">
+  <div class="stat-card">
     <div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span class="ico" style="font-size:2.4rem; margin:0;">{{ s['icon'] }}</span>
-        <span class="badge badge-blue">klasa 5</span>
-      </div>
-      <b style="font-size:1.25rem; margin-bottom:4px;">{{ s['name'] }}</b>
-      <small style="color:var(--muted); display:block; margin-bottom:12px;">📚 Materiały: {{ s['nbooks'] }} książek · 🃏 {{ s['ndecks'] }} talii fiszek</small>
+      <div class="stat-label">Podłączonych Książek</div>
+      <div class="stat-val" style="color: var(--accent-pink);">{{ subjects | map(attribute='nbooks') | sum if subjects else 0 }}</div>
     </div>
-    <a class="btn primary small" href="/subject/{{ s['id'] }}" style="width:100%;">Otwórz materiały →</a>
+    <i data-lucide="book-open" style="width: 32px; height: 32px; color: var(--accent-pink); opacity: 0.8;"></i>
   </div>
+  
+  <div class="stat-card">
+    <div>
+      <div class="stat-label">Aktywne Talie Fiszek</div>
+      <div class="stat-val" style="color: var(--accent-purple);">{{ subjects | map(attribute='ndecks') | sum if subjects else 0 }}</div>
+    </div>
+    <i data-lucide="brain" style="width: 32px; height: 32px; color: var(--accent-purple); opacity: 0.8;"></i>
+  </div>
+</div>
+
+  <div class="tiles" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+{% for s in subjects %}
+  <a class="glass-card" href="/subject/{{ s['id'] }}" style="position: relative; text-decoration: none; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; border-radius: 20px; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+    <!-- Pływające gradienty tła jak u Apple -->
+    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, {{ s['color']|default('rgba(255,255,255,0.1)') }} 0%, transparent 60%); opacity: 0.15; z-index: 0; pointer-events: none; transition: opacity 0.3s;"></div>
+    
+    <div style="font-size: 48px; background: rgba(0,0,0,0.4); width: 80px; height: 80px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; z-index: 1; box-shadow: inset 0 2px 10px rgba(255,255,255,0.05); filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5)); transition: transform 0.3s;" class="app-icon">
+      {{ s['icon'] }}
+    </div>
+    
+    <div style="z-index: 1;">
+      <b style="color: #fff; font-size: 16px; font-weight: 600; display: block; margin-bottom: 4px; letter-spacing: -0.01em;">{{ s['name'] }}</b>
+      
+
+      {% if s['teacher'] %}
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+        <i data-lucide="user" style="width: 12px; height: 12px;"></i> {{ s['teacher'] }}
+      </div>
+      {% endif %}
+      
+      <a href="/c/{{ s['id'] }}" onclick="event.stopPropagation();" style="margin-top: 8px; font-size: 11px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--accent-indigo); padding: 6px 12px; border-radius: 9999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; transition: all 0.2s;">
+        <i data-lucide="bot" style="width: 12px; height: 12px;"></i> Czatuj z AI
+      </a>
+
+
+    <!-- Tagi z bazy (Oceny i frekwencje) Apple-Style -->
+    <div style="z-index: 1; width: 100%;">
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 12px; display: flex; justify-content: space-around; margin-top: 12px; backdrop-filter: blur(10px);">
+        <!-- Średnia -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Średnia</span>
+          <span style="font-size: 18px; font-weight: 800; color: {% if s['avg'] and s['avg'] != '-' %}{% if s['avg']|float >= 4.75 %}var(--accent-emerald){% elif s['avg']|float >= 3.0 %}var(--accent-cyan){% else %}var(--accent-rose){% endif %}{% else %}var(--text-secondary){% endif %}; letter-spacing: -0.02em;">
+            {{ s['avg']|default('-') }}
+          </span>
+        </div>
+        <!-- Divider -->
+        <div style="width: 1px; background: var(--border-subtle); align-self: stretch;"></div>
+        <!-- Opis Prop -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">KoniecR.</span>
+          <span style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em;">
+            {{ s['prop']|default('-') }}
+          </span>
+        </div>
+      </div>
+    </div>
+    </div>
+  </a>
 {% endfor %}
 </div>
+
+<style>
+ .glass-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.2) !important; }
+ .glass-card:hover .app-icon { transform: scale(1.1); }
+ .glass-card:hover > div:first-child { opacity: 0.3 !important; }
+</style>
 {% endblock %}
