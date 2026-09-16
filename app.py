@@ -2058,8 +2058,76 @@ def courses_play(request: Request, book_id: int):
         return RedirectResponse("/", 302)
     conn = db()
     book = conn.execute("SELECT * FROM books WHERE id=?", (book_id,)).fetchone()
-    conn.close()
     if not book:
+        conn.close()
         raise HTTPException(404, "Książka nie rzucona do OCR")
     
-    return templates.TemplateResponse(request, "course_play.html", {"user": u, "book": dict(book)})
+    # 1. Pobieramy powiązane karty Anki (SRS) z talii pasującej do przedmiotu/książki
+    b_subj = book['subject']
+    deck = conn.execute("SELECT id, name FROM decks WHERE subject=? AND (name LIKE ? OR name LIKE ?) LIMIT 1",
+                        (b_subj, f"%{b_subj}%", "%Unit%")).fetchone()
+    if not deck:
+        deck = conn.execute("SELECT id, name FROM decks WHERE subject=? LIMIT 1", (b_subj,)).fetchone()
+    
+    target_deck_id = deck['id'] if deck else None
+    cards = []
+    if target_deck_id:
+        cards = [dict(r) for r in conn.execute("SELECT id, front, back FROM cards WHERE deck_id=? LIMIT 12", (target_deck_id,)).fetchall()]
+    
+    # 2. Pobieramy zadania interaktywne przypisane do chapterów tej książki
+    raw_tasks = conn.execute("""
+        SELECT it.* FROM interactive_tasks it 
+        JOIN book_chapters bc ON it.chapter_id = bc.id 
+        WHERE bc.book_id = ?
+        ORDER BY it.id ASC
+    """, (book_id,)).fetchall()
+    
+    # Jeśli dla tego book_id nie ma jeszcze zadań, ale mamy powiązaną książkę z tego samego przedmiotu z zadaniami (np. podręcznik vs zeszyt ćwiczeń)
+    if not raw_tasks:
+        raw_tasks = conn.execute("""
+            SELECT it.* FROM interactive_tasks it 
+            JOIN book_chapters bc ON it.chapter_id = bc.id 
+            JOIN books b ON bc.book_id = b.id
+            WHERE b.subject = ?
+            ORDER BY it.id ASC
+        """, (b_subj,)).fetchall()
+
+    import json, random
+    tasks = []
+    for t in raw_tasks:
+        td = dict(t)
+        try:
+            content = json.loads(td['content_json'])
+            if td['task_type'] == 'cloze':
+                # Render placeholders [abc] into <input data-ans="abc" class="cloze-input">
+                import re as regex
+                def make_input(m):
+                    ans = m.group(1)
+                    return f'<input type="text" class="cloze-input" data-ans="{ans}" style="width: {max(60, len(ans)*14)}px">'
+                content['rendered_html'] = regex.sub(r'\[(.*?)\]', make_input, content.get('sentence', ''))
+            elif td['task_type'] == 'match':
+                pairs = content.get('pairs', [])
+                lefts = [{"id": i, "text": p["left"]} for i, p in enumerate(pairs)]
+                rights = [{"id": i, "text": p["right"]} for i, p in enumerate(pairs)]
+                random.seed(42)
+                random.shuffle(rights)
+                content['shuffled_left'] = lefts
+                content['shuffled_right'] = rights
+            td['parsed_content'] = content
+            tasks.append(td)
+        except Exception as e:
+            pass
+
+    # 3. Pobieramy wyekstrahowany tekst OCR z book_chapters
+    chap = conn.execute("SELECT raw_ocr_text FROM book_chapters WHERE book_id=? AND status='completed' LIMIT 1", (book_id,)).fetchone()
+    raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else "Tekst OCR dla tego podręcznika jest obecnie przetwarzany w kolejce N8N."
+
+    conn.close()
+    return templates.TemplateResponse(request, "course_play.html", {
+        "user": u, 
+        "book": dict(book),
+        "target_deck_id": target_deck_id,
+        "cards": cards,
+        "tasks": tasks,
+        "raw_ocr_text": raw_ocr_text
+    })
