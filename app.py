@@ -64,7 +64,7 @@ def ai_generate_cards(text: str, count: int = 6) -> list[tuple[str, str]]:
         req = urllib.request.Request(
             AI_URL.rstrip('/') + '/chat/completions',
             data=_json.dumps({
-                "model": "deepseek-chat",
+                "model": "gemini-2.5-flash",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 1500, "temperature": 0.4,
             }).encode(),
@@ -829,7 +829,7 @@ def ai_tutor(request: Request, q: str = ""):
     try:
         req = urllib.request.Request(
             AI_URL.rstrip('/') + '/chat/completions',
-            data=_json.dumps({"model": "deepseek-chat",
+            data=_json.dumps({"model": "gemini-2.5-flash",
                               "messages": [{"role": "user", "content": prompt}],
                               "max_tokens": 400, "temperature": 0.5}).encode(),
             headers={"Authorization": f"Bearer {AI_KEY}", "Content-Type": "application/json"},
@@ -1360,9 +1360,8 @@ def srs_home(request: Request):
         (SELECT COUNT(*) FROM card_state s JOIN cards c ON c.id=s.card_id
           WHERE c.deck_id=d.id AND s.user_id=? AND s.due<=datetime('now')) ndue
         FROM decks d ORDER BY d.name""", (user["id"],)).fetchall()
-    books = conn.execute("SELECT id, title, subject FROM books").fetchall()
     conn.close()
-    return templates.TemplateResponse(request, "srs.html", {"user": user, "decks": decks, "books": books})
+    return templates.TemplateResponse(request, "srs.html", {"user": user, "decks": decks})
 
 
 @app.get("/srs/study/{deck_id}", response_class=HTMLResponse)
@@ -1482,7 +1481,7 @@ async def post_subject_chat(request: Request):
     
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
-        "model": "deepseek-chat",
+        "model": "gemini-2.5-flash",
         "messages": [
             {"role": "system", "content": f"Jesteś osobistym tutorem z przedmiotu {subj} dla ucznia szkoły podstawowej (11 lat). Twój uczeń to {user['name']}. Pomagasz edukacyjnie, wyjaśniasz, i odpytujesz jako fiszkomat z tego profilu, badając jego wiedzę! Bądź zwięzły."},
             {"role": "user", "content": msg}
@@ -1491,15 +1490,80 @@ async def post_subject_chat(request: Request):
     
     import requests
     try:
-        url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+        url = os.environ.get("OMNIROUTE_BASE_URL", "http://100.64.0.4:20128/v1/chat/completions")
         if not url.endswith("/chat/completions"):
             url = f"{url}/chat/completions"
             
-        r = requests.post(url, json=payload, headers=headers, timeout=25)
+        r = requests.post(url, json=payload, headers=headers, timeout=20)
         resp = r.json()
-        return {"msg": resp['choices'][0]['message']['content']}
+        if 'choices' in resp:
+            return {"msg": resp['choices'][0]['message']['content']}
+        else:
+            return {"msg": f"Błąd z OmniRoute: {resp.get('error', resp)}"}
     except Exception as e:
         return {"msg": f"Ups! Błąd połączenia z modelem AI: {str(e)}"}
+
+
+@app.get("/fiszkomat/chat", response_class=HTMLResponse)
+def fiszkomat_chat_view(request: Request):
+    user = require(current_user(request))
+    if user['role'] not in ('admin', 'teacher'):
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT id, title, subject FROM books").fetchall()
+    decks = conn.execute("SELECT id, name FROM decks").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "fiszkomat_chat.html", {"user": user, "books": books, "decks": decks})
+
+@app.post("/fiszkomat/chat/msg")
+async def fiszkomat_chat_msg(request: Request):
+    user = require(current_user(request))
+    if user['role'] not in ('admin', 'teacher'):
+        return {"msg": "Brak dostępu."}
+    
+    data = await request.json()
+    msg = data.get('msg')
+    
+    api_key = os.environ.get("OMNIROUTE_API_KEY")
+    if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
+    
+    # Prompt dla Agenta tworzącego fiszki w trybie konwersacyjnym
+    system_prompt = """Jesteś sympatycznym Asystentem (Fiszkomatem AI).
+Osoba po drugiej stronie to tutor/uczeń, który chce wygenerować fiszki lub zadania edukacyjne.
+
+TWARDA REGULA: NIKOMU NIE WOLNO wygenerować fiszek z "całej książki". To zająłby za dużo zasobów i nie ma sensu pedagogicznego.
+Zanim powiesz 'uruchamiam proces', UŻYTKOWNIK MUSI DOPRECYZOWAĆ, z którego ROZDZIAŁU lub z jakich STRON generujemy materiał (np. maks 5-10 stron). 
+
+Twoje kroki:
+1. Sprawdź, czy wiesz, który podręcznik użytkownik wybrał.
+2. STANOWCZO zapytaj o numer rozdziału LUB zakres stron. (Odmów generowania z 'całości').
+3. Zapytaj dla jakiej klasy/poziomu trudności utworzyć materiał, chyba że wszystko jest już jasne.
+
+Bądź zwięzły i entuzjastyczny. Gdy masz wszystkie informacje podsumuj krótko i wskaż ostatecznie, że dane poszły do silnika n8n."""
+    
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    payload = {
+        "model": "gemini-2.5-flash",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": msg}
+        ]
+    }
+    
+    import requests
+    try:
+        url = os.environ.get("OMNIROUTE_BASE_URL", "http://100.64.0.4:20128/v1/chat/completions")
+        if not url.endswith("/chat/completions"):
+            url = f"{url}/chat/completions"
+            
+        r = requests.post(url, json=payload, headers=headers, timeout=20)
+        resp = r.json()
+        if 'choices' in resp:
+            return {"msg": resp['choices'][0]['message']['content']}
+        else:
+            return {"msg": f"Błąd z OmniRoute: {resp.get('error', resp)}"}
+    except Exception as e:
+        return {"msg": f"Ups, błąd modelu AI: {str(e)}"}
 
 # ---------------- Forum + chat + ogloszenia
 
