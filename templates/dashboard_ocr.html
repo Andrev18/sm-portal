@@ -44,8 +44,8 @@
         
         
         
+        
         <script>
-        // Podpinamy lucide zeby na pewno renderowalo ikony z biegu
         async function fetchStatus() {
             try {
                 const res = await fetch('/admin/ocr/status');
@@ -57,11 +57,33 @@
                         let innerHtml = "";
                         data[bid].forEach(job => {
                             if (job.status === "completed") {
-                                innerHtml += `<div style="margin-top:8px; font-weight:bold; color: #10b981; background: rgba(16,185,129,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2);"><i data-lucide="check-circle" style="width:14px; height:14px; display:inline-block; vertical-align:-2px;"></i> Zdigitalizowano strony: ${job.pages}</div>`;
+                                innerHtml += `
+                                <div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (OCR zakończony)</span><span>100%</span></div>
+                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
+                                        <div style="width: 100%; height: 100%; background: #10b981;"></div>
+                                    </div>
+                                </div>`;
                             } else if(job.status === "pending") {
-                                innerHtml += `<div style="margin-top:8px; color: #38bdf8; font-weight:600; background: rgba(56,189,248,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2);"><i data-lucide="loader" style="width:14px; height:14px; display:inline-block; vertical-align:-2px; animation: spin 2s linear infinite;"></i> Zadanie (Str. ${job.pages}): Przetwarzanie w tle...</div>`;
+                                innerHtml += `
+                                <div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (AI Mieli dane...)</span><span style="animation: pulse 1s infinite;">Przetwarzam</span></div>
+                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
+                                        <div style="width: 45%; height: 100%; background: #38bdf8; border-radius:4px; position:absolute; animation: progress-indeterminate 1.5s infinite ease-in-out;"></div>
+                                    </div>
+                                    <style>
+                                        @keyframes progress-indeterminate {
+                                            0% { left: -45%; }
+                                            100% { left: 100%; }
+                                        }
+                                        @keyframes pulse {
+                                            0%, 100% { opacity: 1; }
+                                            50% { opacity: 0.5; }
+                                        }
+                                    </style>
+                                </div>`;
                             } else {
-                                innerHtml += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px;"><i data-lucide="x-circle" style="width:14px; height:14px; display:inline-block; vertical-align:-2px;"></i> Błąd OCR dla stron: ${job.pages}</div>`;
+                                innerHtml += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px;"><i data-lucide="x-circle" style="width:14px; height:14px; display:inline-block; vertical-align:-2px;"></i> Błąd obróbki dla stron: ${job.pages}</div>`;
                             }
                         });
                         cell.innerHTML = innerHtml;
@@ -78,9 +100,15 @@
             if(!confirm(`Rozpocząć ekstrakcję AI OCR na ${title} (Strony: ${pages})?`)) return;
             
             try {
-                // UI Optymistyczne renderowanie
+                // UI Optymistyczne renderowanie z paskiem progressu
                 const reqCell = document.querySelector(`.status-cell[data-book='${bookId}']`);
-                reqCell.innerHTML = `<div style="margin-top:8px; color: #38bdf8; font-weight:600; background: rgba(56,189,248,0.1); padding: 8px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2);"><i data-lucide="loader" style="width:14px; height:14px; display:inline-block; vertical-align:-2px; animation: spin 2s linear infinite;"></i> Zadanie (Str. ${pages}): Wypuszczanie strumienia LLM...</div>`;
+                reqCell.innerHTML = `
+                                <div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Wysyłanie do N8N...</span><span>...</span></div>
+                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
+                                        <div style="width: 10%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
+                                    </div>
+                                </div>`;
                 if(window.lucide) lucide.createIcons();
                 
                 const res = await fetch('/admin/ocr/trigger', {
@@ -89,15 +117,16 @@
                     body: JSON.stringify({ book_id: bookId, pages_range: pages, subject: title })
                 });
                 const d = await res.json();
-                fetchStatus(); // Wymuś pollowanie DB od razu
+                fetchStatus(); // Wymuś pollowanie DB
             } catch (err) {
                 alert("Błąd połączenia: " + err);
             }
         }
         
         setInterval(fetchStatus, 3000);
-        setTimeout(fetchStatus, 500); // odpalamy ciut po załadowaniu
+        setTimeout(fetchStatus, 500); 
         </script>
+
 
 
     </div>
