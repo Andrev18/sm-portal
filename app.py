@@ -2035,6 +2035,22 @@ def courses_list(request: Request):
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
+@app.get("/courses/play", response_class=HTMLResponse)
+@app.get("/courses/play/", response_class=HTMLResponse)
+def courses_play_empty(request: Request):
+    u = current_user(request)
+    if not u:
+        return RedirectResponse("/", 302)
+    conn = db()
+    b = conn.execute("SELECT book_id FROM book_chapters WHERE status='completed' LIMIT 1").fetchone()
+    if not b:
+        b = conn.execute("SELECT id FROM books LIMIT 1").fetchone()
+    conn.close()
+    if b:
+        book_id = b[0]
+        return RedirectResponse(f"/courses/play/{book_id}", 302)
+    return RedirectResponse("/courses", 302)
+
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
 def courses_play(request: Request, book_id: int):
     u = current_user(request)
