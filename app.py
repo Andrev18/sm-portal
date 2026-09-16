@@ -2002,3 +2002,46 @@ async def admin_ocr_trigger(request: Request):
         return JSONResponse({"msg": "Polecenie wysłano na szynę."})
     except Exception as e:
          return JSONResponse({"msg": f"Błąd N8N: {e}"})
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    u = current_user(request)
+    if not u:
+        return RedirectResponse("/", 302)
+    user = u
+    
+    conn = db()
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    bundled_courses = {}
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC", tuple(books_with_data)).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            subj = b_dict['subject']
+            if subj not in bundled_courses:
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
+                
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            if "Ćwiczenia" in b_dict['title'] or "cwiczenia" in b_dict['title'].lower():
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    u = current_user(request)
+    if not u:
+        return RedirectResponse("/", 302)
+    return HTMLResponse(f"<style>body{{font-family:sans-serif; background:#000; color:#fff; padding:40px;}}</style><h3>Witaj w Oknie Nauki dla materiału #{book_id}</h3><p>Moduł N8N-JSON do obróbki zadań wejdzie tu po testach backendu OCR.</p><br><a href='/courses' style='color:#38bdf8;'>Wróć do bazy kursów</a>")
