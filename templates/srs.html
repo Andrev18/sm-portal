@@ -10,18 +10,27 @@
     </p>
   </div>
 
+
   {% if user['role'] in ('admin','teacher') %}
-  <form method="post" action="/srs/deck" style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <input name="name" placeholder="Nazwa nowej talii..." required style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none;">
-    <input name="subject" placeholder="Przedmiot (np. Geografia)" style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none;">
-    <button class="btn btn-primary">
-      <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Utwórz talię
-    </button>
-  </form>
+  <div style="background: rgba(0,0,0,0.3); border: 1px dashed var(--accent-indigo); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; gap: 12px; max-width: 100%;">
+    <h3 style="margin: 0; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 6px;"><i data-lucide="bot" style="color: var(--accent-indigo); width: 16px;"></i> Generuj Mądrą Talię (Fiszkomat AI)</h3>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <form method="post" action="/srs/deck" style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1;">
+        <input name="name" placeholder="Nowa nazwa talii (np. Krajobrazy Polski)" required style="flex: 2; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none;">
+        <input name="subject" placeholder="Przedmiot (opcja)" style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none;">
+        
+        <button class="btn btn-primary" style="background: var(--accent-indigo); border: 1px solid rgba(99,102,241,0.5);">
+          <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Stwórz Talię i przejdź do uploadu pliku z podręcznikiem
+        </button>
+      </form>
+    </div>
+  </div>
   {% endif %}
 </div>
 
 <!-- Grid Talii -->
+
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
 {% for d in decks %}
   <a href="/srs/deck/{{ d['id'] }}" class="glass-card" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between;">
