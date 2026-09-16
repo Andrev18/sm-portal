@@ -1754,9 +1754,11 @@ def vulcan_page(request: Request):
 import os
 import psycopg2
 
-@app.post("/admin/decks/{deck_id}/import-queue")
-
 import requests
+@app.post("/admin/decks/{deck_id}/import-queue")
+def import_queue(deck_id: int):
+    pass
+
 
 @app.post("/srs/card/{card_id}/edit")
 def edit_card(card_id: int, front: str = Form(...), back: str = Form(...), user = Depends(require_teacher)):
