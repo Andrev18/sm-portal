@@ -775,7 +775,7 @@ def courses_play(request: Request, book_id: int):
     return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
 
 # ----------------
- liga tygodniowa, tytuly, rajd klasowy
+    # liga tygodniowa, tytuly, rajd klasowy
 
 TITLES = [(1000, "Legenda 5B 🐉"), (500, "Władca Wiedzy 👑"), (250, "Mistrz Fiszek 🥋"),
           (100, "Pogromca Zadań ⚔️"), (0, "Nowicjusz 5B 🌱")]
