@@ -596,7 +596,8 @@
       <!-- Wypośrodkowane menu nawigacyjne Top-Tabs -->
       <div class="nav-tabs" style="display: flex; gap: 20px; align-items: center;">
         <a href="/" class="nav-tab-item active" style="font-weight: 500; text-decoration: none;">Pulpit</a>
-        <a href="/srs" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Fiszki</a>
+        <a href="/srs" class="nav-tab-item {% if '/srs' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none;">Fiszki</a>
+        <a href="/courses" class="nav-tab-item {% if '/courses' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none; color: #10b981;"><i data-lucide="graduation-cap" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i> Moje Kursy</a>
         <a href="/vulcan" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Vulcan</a>
         <a href="/serwisy" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Aplikacje</a>
         <a href="/leaderboard" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Ranking</a>

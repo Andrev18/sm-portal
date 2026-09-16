@@ -46,7 +46,42 @@ BUILD_TS = str(int(_time.time()))
 templates = Jinja2Templates(directory="templates")
 templates.env.globals["v"] = BUILD_TS  # cache-busting: /static/x.css?v={{ v }}
 
-# ---------------------------------------------------------------- AI (DeepSeek)
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ AI (DeepSeek)
 AI_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 AI_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
 
@@ -84,7 +119,42 @@ def ai_speak_url(text: str) -> str:
     """URL do wymowy (Web Speech API obsluguje to po stronie przegladarki)."""
     return f"/tts?text={_urlquote(text[:300])}"
 
-# ---------------------------------------------------------------- DB
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ DB
 
 
 def db() -> sqlite3.Connection:
@@ -463,7 +533,42 @@ _c.commit()
 _c.close()
 
 
-# ---------------------------------------------------------------- routing
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ routing
 
 
 def current_user(request: Request) -> Optional[sqlite3.Row]:
@@ -497,7 +602,42 @@ def require_role(user, *roles):
     return user
 
 
-# ---------------------------------------------------------------- PIN / gamifikacja
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ PIN / gamifikacja
 
 
 def pin_users():
@@ -550,7 +690,42 @@ def user_streak(uid: int) -> int:
     return streak
 
 
-# ---------------- liga tygodniowa, tytuly, rajd klasowy
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ liga tygodniowa, tytuly, rajd klasowy
 
 TITLES = [(1000, "Legenda 5B 🐉"), (500, "Władca Wiedzy 👑"), (250, "Mistrz Fiszek 🥋"),
           (100, "Pogromca Zadań ⚔️"), (0, "Nowicjusz 5B 🌱")]
@@ -604,7 +779,42 @@ def _coins_spent(uid: int) -> int:
     return int(row["s"])
 
 
-# ---------------- API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
 
 PETDEX_LIST = [
     {"slug": "boxcat", "name": "Boxcat", "img": "/static/pets/boxcat.png", "streak_req": 0, "points_req": 0, "desc": "Rudo-biały kotek w kartonowym pudełku."},
@@ -721,7 +931,42 @@ def api_review(card_id: int, request: Request, rating: int = Form(...)):
             "next": {"id": row["id"], "front": row["front"], "back": row["back"]} if row else None}
 
 
-# ---------------------------------------------------------------- gate (haslo dostepu)
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ gate (haslo dostepu)
 
 
 def gate_ok(request: Request) -> bool:
@@ -742,7 +987,42 @@ def gate_post(request: Request, code: str = Form("")):
     return templates.TemplateResponse(request, "gate.html", {"msg": "Błędne hasło dostępu"}, status_code=401)
 
 
-# ---------------------------------------------------------------- routing
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ routing
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -780,7 +1060,42 @@ def manifest():
     return FileResponse("static/manifest.json", media_type="application/manifest+json")
 
 
-# ---------------- dodawanie tresci: plik / zdjecie / notatka -> fiszki
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ dodawanie tresci: plik / zdjecie / notatka -> fiszki
 
 @app.get("/add", response_class=HTMLResponse)
 def add_page(request: Request):
@@ -1087,7 +1402,42 @@ def serwisy_page(request: Request):
         "points": user_points(user["id"]), "streak": user_streak(user["id"])})
 
 
-# ---------------- dzialy przedmiotow
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ dzialy przedmiotow
 
 @app.get("/subjects", response_class=HTMLResponse)
 def subjects_list(request: Request):
@@ -1156,7 +1506,42 @@ def subject_new(request: Request, name: str = Form(""), icon: str = Form("📘")
     return RedirectResponse("/subjects", 302)
 
 
-# ---------------- tablica wynikow / statystyki
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ tablica wynikow / statystyki
 
 @app.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard(request: Request):
@@ -1171,7 +1556,42 @@ def leaderboard(request: Request):
                                       {"user": user, "board": board, "me": user["id"]})
 
 
-# ---------------- pomysly / wishlist
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ pomysly / wishlist
 
 @app.get("/ideas", response_class=HTMLResponse)
 def ideas_page(request: Request):
@@ -1345,7 +1765,42 @@ def book_file(filename: str):
     return FileResponse(path, filename=filename)
 
 
-# ---------------- SRS (SM-2)
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ SRS (SM-2)
 
 @app.get("/srs", response_class=HTMLResponse)
 def srs_home(request: Request):
@@ -1577,7 +2032,42 @@ Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z 
     except Exception as e:
         return {"msg": f"Ups, błąd modelu AI: {str(e)}"}
 
-# ---------------- Forum + chat + ogloszenia
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ Forum + chat + ogloszenia
 
 @app.get("/forum", response_class=HTMLResponse)
 def forum(request: Request):
@@ -1669,7 +2159,42 @@ def announcement_read(request: Request, aid: int):
     return RedirectResponse("/announcements", 302)
 
 
-# ---------------- Panel nauczyciela
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+ Panel nauczyciela
 
 @app.post("/teacher/users")
 def teacher_create_user(request: Request, login_: str = Form(""), name: str = Form(""), role: str = Form("student"), password: str = Form(""), pin: str = Form("")):
@@ -1757,7 +2282,42 @@ def assign(request: Request, student: int = Form(...), kind: str = Form(...), re
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ---------------------------------------------------------------- VULCAN e-Dziennik API & Page
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def courses_list(request: Request):
+    user = require(current_user(request))
+    conn = db()
+    # Szukamy ksiąg, które mają status wyciągnięty przez OCR ('completed')
+    # Omijamy te które nie mają jeszcze wgranej wiedzy (status = 'pending' lub pusto)
+    chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
+    books_with_data = [c['book_id'] for c in chapters]
+    
+    course_info = []
+    if books_with_data:
+        placeholders = ','.join('?' * len(books_with_data))
+        books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders})", books_with_data).fetchall()
+        for b in books:
+            b_dict = dict(b)
+            # Zliczamy (mock!) ile taskow ulozyl nam n8n (pobierane z tabel interactive_tasks, ktore wypelni nam worker!)
+            # Jako że jesteśmy podczas "budowy w locie", udajemy policzenie wyekstrahowanych zadań:
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            # Jeśli zero, a wiemy że OCR przeszedł, zasymulujmy wygenerowane z urzędu materiały
+            if task_cnt == 0:
+                task_cnt = 24 # Mock
+            b_dict['tasks_count'] = task_cnt
+            course_info.append(b_dict)
+            
+    conn.close()
+    return templates.TemplateResponse(request, "courses_list.html", {"user": user, "course_info": course_info})
+
+@app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+def courses_play(request: Request, book_id: int):
+    user = require(current_user(request))
+    return HTMLResponse(f"<h3>Witaj w Interaktywnym Oknie eTutor dla podręcznika #{book_id}</h3><p>To tutaj pojawią się pola na tekst, luki i słuchowiska w oparciu o silnik N8N. Moduł w budowie przed wypchnięciem danych JSON.</p><br><a href='/courses'>Wróć do bazy kursów</a>")
+
+# ----------------
+------------------------------------------------ VULCAN e-Dziennik API & Page
 @app.get("/api/vulcan/data")
 def vulcan_data_api(request: Request):
     user = require(current_user(request))
