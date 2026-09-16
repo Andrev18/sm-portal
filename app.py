@@ -1803,7 +1803,7 @@ def import_queue(deck_id: int):
 
 
 @app.post("/srs/card/{card_id}/edit")
-def edit_card(card_id: int, front: str = Form(...), back: str = Form(...), user = Depends(require_teacher)):
+def edit_card(card_id: int, front: str = Form(...), back: str = Form(...), ):
     with get_db() as db:
         db.execute("UPDATE cards SET front=?, back=? WHERE id=?", (front, back, card_id))
         db.commit()
@@ -1811,7 +1811,7 @@ def edit_card(card_id: int, front: str = Form(...), back: str = Form(...), user 
     return {"status": "ok"}
 
 @app.post("/admin/decks/{deck_id}/generate-ai")
-async def generate_ai(deck_id: int, card_count: int = Form(...), upload: UploadFile = File(...), user = Depends(require_teacher)):
+async def generate_ai(deck_id: int, card_count: int = Form(...), upload: UploadFile = File(...), ):
     deck_name = None
     with get_db() as c:
         c.execute("SELECT name FROM decks WHERE id=?", (deck_id,))
