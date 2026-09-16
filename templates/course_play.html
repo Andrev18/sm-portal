@@ -1,125 +1,409 @@
-{% extends "base.html" %}{% block title %}Panel OCR · Baza Wiedzy 5B{% endblock %}
+{% extends "base.html" %}{% block title %}{{ book.title }} · E-Tutor 5B{% endblock %}
 {% block content %}
-<div class="workspace-container" style="flex-direction: column; overflow-y: auto; max-width: 1200px; margin: 0 auto; padding-top: 20px;">
-    <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Digitalizacja OCR (Skany E-Tutor)</h1>
-        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Panel zarządzania wsadowymi analizami dla wgranych podręczników. Żądania lądują do kolejki sztucznej inteligencji LLM.</p>
+<style>
+.etutor-wrapper { max-width: 1200px; margin: 24px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+
+/* Top Header */
+.etutor-header {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px 32px;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.etutor-header::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    background: {% if 'ćwiczenia' in book.title.lower() or 'cwiczenia' in book.title.lower() %}#10b981{% else %}var(--accent-cyan){% endif %};
+}
+.eh-left { display: flex; align-items: center; gap: 20px; }
+.eh-icon {
+    width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+}
+.eh-title h1 { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+.eh-title p { font-size: 13px; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 10px; }
+.eh-badge { background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+
+.eh-actions { display: flex; gap: 12px; }
+.btn-action-pill {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 18px;
+    border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.2s;
+}
+.btn-action-pill:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+/* Main Tabs */
+.tab-nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
+.t-btn {
+    padding: 10px 20px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--text-secondary);
+    font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+}
+.t-btn:hover { color: #fff; background: rgba(255,255,255,0.03); }
+.t-btn.active { background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+
+/* TAB: ĆWICZENIA INTERAKTYWNE Z PODRĘCZNIKA */
+.tasks-container { display: flex; flex-direction: column; gap: 24px; }
+.task-card {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 28px;
+    display: flex; flex-direction: column; gap: 18px; position: relative; transition: border-color 0.2s;
+}
+.task-card:hover { border-color: var(--border-focus); }
+.tc-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 12px; }
+.tc-num { font-size: 12px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px; }
+.tc-badge-type { background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); padding: 3px 8px; border-radius: 6px; font-size: 10px; color: var(--text-muted); font-weight: 600; }
+.tc-title { font-size: 18px; font-weight: 700; color: #fff; margin: 0; }
+.tc-inst { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+
+/* Grid pól matematycznych / słówek */
+.calc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 8px 0; }
+.calc-item {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.calc-label { font-size: 14px; font-weight: 600; color: #e2e8f0; font-family: 'JetBrains Mono', monospace; }
+.calc-inp {
+    background: rgba(0,0,0,0.6); border: 1px solid var(--border-focus); color: #fff; font-size: 15px; font-weight: 700;
+    padding: 6px 12px; border-radius: 8px; width: 90px; text-align: center; outline: none; transition: all 0.2s;
+}
+.calc-inp:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(56,189,248,0.25); }
+
+/* Przyciski weryfikacji i generowania podobnych */
+.tc-actions-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; pt-3; border-top: 1px solid rgba(255,255,255,0.04); }
+.btn-submit-task {
+    background: #10b981; color: #000; font-weight: 700; font-size: 13px; padding: 10px 22px; border-radius: 10px;
+    border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+}
+.btn-submit-task:hover { background: #059669; transform: translateY(-1px); }
+.btn-gen-similar {
+    background: rgba(56, 189, 248, 0.1); border: 1px dashed rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 11px; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s;
+}
+.btn-gen-similar:hover { background: rgba(56, 189, 248, 0.2); }
+.task-fb { font-size: 13px; font-weight: 600; margin-top: 8px; display: none; line-height: 1.4; }
+
+/* Piramida liczbowa */
+.pyramid-container { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 0; }
+.pyr-row { display: flex; gap: 12px; }
+.pyr-cell {
+    width: 60px; height: 48px; border-radius: 10px; border: 1px solid var(--border-focus); background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #fff; font-family: monospace;
+}
+.pyr-cell input {
+    width: 100%; height: 100%; background: transparent; border: none; text-align: center; color: var(--accent-cyan); font-weight: 800; font-size: 15px; outline: none;
+}
+
+/* MCQ Options */
+.mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mcq-btn {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 14px 18px; border-radius: 12px;
+    font-size: 13px; font-weight: 500; color: #e2e8f0; cursor: pointer; transition: all 0.2s; text-align: left;
+}
+.mcq-btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+.mcq-btn.selected-correct { background: rgba(16, 185, 129, 0.2) !important; border-color: #10b981 !important; color: #fff !important; }
+.mcq-btn.selected-wrong { background: rgba(239, 68, 68, 0.2) !important; border-color: #ef4444 !important; color: #fff !important; }
+
+/* TAB 2: ANKI SRS */
+.anki-banner {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.05));
+    border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.btn-launch-srs {
+    background: #10b981; color: #000; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 12px;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+}
+.cards-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.c-preview-box {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.cp-front { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
+.cp-back { font-size: 13px; color: var(--accent-cyan); line-height: 1.4; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px; }
+</style>
+
+<div class="etutor-wrapper">
+    
+    <!-- NAGŁÓWEK -->
+    <div class="etutor-header">
+        <div class="eh-left">
+            <div class="eh-icon">
+                {% if book.subject == 'Matematyka' %}📐{% elif book.subject == 'Angielski' %}🇬🇧{% else %}📖{% endif %}
+            </div>
+            <div class="eh-title">
+                <h1>{{ book.title }}</h1>
+                <p>
+                    Przedmiot: <strong>{{ book.subject }}</strong>
+                    <span class="eh-badge">Kurs Zeszytu Ćwiczeń</span>
+                    <span id="user-prog-badge" style="color:var(--accent-cyan); font-weight:700;">• Rozdział 1: Str. 4-10</span>
+                </p>
+            </div>
+        </div>
+        <div class="eh-actions">
+            <a href="/read/{{ book.id }}" class="btn-action-pill" target="_blank" title="Podgląd oryginalnego skanu w czytniku PDF">
+                <i data-lucide="file-text" style="width: 15px;"></i> Skan PDF
+            </a>
+            <a href="/courses" class="btn-action-pill">
+                <i data-lucide="arrow-left" style="width: 15px;"></i> Wszystkie Kursy
+            </a>
+        </div>
     </div>
 
-    <!-- Tabela Stanu OCR -->
-    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;">
-        <h2 style="font-size: 16px; color: white; display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
-            <i data-lucide="server" style="color: var(--accent-indigo); width: 20px;"></i>
-            Dostępne Materiały
-        </h2>
-        
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
-                    <th style="padding: 12px; width: 30%;">Book (Źródło danych)</th>
-                    <th style="padding: 12px; width: 15%;">Zakres Stron</th>
-                    <th style="padding: 12px; width: 35%;">Status w Bazie OCR</th>
-                    <th style="padding: 12px; text-align: right; width: 20%;">Generuj</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for b in books %}
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
-                    <td style="padding: 16px 12px; color: #fff; font-weight: 600;">
-                        #{{ b.id }} - {{ b.title }}<br>
-                        <span style="font-weight: 400; color: var(--text-muted); font-size: 10px;">{{ b.filename }}</span>
-                    </td>
-                    <td style="padding: 16px 12px;">
-                        <input type="text" id="pages-{{b.id}}" placeholder="np 1-10" value="1-10" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); color: white; padding: 6px 12px; border-radius: 6px; width: 80px; font-size: 12px;">
-                    </td>
-                    <td id="status-cell-{{ b.id }}" style="padding: 16px 12px; color: var(--text-muted); font-size: 12px;">
-                        Ładowanie statusów...
-                    </td>
-                    <td style="padding: 16px 12px; text-align: right;">
-                        <button onclick="startOCR_{{ b.id }}()" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer; transition: all 0.2s;">
-                            <i data-lucide="play" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px; margin-right: 4px;"></i> Uruchom Skan OCR
+    <!-- TABS NAVIGATION: Dla matematyki domyślnie ĆWICZENIA, dla języków Fiszki obok -->
+    <div class="tab-nav">
+        <button class="t-btn active" id="tab-btn-tasks" onclick="switchTab('tasks', this)">
+            <i data-lucide="check-circle" style="width: 16px;"></i> 1. Zeszyt Ćwiczeń (Rozwiązuj na ekranie)
+        </button>
+        <button class="t-btn" id="tab-btn-anki" onclick="switchTab('anki', this)">
+            <i data-lucide="layers" style="width: 16px;"></i> 2. Fiszki i Audio Anki ({{ cards|length }})
+        </button>
+        <button class="t-btn" id="tab-btn-theory" onclick="switchTab('theory', this)">
+            <i data-lucide="book-open" style="width: 16px;"></i> 3. Wyekstrahowana Teoria (OCR)
+        </button>
+    </div>
+
+    <!-- TAB 1: INTERAKTYWNE ZADANIA Z PODRĘCZNIKA / ZESZYTU -->
+    <div id="tab-tasks" class="tab-content" style="display: block;">
+        <div class="tasks-container">
+            {% if tasks %}
+                {% for t in tasks %}
+                <div class="task-card" id="task-card-{{ t.id }}" data-type="{{ t.task_type }}">
+                    {% set c = t.parsed_content %}
+                    
+                    <div class="tc-top">
+                        <span class="tc-num">{{ c.number if c.number else 'Zadanie ' ~ loop.index }}</span>
+                        <span class="tc-badge-type">Poziom: {{ t.difficulty_level }}/5 &bull; {{ t.task_type }}</span>
+                    </div>
+
+                    <h3 class="tc-title">{{ c.title if c.title else 'Ćwiczenie praktyczne' }}</h3>
+                    <p class="tc-inst">{{ c.instruction }}</p>
+
+                    <!-- Typ: Obliczenia w pamięci / Pola wpisywania (Matematyka & Słówka) -->
+                    {% if c.fields %}
+                    <div class="calc-grid">
+                        {% for f in c.fields %}
+                        <div class="calc-item">
+                            <span class="calc-label">{{ f.label }}</span>
+                            <input type="text" class="calc-inp" data-ans="{{ f.ans }}" placeholder="wpisz..." autocomplete="off">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Typ: Zadanie z treścią (Story) -->
+                    {% if c.story %}
+                    <div style="background: rgba(0,0,0,0.25); border-left: 3px solid #10b981; padding: 14px 18px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: #fff;">
+                        {{ c.story }}
+                    </div>
+                    <div class="calc-grid" style="margin-top: 12px;">
+                        {% for q in c.questions %}
+                        <div class="calc-item" style="flex-direction: column; align-items: flex-start;">
+                            <span class="calc-label" style="font-size: 12px; margin-bottom: 6px;">{{ q.label }}</span>
+                            <input type="text" class="calc-inp" data-ans="{{ q.ans }}" placeholder="odpowiedź..." style="width: 100%; text-align: left;" autocomplete="off">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Typ: Kolejność działań (Steps) -->
+                    {% if c.steps %}
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for s in c.steps %}
+                        <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-subtle);">
+                            <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; font-family: monospace;">{{ s.expr }}</div>
+                            <div class="calc-grid">
+                                {% for sf in s.sub_fields %}
+                                <div class="calc-item">
+                                    <span class="calc-label" style="font-size: 12px;">{{ sf.label }}</span>
+                                    <input type="text" class="calc-inp" data-ans="{{ sf.ans }}" placeholder="wynik..." autocomplete="off">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Typ: Piramida liczbowa -->
+                    {% if c.rows %}
+                    <div class="pyramid-container">
+                        {% for row in c.rows %}
+                        <div class="pyr-row">
+                            {% set r_idx = loop.index0 %}
+                            {% for cell in row %}
+                                {% set c_idx = loop.index0 %}
+                                {% set key = r_idx ~ '_' ~ c_idx %}
+                                <div class="pyr-cell">
+                                    {% if '[' in cell %}
+                                        <input type="text" data-ans="{{ c.answers[key] }}" placeholder="?">
+                                    {% else %}
+                                        {{ cell }}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Typ: Zdania z lukami (Gramatyka Angielski) -->
+                    {% if c.sentences %}
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for s in c.sentences %}
+                        <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px; font-size: 14px; line-height: 2; color: #fff;">
+                            {{ s.rendered_html|safe if s.rendered_html else s.text }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Typ: Dialogi szkolne MCQ -->
+                    {% if c.dialogues %}
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        {% for d in c.dialogues %}
+                        <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px;">
+                            <div style="font-size: 14px; font-weight: 700; color: #38bdf8; margin-bottom: 10px;">{{ d.prompt }}</div>
+                            <div class="mcq-grid">
+                                {% for opt in d.options %}
+                                <button type="button" class="mcq-btn" onclick="checkDialogueMCQ(this, {{ loop.index0 }}, {{ d.correct }})">
+                                    {{ opt }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Pasek Weryfikacji Zadań -->
+                    <div class="tc-actions-bar">
+                        <button type="button" class="btn-submit-task" onclick="checkGenericTask({{ t.id }})">
+                            <i data-lucide="check" style="width: 16px;"></i> Sprawdź to zadanie
                         </button>
-                    </td>
-                </tr>
+                        
+                        <a href="/fiszkomat/chat" class="btn-gen-similar" title="Otwórz Kreator AI z suwakiem trudności dla tego tematu">
+                            <i data-lucide="sparkles" style="width: 13px;"></i> Generuj podobne zadania z AI (Zmień trudność)
+                        </a>
+                    </div>
+                    <div class="task-fb" id="fb-task-{{ t.id }}"></div>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
-        
-        <script>
-        async function poller() {
-            try {
-                const res = await fetch('/admin/ocr/status?t=' + Date.now());
-                const data = await res.json();
-                
-                // Uzupełnij stany statyczne
-                let allIds = [];
-                {% for b in books %}
-                allIds.push({{ b.id }});
-                {% endfor %}
-
-                allIds.forEach(bid => {
-                    const c = document.getElementById('status-cell-' + bid);
-                    if(!c) return;
-
-                    if (data[bid] && data[bid].length > 0) {
-                        let htmlChunk = "";
-                        data[bid].forEach(job => {
-                            if (job.status === "completed") {
-                                htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Pomyślnie zdigitalizowano do bazy)</span><span>100%</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
-                                        <div style="width: 100%; height: 100%; background: #10b981;"></div>
-                                    </div>
-                                </div>`;
-                            } else if(job.status === "pending") {
-                                htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (W kolejce N8N / Analiza LLM...)</span><span>W toku</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
-                                        <div style="width: 35%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
-                                    </div>
-                                </div>`;
-                            } else {
-                                htmlChunk += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px; font-weight:600;"> Błąd obróbki dla stron: ${job.pages}</div>`;
-                            }
-                        });
-                        c.innerHTML = htmlChunk;
-                    } else {
-                        c.innerHTML = "Brak gotowych rozdziałów w bazie";
-                    }
-                });
-            } catch(e) {}
-        }
-        
-        {% for b in books %}
-        async function startOCR_{{ b.id }}() {
-            const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
-            if(!confirm(`Czy zatwierdzasz operację AI Docling dla "{{ b.title }}" (Strony: ${pages})?
-Skrypt ląduje do N8N!`)) return;
-            
-            try {
-                const reqCell = document.getElementById('status-cell-{{ b.id }}');
-                reqCell.innerHTML = `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Połączenie z serwerem i tworzenie zlecenia...</span><span>...</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
-                                        <div style="width: 10%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
-                                    </div>
-                                </div>`;
-                
-                const res = await fetch('/admin/ocr/trigger', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
-                });
-                poller(); 
-            } catch (err) {
-                alert("Błąd połączenia z serwerem: " + err);
-            }
-        }
-        {% endfor %}
-
-        setInterval(poller, 4000);
-        setTimeout(poller, 300);
-        </script>
+            {% else %}
+                <div style="background: var(--bg-surface); padding: 32px; border-radius: 16px; text-align: center; color: var(--text-muted);">
+                    Brak przypisanych ćwiczeń dla tego podręcznika.
+                </div>
+            {% endif %}
+        </div>
     </div>
+
+    <!-- TAB 2: FISZKI I ANKI SRS Z AUDIO -->
+    <div id="tab-anki" class="tab-content" style="display: none;">
+        <div class="anki-banner">
+            <div>
+                <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 4px 0;">Algorytm Powtórek Anki (SRS) & Audio</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Fiszki sprawdzające wiedzę z wymową lektora TTS dla słówek.</p>
+            </div>
+            {% if target_deck_id %}
+            <a href="/srs/study/{{ target_deck_id }}" class="btn-launch-srs">
+                <i data-lucide="play" style="width: 16px;"></i> Rozpocznij Trening Anki
+            </a>
+            {% else %}
+            <a href="/srs" class="btn-launch-srs">
+                <i data-lucide="play" style="width: 16px;"></i> Przejdź do Talii
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="cards-preview-grid">
+            {% for c in cards %}
+            <div class="c-preview-box">
+                <div class="cp-front">{{ c.front }}</div>
+                <div class="cp-back">{{ c.back }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- TAB 3: TEORIA Z PODRĘCZNIKA -->
+    <div id="tab-theory" class="tab-content" style="display: none;">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 28px; color: #e2e8f0; line-height: 1.7;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 12px;">Wyekstrahowany tekst podręcznika (OCR)</h2>
+            <pre style="background: rgba(0,0,0,0.4); padding: 18px; border-radius: 12px; font-size: 13px; color: #38bdf8; font-family: monospace; white-space: pre-wrap; border: 1px solid var(--border-subtle);">{{ raw_ocr_text }}</pre>
+        </div>
+    </div>
+
 </div>
+
+<script>
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('tab-' + tabName).style.display = 'block';
+        btn.classList.add('active');
+        if(window.lucide) lucide.createIcons();
+    }
+
+    // Walidacja uniwersalna dla zadań (pola .calc-inp oraz piramida)
+    function checkGenericTask(taskId) {
+        const card = document.getElementById('task-card-' + taskId);
+        const inputs = card.querySelectorAll('input[data-ans]');
+        const fb = document.getElementById('fb-task-' + taskId);
+        
+        if (inputs.length === 0) return;
+
+        let correct = 0;
+        inputs.forEach(inp => {
+            const expected = inp.getAttribute('data-ans').trim().toLowerCase();
+            const val = inp.value.trim().toLowerCase();
+            if (val === expected) {
+                inp.style.borderColor = '#10b981';
+                inp.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                inp.style.color = '#10b981';
+                correct++;
+            } else {
+                inp.style.borderColor = '#ef4444';
+                inp.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                inp.style.color = '#ef4444';
+            }
+        });
+
+        fb.style.display = 'block';
+        const score = Math.round((correct / inputs.length) * 100);
+        if (correct === inputs.length) {
+            fb.style.color = '#10b981';
+            fb.innerHTML = `🎉 Znakomicie! Wszystkie ${correct}/${inputs.length} odpowiedzi poprawne! (+10 punktów)`;
+            recordProgress(taskId, 100);
+        } else {
+            fb.style.color = '#ef4444';
+            fb.innerHTML = `Poprawnie: ${correct} z ${inputs.length}. Popraw czerwone pola i spróbuj ponownie!`;
+            recordProgress(taskId, score);
+        }
+    }
+
+    function checkDialogueMCQ(btn, chosen, correct) {
+        const parent = btn.parentElement;
+        const btns = parent.querySelectorAll('.mcq-btn');
+        btns.forEach(b => b.disabled = true);
+
+        if (chosen === correct) {
+            btn.classList.add('selected-correct');
+        } else {
+            btn.classList.add('selected-wrong');
+            btns[correct].classList.add('selected-correct');
+        }
+    }
+
+    async function recordProgress(taskId, score) {
+        try {
+            const res = await fetch('/api/tasks/submit-result', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ task_id: taskId, score: score })
+            });
+            const d = await res.json();
+            if (d.overall_pct !== undefined) {
+                const badge = document.getElementById('user-prog-badge');
+                if (badge) badge.innerText = `• Opanowano: ${d.overall_pct}% materiału`;
+            }
+        } catch(e) {}
+    }
+
+    if(window.lucide) lucide.createIcons();
+</script>
 {% endblock %}

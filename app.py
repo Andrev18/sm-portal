@@ -2019,18 +2019,32 @@ def courses_list(request: Request):
             b_dict = dict(b)
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = {"textbook": None, "workbook": None}
+                bundled_courses[subj] = {
+                    "textbook": None, 
+                    "workbook": None, 
+                    "total_tasks": 0, 
+                    "done_tasks": 0, 
+                    "progress_pct": 0
+                }
                 
             task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 
+            done_cnt = conn.execute("SELECT COUNT(DISTINCT utp.task_id) as c FROM user_task_progress utp JOIN interactive_tasks it ON utp.task_id=it.id JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=? AND utp.user_id=? AND utp.score>=70", (b['id'], u['id'])).fetchone()['c']
             
             b_dict['tasks_cnt'] = task_cnt
+            b_dict['done_cnt'] = done_cnt
+            b_dict['pct'] = int((done_cnt / task_cnt) * 100) if task_cnt > 0 else 0
             
             if "Ćwiczenia" in b_dict['title'] or "cwiczenia" in b_dict['title'].lower():
                 bundled_courses[subj]["workbook"] = b_dict
             else:
                 bundled_courses[subj]["textbook"] = b_dict
+                
+            bundled_courses[subj]["total_tasks"] += task_cnt
+            bundled_courses[subj]["done_tasks"] += done_cnt
+            
+        for subj, d in bundled_courses.items():
+            if d["total_tasks"] > 0:
+                d["progress_pct"] = int((d["done_tasks"] / d["total_tasks"]) * 100)
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
@@ -2141,3 +2155,36 @@ def srs_deck_cards_raw(request: Request, deck_id: int):
     cards = [dict(r) for r in conn.execute("SELECT id, front, back FROM cards WHERE deck_id=?", (deck_id,)).fetchall()]
     conn.close()
     return JSONResponse(cards)
+
+
+@app.post("/api/tasks/submit-result")
+async def api_task_submit(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    data = await request.json()
+    task_id = data.get("task_id")
+    score = data.get("score", 0) # 0 - 100%
+    
+    conn = db()
+    existing = conn.execute("SELECT id, attempts FROM user_task_progress WHERE user_id=? AND task_id=?", (u["id"], task_id)).fetchone()
+    if existing:
+        conn.execute("UPDATE user_task_progress SET score=MAX(score, ?), attempts=attempts+1, last_attempt=datetime('now') WHERE id=?", (score, existing["id"]))
+    else:
+        conn.execute("INSERT INTO user_task_progress (user_id, task_id, score, attempts) VALUES (?, ?, ?, 1)", (u["id"], task_id, score))
+    
+    # Oblicz globalny postęp dla tej książki/przedmiotu
+    # Pobierz chapter_id -> book_id
+    b_row = conn.execute("SELECT bc.book_id FROM interactive_tasks it JOIN book_chapters bc ON it.chapter_id=bc.id WHERE it.id=?", (task_id,)).fetchone()
+    book_id = b_row[0] if b_row else None
+    
+    overall_pct = 0
+    if book_id:
+        total_tasks = conn.execute("SELECT COUNT(*) FROM interactive_tasks it JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=?", (book_id,)).fetchone()[0]
+        completed_tasks = conn.execute("SELECT COUNT(DISTINCT task_id) FROM user_task_progress utp JOIN interactive_tasks it ON utp.task_id=it.id JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=? AND utp.user_id=? AND utp.score>=70", (book_id, u["id"])).fetchone()[0]
+        if total_tasks > 0:
+            overall_pct = int((completed_tasks / total_tasks) * 100)
+            
+    conn.commit()
+    conn.close()
+    return JSONResponse({"status": "ok", "score": score, "overall_pct": overall_pct})

@@ -118,9 +118,9 @@
                     </div>
                     
                     <div class="c-prog-wrap">
-                        <span>0%</span>
-                        <div class="c-prog-bar"><div class="c-prog-fill" style="width: 0%;"></div></div>
-                        <span>Opanowano</span>
+                        <span style="font-weight:700; color:#10b981;">{{ data.progress_pct }}%</span>
+                        <div class="c-prog-bar"><div class="c-prog-fill" style="width: {{ data.progress_pct }}%;"></div></div>
+                        <span>Opanowano ({{ data.done_tasks }}/{{ data.total_tasks }})</span>
                     </div>
                 </div>
                 
@@ -141,7 +141,7 @@
                         <div class="m-ic"><i data-lucide="edit-3" style="width: 14px;"></i></div>
                         <div class="m-info">
                             <div class="m-title">Warsztat (Zeszyt Ćw.) <div class="m-badge">Zadania</div></div>
-                            <div class="m-meta">{{ data.workbook.title }} &bull; Dostępnych {{ data.workbook.tasks_cnt }} zadań OCR</div>
+                            <div class="m-meta">{{ data.workbook.title }} &bull; <strong>{{ data.workbook.done_cnt }}/{{ data.workbook.tasks_cnt }}</strong> zadań rozwiązanych</div>
                         </div>
                         <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
                     </div>
