@@ -95,7 +95,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- AI (DeepSeek)
+# ------------------------------------------------ AI (DeepSeek)
 AI_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 AI_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
 
@@ -183,7 +183,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- DB
+# ------------------------------------------------ DB
 
 
 def db() -> sqlite3.Connection:
@@ -612,7 +612,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- routing
+# ------------------------------------------------ routing
 
 
 def current_user(request: Request) -> Optional[sqlite3.Row]:
@@ -696,7 +696,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- PIN / gamifikacja
+# ------------------------------------------------ PIN / gamifikacja
 
 
 def pin_users():
@@ -903,7 +903,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
+    # API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
 
 PETDEX_LIST = [
     {"slug": "boxcat", "name": "Boxcat", "img": "/static/pets/boxcat.png", "streak_req": 0, "points_req": 0, "desc": "Rudo-biały kotek w kartonowym pudełku."},
@@ -1070,7 +1070,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- gate (haslo dostepu)
+# ------------------------------------------------ gate (haslo dostepu)
 
 
 def gate_ok(request: Request) -> bool:
@@ -1141,7 +1141,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- routing
+# ------------------------------------------------ routing
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -1229,7 +1229,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- dodawanie tresci: plik / zdjecie / notatka -> fiszki
+#  dodawanie tresci: plik / zdjecie / notatka -> fiszki
 
 @app.get("/add", response_class=HTMLResponse)
 def add_page(request: Request):
@@ -1586,7 +1586,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- dzialy przedmiotow
+#  dzialy przedmiotow
 
 @app.get("/subjects", response_class=HTMLResponse)
 def subjects_list(request: Request):
@@ -1705,7 +1705,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- tablica wynikow / statystyki
+#  tablica wynikow / statystyki
 
 @app.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard(request: Request):
@@ -1770,7 +1770,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- pomysly / wishlist
+#  pomysly / wishlist
 
 @app.get("/ideas", response_class=HTMLResponse)
 def ideas_page(request: Request):
@@ -1994,7 +1994,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- SRS (SM-2)
+#  SRS (SM-2)
 
 @app.get("/srs", response_class=HTMLResponse)
 def srs_home(request: Request):
@@ -2276,7 +2276,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- Forum + chat + ogloszenia
+#  Forum + chat + ogloszenia
 
 @app.get("/forum", response_class=HTMLResponse)
 def forum(request: Request):
@@ -2418,7 +2418,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
- Panel nauczyciela
+#  Panel nauczyciela
 
 @app.post("/teacher/users")
 def teacher_create_user(request: Request, login_: str = Form(""), name: str = Form(""), role: str = Form("student"), password: str = Form(""), pin: str = Form("")):
@@ -2556,7 +2556,7 @@ async def admin_ocr_trigger(request: Request):
          return {"msg": f"Błąd N8N: {e}"}
 
 # ----------------
------------------------------------------------- VULCAN e-Dziennik API & Page
+# ------------------------------------------------ VULCAN e-Dziennik API & Page
 @app.get("/api/vulcan/data")
 def vulcan_data_api(request: Request):
     user = require(current_user(request))
