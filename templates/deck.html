@@ -163,7 +163,6 @@
             formData.append('card_count', count);
             formData.append('upload', fileInput.files[0]);
             const deckId = "{{ deck['id'] }}";
-            const deckId = "{{ deck['id'] }}";
 
             // HEADSCALE ADDRESS: n8n webhook na Mikrusie
             const response = await fetch(`/admin/decks/${deckId}/generate-ai`, {
