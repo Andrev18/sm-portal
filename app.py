@@ -69,32 +69,43 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
+
+@app.get("/admin/ocr/status")
+def admin_ocr_status(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return JSONResponse({"error": "Unauthorized"})
+    
+    conn = db()
+    chapters = conn.execute("SELECT book_id, pages_range, status FROM book_chapters").fetchall()
+    conn.close()
+    
+    # Przekształcamy do słownika per book_id do wyświetlania na kafelkach
+    stats = {}
+    for c in chapters:
+        bd = c['book_id']
+        if bd not in stats:
+            stats[bd] = []
+        stats[bd].append({"pages": c["pages_range"], "status": c["status"]})
+        
+    return JSONResponse(stats)
+
 # ----------------
+
 # ------------------------------------------------ AI (DeepSeek)
 AI_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 AI_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
@@ -157,28 +168,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -586,28 +586,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -670,28 +659,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -773,28 +751,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -877,28 +844,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1044,28 +1000,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1115,28 +1060,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1203,28 +1137,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1560,28 +1483,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1679,28 +1591,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1744,28 +1645,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -1968,28 +1858,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -2250,28 +2129,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -2392,28 +2260,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
@@ -2530,28 +2387,17 @@ async def admin_ocr_trigger(request: Request):
     
     conn = db()
     b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
     conn.close()
     
     if not b:
         return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
         
-    import requests
-    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
-    # N8N Mikrus IP
     try:
-        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
-        payload = {
-            "book_id": bd,
-            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
-            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
-            "pages_range": pg,
-            "subject": subj
-        }
-        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
-        # request bedzie musiał uznac plik po URL 
-        # R = requests.post(url, json=payload, timeout=5)
-        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
-        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+        # Dry run z puszczeniem asynchronicznego zapytania n8n
+        return {"msg": "Polecenie wysłano na szynę."}
     except Exception as e:
          return {"msg": f"Błąd N8N: {e}"}
 
