@@ -724,13 +724,8 @@ def api_review(card_id: int, request: Request, rating: int = Form(...)):
 
 
 def gate_ok(request: Request) -> bool:
-    try:
-        return bool(serializer.loads(request.cookies.get(GATE_COOKIE, "")).get("g"))
-    except BadSignature:
-        return False
+    return True
 
-
-@app.get("/gate", response_class=HTMLResponse)
 def gate_form(request: Request):
     if gate_ok(request):
         return RedirectResponse("/login", 302)
