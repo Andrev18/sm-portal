@@ -45,72 +45,7 @@ BUILD_TS = str(int(_time.time()))
 templates = Jinja2Templates(directory="templates")
 templates.env.globals["v"] = BUILD_TS  # cache-busting: /static/x.css?v={{ v }}
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-
-@app.get("/admin/ocr/status")
-def admin_ocr_status(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return JSONResponse({"error": "Unauthorized"})
-    
-    conn = db()
-    chapters = conn.execute("SELECT book_id, pages_range, status FROM book_chapters").fetchall()
-    conn.close()
-    
-    # Przekształcamy do słownika per book_id do wyświetlania na kafelkach
-    stats = {}
-    for c in chapters:
-        bd = c['book_id']
-        if bd not in stats:
-            stats[bd] = []
-        stats[bd].append({"pages": c["pages_range"], "status": c["status"]})
-        
-    return JSONResponse(stats)
-
-# ----------------
-
-# ------------------------------------------------ AI (DeepSeek)
+# ---------------------------------------------------------------- AI (DeepSeek)
 AI_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 AI_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
 
@@ -148,50 +83,7 @@ def ai_speak_url(text: str) -> str:
     """URL do wymowy (Web Speech API obsluguje to po stronie przegladarki)."""
     return f"/tts?text={_urlquote(text[:300])}"
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-# ------------------------------------------------ DB
+# ---------------------------------------------------------------- DB
 
 
 def db() -> sqlite3.Connection:
@@ -570,50 +462,7 @@ _c.commit()
 _c.close()
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-# ------------------------------------------------ routing
+# ---------------------------------------------------------------- routing
 
 
 def current_user(request: Request) -> Optional[sqlite3.Row]:
@@ -647,50 +496,7 @@ def require_role(user, *roles):
     return user
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-# ------------------------------------------------ PIN / gamifikacja
+# ---------------------------------------------------------------- PIN / gamifikacja
 
 
 def pin_users():
@@ -743,50 +549,7 @@ def user_streak(uid: int) -> int:
     return streak
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-    # liga tygodniowa, tytuly, rajd klasowy
+# ---------------- liga tygodniowa, tytuly, rajd klasowy
 
 TITLES = [(1000, "Legenda 5B 🐉"), (500, "Władca Wiedzy 👑"), (250, "Mistrz Fiszek 🥋"),
           (100, "Pogromca Zadań ⚔️"), (0, "Nowicjusz 5B 🌱")]
@@ -840,50 +603,7 @@ def _coins_spent(uid: int) -> int:
     return int(row["s"])
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-    # API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
+# ---------------- API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
 
 PETDEX_LIST = [
     {"slug": "boxcat", "name": "Boxcat", "img": "/static/pets/boxcat.png", "streak_req": 0, "points_req": 0, "desc": "Rudo-biały kotek w kartonowym pudełku."},
@@ -1000,50 +720,7 @@ def api_review(card_id: int, request: Request, rating: int = Form(...)):
             "next": {"id": row["id"], "front": row["front"], "back": row["back"]} if row else None}
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-# ------------------------------------------------ gate (haslo dostepu)
+# ---------------------------------------------------------------- gate (haslo dostepu)
 
 
 def gate_ok(request: Request) -> bool:
@@ -1064,50 +741,7 @@ def gate_post(request: Request, code: str = Form("")):
     return templates.TemplateResponse(request, "gate.html", {"msg": "Błędne hasło dostępu"}, status_code=401)
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-# ------------------------------------------------ routing
+# ---------------------------------------------------------------- routing
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -1145,50 +779,7 @@ def manifest():
     return FileResponse("static/manifest.json", media_type="application/manifest+json")
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  dodawanie tresci: plik / zdjecie / notatka -> fiszki
+# ---------------- dodawanie tresci: plik / zdjecie / notatka -> fiszki
 
 @app.get("/add", response_class=HTMLResponse)
 def add_page(request: Request):
@@ -1495,50 +1086,7 @@ def serwisy_page(request: Request):
         "points": user_points(user["id"]), "streak": user_streak(user["id"])})
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  dzialy przedmiotow
+# ---------------- dzialy przedmiotow
 
 @app.get("/subjects", response_class=HTMLResponse)
 def subjects_list(request: Request):
@@ -1607,50 +1155,7 @@ def subject_new(request: Request, name: str = Form(""), icon: str = Form("📘")
     return RedirectResponse("/subjects", 302)
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  tablica wynikow / statystyki
+# ---------------- tablica wynikow / statystyki
 
 @app.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard(request: Request):
@@ -1665,50 +1170,7 @@ def leaderboard(request: Request):
                                       {"user": user, "board": board, "me": user["id"]})
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  pomysly / wishlist
+# ---------------- pomysly / wishlist
 
 @app.get("/ideas", response_class=HTMLResponse)
 def ideas_page(request: Request):
@@ -1882,50 +1344,7 @@ def book_file(filename: str):
     return FileResponse(path, filename=filename)
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  SRS (SM-2)
+# ---------------- SRS (SM-2)
 
 @app.get("/srs", response_class=HTMLResponse)
 def srs_home(request: Request):
@@ -2157,50 +1576,7 @@ Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z 
     except Exception as e:
         return {"msg": f"Ups, błąd modelu AI: {str(e)}"}
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  Forum + chat + ogloszenia
+# ---------------- Forum + chat + ogloszenia
 
 @app.get("/forum", response_class=HTMLResponse)
 def forum(request: Request):
@@ -2292,50 +1668,7 @@ def announcement_read(request: Request, aid: int):
     return RedirectResponse("/announcements", 302)
 
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-#  Panel nauczyciela
+# ---------------- Panel nauczyciela
 
 @app.post("/teacher/users")
 def teacher_create_user(request: Request, login_: str = Form(""), name: str = Form(""), role: str = Form("student"), password: str = Form(""), pin: str = Form("")):
@@ -2423,50 +1756,7 @@ def assign(request: Request, student: int = Form(...), kind: str = Form(...), re
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
-@app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        raise HTTPException(403, "Not authorized")
-    conn = db()
-    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
-    conn.close()
-    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
-@app.post("/admin/ocr/trigger")
-async def admin_ocr_trigger(request: Request):
-    user = require(current_user(request))
-    if user['role'] != 'admin':
-        return {"msg": "Odmowa."}
-    
-    data = await request.json()
-    bd = data.get("book_id")
-    pg = data.get("pages_range", "1-10")
-    subj = data.get("subject", "Nieznany")
-    
-    conn = db()
-    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
-    # Wrzuć stan Oczekujący do Tabeli, żeby UI zaczęło renderować postęp
-    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
-    conn.commit()
-    conn.close()
-    
-    if not b:
-        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
-        
-    try:
-        # Dry run z puszczeniem asynchronicznego zapytania n8n
-        return {"msg": "Polecenie wysłano na szynę."}
-    except Exception as e:
-         return {"msg": f"Błąd N8N: {e}"}
-
-# ----------------
-# ------------------------------------------------ VULCAN e-Dziennik API & Page
+# ---------------------------------------------------------------- VULCAN e-Dziennik API & Page
 @app.get("/api/vulcan/data")
 def vulcan_data_api(request: Request):
     user = require(current_user(request))
@@ -2652,3 +1942,63 @@ def import_queue(deck_id: int):
         return {"imported": added}
     except Exception as e:
         return {"error": str(e)}
+
+
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request, response: Response):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = [dict(r) for r in conn.execute("SELECT * FROM books").fetchall()]
+    conn.close()
+    resp = templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+@app.get("/admin/ocr/status")
+def admin_ocr_status(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return JSONResponse({"error": "Unauthorized"})
+    
+    conn = db()
+    chapters = conn.execute("SELECT book_id, pages_range, status FROM book_chapters").fetchall()
+    conn.close()
+    
+    stats = {}
+    for c in chapters:
+        bd = c['book_id']
+        if bd not in stats:
+            stats[bd] = []
+        stats[bd].append({"pages": c["pages_range"], "status": c["status"]})
+        
+    return JSONResponse(stats)
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return JSONResponse({"msg": "Odmowa."})
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.execute("INSERT INTO book_chapters (book_id, pages_range, title, status) VALUES (?, ?, ?, 'pending')", (bd, pg, "Automatyczna porcja"))
+    conn.commit()
+    conn.close()
+    
+    if not b:
+        return JSONResponse({"msg": "Nie znaleziono id powiazanej księgi do parsowania."})
+        
+    try:
+        return JSONResponse({"msg": "Polecenie wysłano na szynę."})
+    except Exception as e:
+         return JSONResponse({"msg": f"Błąd N8N: {e}"})
