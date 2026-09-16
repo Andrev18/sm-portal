@@ -164,45 +164,92 @@
     <div style="display: flex; flex-direction: column; gap: 24px;">
         
         <!-- FISZKOMAT AI -->
+
+        <!-- 1. Generator AI Fiszkomat -->
         <div class="ai-panel">
-            <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #fff; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="bot" style="color: var(--accent-indigo);"></i> Fiszkomat AI
+            <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="bot" style="color: var(--accent-indigo);"></i> Ergonomiczny Fiszkomat AI
             </h3>
+            
             <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px;">
-                Wrzuć skan PDF. Narzędzia LLM wyciągną wiedzę i stworzą mądre fiszki.
+                Utwórz bazę wiedzy. Możesz przetworzyć całą książkę, wycinek stron lub dodać zdjęcia konkretnych zadań.
             </p>
 
+            <!-- Zakładki typu wsadu -->
+            <div style="display: flex; gap: 8px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); padding: 4px; border-radius: 12px; margin-bottom: 20px;">
+                <button type="button" class="btn primary" style="flex: 1; font-size: 11px; padding: 6px; border-radius: 8px;" id="tab-book" onclick="switchSourceTab('book')">
+                    <i data-lucide="book" style="width: 14px;"></i> Z Podręcznika
+                </button>
+                <button type="button" class="btn" style="flex: 1; font-size: 11px; padding: 6px; border-radius: 8px; background: transparent; border: none; color: var(--text-muted);" id="tab-photo" onclick="switchSourceTab('photo')">
+                    <i data-lucide="camera" style="width: 14px;"></i> Zdjęcia Zadań
+                </button>
+            </div>
+
             <form id="genForm" onsubmit="generateCards(event)">
-                <div class="form-group">
-                    <label>Źródło Podręcznika / Ćwiczeń</label>
-                    <div style="display: flex; gap: 8px;">
-                      <select id="bookSelector" class="form-input" style="flex: 1;" onchange="document.getElementById('pdfFile').disabled = this.value !== '';">
-                          <option value="">-- Wgraj nowy skan --</option>
-                          {% for b in books %}
-                          <option value="{{ b['id'] }}">{{ b['title'] }}</option>
-                          {% endfor %}
-                      </select>
+                
+                <!-- WIDOK: KSIĄŻKA I ROZDZIAŁY -->
+                <div id="source-book">
+                    <div class="form-group">
+                        <label>Wybierz materiał szkolny</label>
+                        <select id="bookSelector" class="form-input" style="padding: 10px; font-size: 13px;">
+                            <option value="">-- Wgraj nowy plik PDF (Z dysku) --</option>
+                            {% for b in books %}
+                            <option value="{{ b['id'] }}">{{ b['title'] }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div style="margin-top: 8px;">
-                      <input type="file" id="pdfFile" accept=".pdf" class="form-input" style="padding: 8px; font-size: 11px; border: 1px dashed var(--border-focus); background: rgba(0,0,0,0.2);" title="Zostanie użyty tylko gdy powyzsza opcja jest pusta">
+                    
+                    <div class="form-group" style="display: flex; gap: 12px; margin-top: 12px;" id="pageRangeGroup">
+                        <div style="flex: 1;">
+                            <label>Od strony (opcja)</label>
+                            <input type="number" id="pageStart" min="1" placeholder="np. 12" class="form-input" style="padding: 8px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Do strony (opcja)</label>
+                            <input type="number" id="pageEnd" min="1" placeholder="np. 15" class="form-input" style="padding: 8px;">
+                        </div>
+                    </div>
+                    <p style="font-size: 10px; color: var(--accent-cyan); margin-top: -8px; margin-bottom: 16px;">
+                        *Wpisz strony, by wyodrębnić tylko konkretny <b>Rozdział</b> lub <b>Sprawdzian</b>. Zostaw puste by przetworzyć całość!
+                    </p>
+
+                    <div class="form-group" id="pdfFileGroup">
+                        <label>Wgraj swój plik .PDF</label>
+                        <input type="file" id="pdfFile" accept=".pdf" class="form-input" style="padding: 8px; border: 1px dashed var(--border-focus); background: rgba(0,0,0,0.2);">
+                    </div>
+                </div>
+
+                <!-- WIDOK: ZDJĘCIA / SKANY ZESZYTÓW -->
+                <div id="source-photo" style="display: none;">
+                    <div class="form-group">
+                        <label>Zrób zdjęcie ćwiczenia lub wgraj zrzuty (Max 5)</label>
+                        <div class="upload-box" style="height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px;">
+                            <i data-lucide="image-plus" style="width: 32px; height: 32px; color: var(--accent-indigo);"></i>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Przeciągnij zdjęcia zadań (.JPG, .PNG)</span>
+                            <input type="file" id="photoFiles" accept="image/*" multiple max="5" style="position: absolute; opacity: 0; width: 100%; height: 120px; cursor: pointer;">
+                        </div>
+                        <p id="photoNames" style="font-size: 11px; color: var(--accent-emerald); text-align: center; margin-top: 8px; font-weight: 600;"></p>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label style="display:flex; justify-content:space-between"><span>Format zadań AI</span></label>
-                    <select id="taskFormat" class="form-input" style="margin-bottom: 8px;">
-                        <option value="qa">Pytanie-Odpowiedź (Faktologia)</option>
-                        <option value="cloze">Wypełnij luki w zdaniu</option>
-                        <option value="math">Rozwiąż równanie (Matematyka)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Docelowa L. Zadań (Fiszek)</label>
-                    <input type="number" id="cardCount" value="10" min="1" max="50" class="form-input">
+                <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 20px 0;">
+
+                <div style="display: flex; gap: 12px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Typ zadań</label>
+                        <select id="taskFormat" class="form-input" style="padding: 8px; font-size: 12px;">
+                            <option value="qa">Pytania (Fakty)</option>
+                            <option value="cloze">Uzupełnianie Luk</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="width: 100px;">
+                        <label>Ilość</label>
+                        <input type="number" id="cardCount" value="10" min="1" max="50" class="form-input" style="padding: 8px;">
+                    </div>
                 </div>
                 
-                <button type="submit" id="btnGen" class="btn primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 13px; font-weight: 600; margin-top: 8px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #fff;">
-                    <i data-lucide="zap" style="width: 16px;"></i> Przemiel to przez AI
+                <button type="submit" id="btnGen" class="btn primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 13px; font-weight: 600; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #fff;">
+                    <i data-lucide="sparkles" style="width: 16px;"></i> Przetwórz materiał AI
                 </button>
                 <div id="genStatus" style="font-size: 11px; margin-top: 12px; text-align: center; color: var(--accent-cyan); display: none;"></div>
             </form>
@@ -249,57 +296,107 @@
 
 {% if user['role'] in ('admin','teacher') %}
 <script>
-        async function generateCards(e) {
+        
+    document.getElementById('photoFiles')?.addEventListener('change', function(e) {
+        document.getElementById('photoNames').innerText = this.files.length > 0 ? "Wybrano zdjęć: " + this.files.length : "";
+    });
+    
+    document.getElementById('bookSelector')?.addEventListener('change', function(e) {
+       document.getElementById('pdfFileGroup').style.display = this.value ? 'none' : 'block'; 
+    });
+
+    let currentSourceMode = 'book';
+    function switchSourceTab(mode) {
+        currentSourceMode = mode;
+        const tabBook = document.getElementById('tab-book');
+        const tabPhoto = document.getElementById('tab-photo');
+        const srcBook = document.getElementById('source-book');
+        const srcPhoto = document.getElementById('source-photo');
+
+        if (mode === 'book') {
+            tabBook.className = 'btn primary';
+            tabBook.style.cssText = 'flex: 1; font-size: 11px; padding: 6px; border-radius: 8px;';
+            tabPhoto.className = 'btn';
+            tabPhoto.style.cssText = 'flex: 1; font-size: 11px; padding: 6px; border-radius: 8px; background: transparent; border: none; color: var(--text-muted);';
+            srcBook.style.display = 'block';
+            srcPhoto.style.display = 'none';
+        } else {
+            tabPhoto.className = 'btn primary';
+            tabPhoto.style.cssText = 'flex: 1; font-size: 11px; padding: 6px; border-radius: 8px;';
+            tabBook.className = 'btn';
+            tabBook.style.cssText = 'flex: 1; font-size: 11px; padding: 6px; border-radius: 8px; background: transparent; border: none; color: var(--text-muted);';
+            srcBook.style.display = 'none';
+            srcPhoto.style.display = 'block';
+        }
+    }
+
+    async function generateCards(e) {
         e.preventDefault();
         const btn = document.getElementById('btnGen');
         const status = document.getElementById('genStatus');
-        const fileInput = document.getElementById('pdfFile');
-        const bookSelect = document.getElementById('bookSelector');
+        
         const count = document.getElementById('cardCount').value;
         const taskFormat = document.getElementById('taskFormat').value;
 
-        if (!fileInput.files[0] && !bookSelect.value) {
-            alert('Wybierz podręcznik z listy lub załącz plik PDF ze skanem.');
-            return;
+        const formData = new FormData();
+        formData.append('card_count', count);
+        formData.append('format', taskFormat);
+        formData.append('source_mode', currentSourceMode);
+
+        if (currentSourceMode === 'book') {
+            const fileInput = document.getElementById('pdfFile');
+            const bookSelect = document.getElementById('bookSelector');
+            const pageStart = document.getElementById('pageStart').value;
+            const pageEnd = document.getElementById('pageEnd').value;
+            
+            if (!fileInput.files[0] && !bookSelect.value) {
+                alert('Wybierz podręcznik z listy lub załącz plik PDF ze skanem.');
+                return;
+            }
+            if (bookSelect.value) formData.append('book_id', bookSelect.value);
+            else if (fileInput.files[0]) formData.append('upload', fileInput.files[0]);
+            
+            if (pageStart) formData.append('page_start', pageStart);
+            if (pageEnd) formData.append('page_end', pageEnd);
+
+        } else if (currentSourceMode === 'photo') {
+            const photoFiles = document.getElementById('photoFiles').files;
+            if (photoFiles.length === 0) {
+                alert('Wgraj przynajmniej jedno zdjęcie ćwiczenia!');
+                return;
+            }
+            for (let i=0; i<photoFiles.length; i++) {
+                formData.append('photos', photoFiles[i]);
+            }
         }
 
         btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader" style="width:16px; animation: spin 2s linear infinite;"></i> Pracuje (n8n)...';
+        btn.innerHTML = '<i data-lucide="loader" style="width:16px; animation: spin 2s linear infinite;"></i> Pracuje z AI...';
         lucide.createIcons();
 
         try {
-            const formData = new FormData();
-            formData.append('card_count', count);
-            formData.append('format', taskFormat);
-            if (bookSelect.value) {
-                formData.append('book_id', bookSelect.value);
-            } else if (fileInput.files[0]) {
-                formData.append('upload', fileInput.files[0]);
-            }
-
-            const deckId = "{{ deck['id'] }}";
-            const response = await fetch(`/admin/decks/${deckId}/generate-ai`, {
+            const response = await fetch(`/admin/decks/{{ deck['id'] }}/generate-ai`, {
                 method: 'POST',
                 body: formData
             });
 
             if(response.ok) {
-                status.innerText = "✓ Wysłano kod do analizy. Karty za chwile trafia do kolejki.";
+                status.innerText = "✓ Pomyślnie wciągnięto wycinek do przetworzenia. Sprawdź zaraz Kolejkę NocoDB!";
             } else {
                 status.innerText = "❌ Wystąpił błąd backendu: " + response.status;
                 status.style.color = '#f43f5e';
             }
         } catch(error) {
-            status.innerText = "❌ Błąd CORS / Sieci.";
+            status.innerText = "❌ Błąd Sieci.";
             status.style.color = '#f43f5e';
-            console.error(error);
         }
         
         status.style.display = 'block';
-        btn.innerHTML = '<i data-lucide="zap" style="width:16px;"></i> Przemiel to przez AI';
+        btn.innerHTML = '<i data-lucide="sparkles" style="width:16px;"></i> Przetwórz materiał AI';
         btn.disabled = false;
         lucide.createIcons();
     }
+
 
     async function importApproved(deckId) {
         try {
