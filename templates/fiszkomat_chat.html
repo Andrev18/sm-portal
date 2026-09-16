@@ -1,74 +1,83 @@
 {% extends "base.html" %}{% block title %}Kreator AI · Baza Wiedzy 5B{% endblock %}
 {% block content %}
 <style>
-/* Kontener główny aplikacji czatu */
-.app-container {
+/* Kontener główny aplikacji 2-kolumnowej */
+.workspace-container {
     display: flex;
-    flex-direction: column;
+    gap: 24px;
     height: calc(100vh - 120px);
-    max-width: 900px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
-/* Stan 1: Wybór Materiału (Kafelki) */
-.material-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+/* LEWA KOLUMNA: Konfigurator Bento */
+.config-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
-    margin-bottom: 32px;
+    overflow-y: auto;
+    padding-right: 8px;
 }
 
-.material-card {
-    background: rgba(255, 255, 255, 0.03);
+.bento-box {
+    background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: 16px;
     padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+}
+.bento-header {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 16px;
 }
 
-.material-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+/* Style kafelków książek */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
 }
+.book-tile {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+    padding: 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.book-tile:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); transform: translateY(-2px); }
+.book-tile.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent-indigo); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+.b-icon { width: 32px; height: 32px; margin-bottom: 8px; color: var(--text-secondary); }
+.book-tile.active .b-icon { color: var(--accent-indigo); }
+.b-title { font-size: 11px; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
 
-.m-icon {
-    width: 48px; height: 48px; 
-    border-radius: 12px;
-    display: flex; justify-content: center; align-items: center;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.05);
-    margin-bottom: 16px;
+/* Upload Area */
+.upload-zone {
+    border: 1px dashed var(--border-focus);
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px; padding: 16px; text-align: center;
+    cursor: pointer; transition: all 0.2s;
 }
+.upload-zone:hover { border-color: var(--accent-indigo); background: rgba(99, 102, 241, 0.05); }
 
-.m-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3;}
-.m-subject { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;}
+/* Format Options */
+.format-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+}
+.format-btn {
+    padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+    border-radius: 10px; color: var(--text-secondary); font-size: 11px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+}
+.format-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.format-btn.active { background: var(--accent-indigo); border-color: #4f46e5; color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
 
-/* Magiczny Kafelek - AI */
-.material-card.magic {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(158, 127, 255, 0.05));
-    border-color: rgba(99, 102, 241, 0.3);
-}
-.material-card.magic:hover {
-    border-color: var(--accent-indigo);
-    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2);
-}
-.material-card.magic .m-icon {
-    background: rgba(99, 102, 241, 0.2);
-    color: var(--accent-indigo);
-    border-color: rgba(99, 102, 241, 0.4);
-}
+/* Inputy na numery stron */
+.page-inputs { display: flex; gap: 12px; margin-top: 12px; }
+.page-inp { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 8px; color: white; font-size: 12px; outline: none; }
+.page-inp:focus { border-color: var(--accent-indigo); }
 
-/* Stan 2: Czat */
-.chat-window {
-    flex: 1;
+
+/* PRAWA KOLUMNA: Czat */
+.chat-panel {
+    flex: 0 0 380px;
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
@@ -76,194 +85,165 @@
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
 .chat-header-bar {
-    background: rgba(0,0,0,0.4);
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-subtle);
+    padding: 16px; display: flex; align-items: center; gap: 12px;
 }
-
-.context-tag {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(99, 102, 241, 0.15);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    color: #e0e7ff; padding: 6px 12px; border-radius: 9999px;
-    font-size: 12px; font-weight: 600;
-}
-
-.change-ctx-btn {
-    background: transparent; border: 1px solid var(--border-focus); color: var(--text-secondary);
-    padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; transition: all 0.2s;
-    font-weight: 600;
-}
-.change-ctx-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-
 .messages-area {
-    flex: 1;
-    padding: 24px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
 }
-
-.message-row { display: flex; gap: 16px; max-width: 85%; }
+.message-row { display: flex; gap: 12px; max-width: 90%; }
 .message-row.me { align-self: flex-end; flex-direction: row-reverse; }
-.msg-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; flex-shrink: 0; }
+.msg-avatar { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0; }
 .msg-avatar.bot { background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); border: 1px solid rgba(99, 102, 241, 0.3); }
 .msg-avatar.user { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-subtle); text-transform: uppercase; }
 
-.msg-bubble { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; color: #e2e8f0; }
-.message-row.bot .msg-bubble { border-top-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.message-row.me .msg-bubble { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); border-top-right-radius: 4px; color: #fff; }
+.msg-bubble { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: #e2e8f0; }
+.message-row.bot .msg-bubble { border-top-left-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.message-row.me .msg-bubble { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.3); border-top-right-radius: 4px; color: #fff; }
 
-.msg-author { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; }
-.message-row.me .msg-author { text-align: right; }
+.input-container { background: rgba(0,0,0,0.4); border-top: 1px solid var(--border-subtle); padding: 16px; }
+.chat-form { display: flex; gap: 8px; }
+.chat-input { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-focus); color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 13px; outline: none; transition: all 0.2s; }
+.chat-input:focus { border-color: var(--accent-indigo); }
+.chat-btn { border: none; background: var(--accent-indigo); color: white; padding: 0 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.chat-btn:hover { background: #4f46e5; }
+.chat-btn:disabled { opacity: 0.5; }
 
-.input-container {
-    background: rgba(0,0,0,0.4);
-    border-top: 1px solid var(--border-subtle);
-    padding: 20px;
+/* Media query na monitory < 1000px */
+@media (max-width: 900px) {
+    .workspace-container { flex-direction: column; height: auto; }
+    .chat-panel { height: 500px; flex: none; }
 }
-
-.quick-prompts {
-    display: flex;
-    flex-wrap: wrap; /* To rozwiązuje problem uciętych przycisków i paska! */
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.quick-btn {
-    padding: 8px 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-    color: var(--text-secondary); border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    display: inline-flex; align-items: center; gap: 6px;
-}
-.quick-btn:hover { background: rgba(99, 102, 241, 0.15); color: #fff; border-color: rgba(99, 102, 241, 0.4); transform: translateY(-1px); }
-
-.chat-form { display: flex; gap: 12px; }
-.chat-input { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-focus); color: #fff; padding: 16px 24px; border-radius: 16px; font-size: 14px; outline: none; transition: all 0.2s; }
-.chat-input:focus { border-color: var(--accent-indigo); box-shadow: inset 0 0 0 1px var(--accent-indigo); }
-.chat-btn { border: none; background: var(--accent-indigo); color: white; padding: 0 28px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-.chat-btn:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-
 </style>
 
-<div class="app-container">
+<div class="workspace-container">
     
-    <!-- EKRAN 1: WYBÓR MATERIAŁU (Grid) -->
-    <div id="material-view" style="display: block; animation: fadeIn 0.3s ease;">
-        <div style="margin-bottom: 32px;">
-            <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Cześć, z czego robimy fiszki?</h1>
-            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Wybierz podręcznik, ćwiczenie lub zacznij luźną rozmowę z AI o nauce.</p>
+    <!-- LEWA KOLUMNA: USTAWIENIA (Bento Grid) -->
+    <div class="config-panel custom-scrollbar">
+        
+        <!-- 1. Wybór Materiału Z Bazy -->
+        <div class="bento-box">
+            <div class="bento-header"><i data-lucide="book" class="text-indigo-400 w-5 h-5"></i> 1. Wybierz źródło wiedzy</div>
+            <div class="books-grid">
+                <div class="book-tile active" id="book-magia" onclick="selectBook(this, '📝 Notatki własne / Z głowy')">
+                    <div class="b-icon"><i data-lucide="sparkles"></i></div>
+                    <div class="b-title">Ogólna Wiedza AI</div>
+                </div>
+                {% for b in books %}
+                <div class="book-tile" onclick="selectBook(this, '{{ b['title'].replace("'", "\'") }}')">
+                    <div class="b-icon"><i data-lucide="book-open"></i></div>
+                    <div class="b-title">{{ b['title'] }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="page-inputs">
+                <input type="number" id="pStart" class="page-inp" placeholder="Od strony (opcja)">
+                <input type="number" id="pEnd" class="page-inp" placeholder="Do strony (opcja)">
+            </div>
+            <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">Wpisz strony, by AI nie wygenerowało fiszek ze 100 stron naraz.</p>
         </div>
 
-        <div class="material-grid">
-            <!-- Kafelek z wiedzą ogólną (Magic) -->
-            <div class="material-card magic" onclick="startChat('Ogólna Baza Wiedzy (AI)', false)">
-                <div class="m-icon"><i data-lucide="sparkles"></i></div>
-                <div class="m-title">Ogólna Inteligencja</div>
-                <div class="m-subject">Wiedza ze Świata</div>
-                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 12px; line-height: 1.4;">Zróbmy fiszki bez konkretnej książki, niech AI samo dobierze fakty dla 5 klasy.</p>
+        <!-- 2. Dodaj Załącznik (Własny Plik) -->
+        <div class="bento-box">
+            <div class="bento-header"><i data-lucide="upload-cloud" class="text-emerald-400 w-5 h-5"></i> Lub wgraj zzewnątrz (Opcjonalnie)</div>
+            <div class="upload-zone" onclick="document.getElementById('customFile').click()">
+                <i data-lucide="file-up" style="color: var(--text-secondary); width: 24px; height: 24px; margin-bottom: 8px; display: block; margin: 0 auto 8px;"></i>
+                <div style="font-size: 12px; font-weight: 600; color: #fff;">Kliknij i wybierz PDF lub JPG zadania</div>
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;" id="fileNameDisplay">Brak pliku</div>
+                <input type="file" id="customFile" accept=".pdf,image/*" style="display: none;" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name">
             </div>
-
-            <!-- Kafelki dla każdej wgranej książki -->
-            {% for b in books %}
-            <div class="material-card" onclick="startChat('{{ b['title'].replace("'", "\'") }}', true)">
-                <div class="m-icon" style="color: var(--text-secondary);"><i data-lucide="book" style="width: 24px; height: 24px;"></i></div>
-                <div class="m-title">{{ b['title'] }}</div>
-                <div class="m-subject">{{ b['subject'] }}</div>
-            </div>
-            {% endfor %}
         </div>
+
+        <!-- 3. Format Docelowy -->
+        <div class="bento-box">
+            <div class="bento-header"><i data-lucide="settings-2" class="text-pink-400 w-5 h-5"></i> 2. Co chesz wygenerować?</div>
+            <div class="format-grid">
+                <div class="format-btn active" onclick="selectFormat(this, 'Fiszki Q&A')">
+                    <i data-lucide="help-circle" class="w-4 h-4"></i> Fakty & Teoria
+                </div>
+                <div class="format-btn" onclick="selectFormat(this, 'Zdania z Lukami')">
+                    <i data-lucide="pen-tool" class="w-4 h-4"></i> Zdania z Lukami
+                </div>
+                <div class="format-btn" onclick="selectFormat(this, 'Sprawdzian Prawda/Fałsz')">
+                    <i data-lucide="check-square" class="w-4 h-4"></i> Prawda / Fałsz
+                </div>
+                <div class="format-btn" onclick="selectFormat(this, 'Krótkie streszczenie do audio')">
+                    <i data-lucide="headphones" class="w-4 h-4"></i> Podcast (Podsumowanie)
+                </div>
+            </div>
+        </div>
+
     </div>
 
-
-    <!-- EKRAN 2: CZAT WŁAŚCIWY (Ukryty domyślnie) -->
-    <div id="chat-view" class="chat-window" style="display: none;">
-        
+    <!-- PRAWA KOLUMNA: CZAT AI -->
+    <div class="chat-panel">
         <div class="chat-header-bar">
-            <div class="context-tag">
-                <i data-lucide="book-open" style="width: 14px;"></i> 
-                Materiał: <span id="active-material" style="color: #fff;"></span>
+            <div style="width: 40px; height: 40px; background: rgba(0,0,0,0.5); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.3);">
+                <i data-lucide="bot" style="color: var(--accent-indigo); width: 20px;"></i>
             </div>
-            <button class="change-ctx-btn" onclick="goBackToGrid()">Wróć do wyboru</button>
+            <div>
+                <h2 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0 0 2px;">Tutor-Operator</h2>
+                <div style="font-size: 11px; color: var(--accent-cyan); display: flex; gap: 4px; align-items: center;">
+                    <span style="width:6px; height:6px; background:var(--accent-emerald); border-radius:50%;"></span> N8N Pipeline Gotowy
+                </div>
+            </div>
         </div>
 
         <div class="messages-area custom-scrollbar" id="chat-msgs">
-            <!-- Wiadomość powitalna od AI wygeneruje się w JS -->
+            <div class="message-row bot">
+                <div class="msg-avatar bot"><i data-lucide="sparkles" style="width: 16px;"></i></div>
+                <div>
+                    <div class="msg-author">Tutor AI</div>
+                    <div class="msg-bubble">
+                        Cześć! Skonfiguruj opcje z lewej strony, dodaj strony lub załącz plik.<br><br>Gdy będziesz gotowy, napisz "Start", a ja polecę wygenerować fiszki do wglądu.
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="input-container">
-            <!-- Pigułki (Wrapowane, ładne, nienachodzące) -->
-            <div class="quick-prompts">
-                <button type="button" onclick="quickFill('Proszę ułóż dla mnie 10 fiszek w formie quizu Prawda czy Fałsz.')" class="quick-btn">
-                    <i data-lucide="help-circle"></i> Szybki Quiz (Prawda/Fałsz)
-                </button>
-                <button type="button" onclick="quickFill('Zrób test wypełniania luk (np. Mieszko I przyjął chrzest w roku [.....]).')" class="quick-btn">
-                    <i data-lucide="pen-tool"></i> Zdania z lukami
-                </button>
-                <button type="button" onclick="quickFill('Wypisz najważniejsze fakty i daty w formie klasycznych pytań i odpowiedzi.')" class="quick-btn">
-                    <i data-lucide="calendar"></i> Fakty i daty
-                </button>
-            </div>
-
             <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
-                <input type="text" id="tmsg" class="chat-input" placeholder="Napisz mi, co mam zrobić (np. od jakiej strony zacząć)..." autocomplete="off" required>
-                <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 20px;"></i></button>
+                <input type="text" id="tmsg" class="chat-input" placeholder="Napisz do mnie..." autocomplete="off">
+                <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 18px;"></i></button>
             </form>
         </div>
-
     </div>
 </div>
 
 <script>
-    let currentMaterial = "";
-    let isBook = false;
+    let conf = { src: '📝 Notatki własne / Z głowy', format: 'Fiszki Q&A' };
 
-    // Przełączanie widoków
-    function startChat(materialName, hasBook) {
-        currentMaterial = materialName;
-        isBook = hasBook;
-        
-        document.getElementById('material-view').style.display = 'none';
-        document.getElementById('chat-view').style.display = 'flex';
-        document.getElementById('active-material').innerText = materialName;
-
-        const msgs = document.getElementById('chat-msgs');
-        msgs.innerHTML = ''; // Wyczyść czat przy nowym start
-        
-        // Zbudowanie powitania na podstawie dokonanego wyboru!
-        let greeting = `Cześć <b>{{ user['name'] }}</b>! 👋<br><br>Super, dzisiaj na tapet bierzemy: <strong style="color: var(--accent-cyan);">${materialName}</strong>.<br>`;
-        if(hasBook) {
-            greeting += "Z ilu stron (i z których) wyciągnąć dla Ciebie pytania? A może robimy cały rozdział?";
-        } else {
-            greeting += "Z jakiego konkretnie tematu chcesz ułożyć pytania? Opowiedz mi o tym.";
-        }
-
-        addBot(greeting);
+    function selectBook(elem, title) {
+        document.querySelectorAll('.book-tile').forEach(el => el.classList.remove('active'));
+        elem.classList.add('active');
+        conf.src = title;
+        addSystemLog("Zmieniono materiał na: " + title);
+    }
+    
+    function selectFormat(elem, fmt) {
+        document.querySelectorAll('.format-btn').forEach(el => el.classList.remove('active'));
+        elem.classList.add('active');
+        conf.format = fmt;
+        addSystemLog("Format paczki ustawiony na: " + fmt);
     }
 
-    function goBackToGrid() {
-        document.getElementById('chat-view').style.display = 'none';
-        document.getElementById('material-view').style.display = 'block';
-    }
-
-
-    /* -- Mechanika Czatu -- */
     const msgsContainer = document.getElementById('chat-msgs');
     
     function scrollToBottom() {
         requestAnimationFrame(() => { msgsContainer.scrollTop = msgsContainer.scrollHeight; });
     }
 
-    function quickFill(text) {
-        document.getElementById('tmsg').value = text;
-        document.getElementById('tform').dispatchEvent(new Event('submit'));
+    function addSystemLog(txt) {
+        const div = document.createElement('div');
+        div.style.cssText = "font-size: 10px; color: var(--text-muted); text-align: center; text-transform: uppercase; font-weight: 600; margin: 4px 0;";
+        div.innerText = txt;
+        msgsContainer.appendChild(div);
+        scrollToBottom();
     }
 
     function addMe(txt) {
@@ -285,9 +265,9 @@
         const div = document.createElement('div');
         div.className = 'message-row bot';
         div.innerHTML = `
-            <div class="msg-avatar bot"><i data-lucide="bot" style="width: 20px;"></i></div>
+            <div class="msg-avatar bot"><i data-lucide="bot" style="width: 16px;"></i></div>
             <div>
-                <div class="msg-author">Super Mózg AI</div>
+                <div class="msg-author">Tutor AI</div>
                 <div class="msg-bubble">${fmt}</div>
             </div>
         `;
@@ -306,13 +286,21 @@
         addMe(txt);
         
         const btn = document.getElementById('tbtn');
-        btn.innerHTML = '<i data-lucide="loader" style="width: 20px; animation: spin 2s linear infinite;"></i>';
+        btn.innerHTML = '<i data-lucide="loader" style="width: 18px; animation: spin 2s linear infinite;"></i>';
         btn.disabled = true;
 
-        const promptContext = `[Ukryty system:
-Obecny analizowany materiał przez ucznia to: ${currentMaterial}. Odpowiadaj opierając się na założeniu, że w nim pracuje.]
-Uczeń odpowiada na pytanie bądź instruuje Cię:
-${txt}`;
+        const sStart = document.getElementById('pStart').value;
+        const sEnd = document.getElementById('pEnd').value;
+        
+        const attachStr = document.getElementById('customFile').files.length > 0 ? "Tak" : "Nie";
+
+        const promptContext = `[Ukryty stan konfiguracji z lewej strony pulpitu użytkownika:
+1. Użytkownik wskazał wiedzę: ${conf.src}
+   - Wybrane Strony od: ${sStart || "Początek"} do: ${sEnd || "Koniec"}
+   - Użytkownik Dodał własny Załącznik (Upload File): ${attachStr}
+2. Chce wygenerować: ${conf.format}]
+
+Uczeń pisze: ${txt}`;
 
         try {
             const r = await fetch('/fiszkomat/chat/msg', {
@@ -323,10 +311,10 @@ ${txt}`;
             const d = await r.json();
             addBot(d.msg || "Błąd odpowiedzi.");
         } catch(err) {
-            addBot("Brak połączenia z Asystentem. Upewnij się, że serwer API odpowiada.");
+            addBot("Brak połączenia z N8N/Asystentem.");
         }
 
-        btn.innerHTML = '<i data-lucide="send" style="width: 20px;"></i>';
+        btn.innerHTML = '<i data-lucide="send" style="width: 18px;"></i>';
         btn.disabled = false;
         if(window.lucide) lucide.createIcons();
     }
