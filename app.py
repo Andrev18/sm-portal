@@ -2044,4 +2044,10 @@ def courses_play(request: Request, book_id: int):
     u = current_user(request)
     if not u:
         return RedirectResponse("/", 302)
-    return HTMLResponse(f"<style>body{{font-family:sans-serif; background:#000; color:#fff; padding:40px;}}</style><h3>Witaj w Oknie Nauki dla materiału #{book_id}</h3><p>Moduł N8N-JSON do obróbki zadań wejdzie tu po testach backendu OCR.</p><br><a href='/courses' style='color:#38bdf8;'>Wróć do bazy kursów</a>")
+    conn = db()
+    book = conn.execute("SELECT * FROM books WHERE id=?", (book_id,)).fetchone()
+    conn.close()
+    if not book:
+        raise HTTPException(404, "Książka nie rzucona do OCR")
+    
+    return templates.TemplateResponse(request, "course_play.html", {"user": u, "book": dict(book)})
