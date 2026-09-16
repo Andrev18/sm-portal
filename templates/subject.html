@@ -174,21 +174,21 @@
 
 <!-- ZESZYTY ĆWICZEŃ -->
 {% if cwiczenia %}
-<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-pink); display: flex; align-items: center; gap: 6px; margin: 24px 0 12px 0;">
-  <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Zeszyty Ćwiczeń i Karty Pracy
+<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 6px; margin: 24px 0 12px 0;">
+  <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Zeszyty Ćwiczeń (Warsztat Interaktywny PC)
 </div>
 <div class="bento-grid-cards">
   {% for c in cwiczenia %}
-    <a href="/read/{{ c['id'] }}" class="bento-mini-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), transparent);">
+    <a href="/courses/play/{{ c['id'] }}" class="bento-mini-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), transparent); border-color: rgba(16, 185, 129, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <div style="font-size: 24px; background: rgba(236, 72, 153, 0.1); color: var(--accent-pink); padding: 8px; border-radius: 12px; border: 1px solid rgba(236, 72, 153, 0.2);">
-          <i data-lucide="pen-tool" style="width: 24px; height: 24px;"></i>
+        <div style="font-size: 24px; background: rgba(16, 185, 129, 0.12); color: #10b981; padding: 8px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">
+          <i data-lucide="laptop" style="width: 24px; height: 24px;"></i>
         </div>
-        <span class="status-badge badge-rose">{{ c['filetype'] | upper or 'PDF' }}</span>
+        <span class="status-badge" style="background: rgba(16, 185, 129, 0.15); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);">ROZWIĄZUJ NA PC 💻</span>
       </div>
       <div>
         <h4 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 600; color: #fff;">{{ c['title'] }}</h4>
-        <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">Klasa 5 · Otwórz w czytniku</p>
+        <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">Klasa 5 · Interaktywny model hybrydowy (Skan + Zadania)</p>
       </div>
     </a>
   {% endfor %}

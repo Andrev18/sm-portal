@@ -20,7 +20,7 @@ from typing import Optional
 from urllib.parse import quote as _urlquote
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, URLSafeSerializer
@@ -1306,10 +1306,16 @@ def reader(request: Request, book_id: int):
     conn = db()
     book = conn.execute("SELECT * FROM books WHERE id=?", (book_id,)).fetchone()
     prog = conn.execute("SELECT page FROM reading_progress WHERE user_id=? AND book_id=?", (user["id"], book_id)).fetchone()
+    sub = conn.execute("SELECT id FROM subjects WHERE name=?", (book["subject"],)).fetchone() if book else None
     conn.close()
     if not book:
         raise HTTPException(404)
-    return templates.TemplateResponse(request, "reader.html", {"user": user, "book": book, "page": prog["page"] if prog else 0})
+    return templates.TemplateResponse(request, "reader.html", {
+        "user": user,
+        "book": dict(book),
+        "page": (prog["page"] if prog and prog["page"] > 0 else 1),
+        "subject_id": (sub["id"] if sub else None)
+    })
 
 
 @app.post("/read/{book_id}/progress")
@@ -1337,11 +1343,12 @@ def book_fileurl(request: Request, book_id: int):
 
 
 @app.get("/books/{filename}")
-def book_file(filename: str):
+def book_file(filename: str, download: Optional[int] = 0):
     path = (BOOKS / filename).resolve()
     if not str(path).startswith(str(BOOKS.resolve())) or not path.exists():
         raise HTTPException(404)
-    return FileResponse(path, filename=filename)
+    disp = "attachment" if download else "inline"
+    return FileResponse(path, filename=filename, content_disposition_type=disp)
 
 
 # ---------------- SRS (SM-2)
@@ -2055,14 +2062,6 @@ def courses_play_empty(request: Request):
     u = current_user(request)
     if not u:
         return RedirectResponse("/", 302)
-    conn = db()
-    b = conn.execute("SELECT book_id FROM book_chapters WHERE status='completed' LIMIT 1").fetchone()
-    if not b:
-        b = conn.execute("SELECT id FROM books LIMIT 1").fetchone()
-    conn.close()
-    if b:
-        book_id = b[0]
-        return RedirectResponse(f"/courses/play/{book_id}", 302)
     return RedirectResponse("/courses", 302)
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
@@ -2074,9 +2073,8 @@ def courses_play(request: Request, book_id: int):
     book = conn.execute("SELECT * FROM books WHERE id=?", (book_id,)).fetchone()
     if not book:
         conn.close()
-        raise HTTPException(404, "Książka nie rzucona do OCR")
+        raise HTTPException(404, "Książka nie znaleziona")
     
-    # 1. Pobieramy powiązane karty Anki (SRS) z talii pasującej do przedmiotu/książki
     b_subj = book['subject']
     deck = conn.execute("SELECT id, name FROM decks WHERE subject=? AND (name LIKE ? OR name LIKE ?) LIMIT 1",
                         (b_subj, f"%{b_subj}%", "%Unit%")).fetchone()
@@ -2096,7 +2094,7 @@ def courses_play(request: Request, book_id: int):
         ORDER BY it.id ASC
     """, (book_id,)).fetchall()
     
-    # Jeśli dla tego book_id nie ma jeszcze zadań, ale mamy powiązaną książkę z tego samego przedmiotu z zadaniami (np. podręcznik vs zeszyt ćwiczeń)
+    # Jeśli dla tego book_id nie ma zadań, ale mamy inną książkę z tego samego przedmiotu z zadaniami
     if not raw_tasks:
         raw_tasks = conn.execute("""
             SELECT it.* FROM interactive_tasks it 
@@ -2106,19 +2104,17 @@ def courses_play(request: Request, book_id: int):
             ORDER BY it.id ASC
         """, (b_subj,)).fetchall()
 
-    import json, random
+    import json, random, re
     tasks = []
     for t in raw_tasks:
         td = dict(t)
         try:
             content = json.loads(td['content_json'])
             if td['task_type'] == 'cloze':
-                # Render placeholders [abc] into <input data-ans="abc" class="cloze-input">
-                import re as regex
                 def make_input(m):
                     ans = m.group(1)
-                    return f'<input type="text" class="cloze-input" data-ans="{ans}" style="width: {max(60, len(ans)*14)}px">'
-                content['rendered_html'] = regex.sub(r'\[(.*?)\]', make_input, content.get('sentence', ''))
+                    return f'<input type="text" class="calc-inp cloze-input" data-ans="{ans}" style="width: {max(70, len(ans)*14)}px">'
+                content['rendered_html'] = re.sub(r'\[(.*?)\]', make_input, content.get('sentence', ''))
             elif td['task_type'] == 'match':
                 pairs = content.get('pairs', [])
                 lefts = [{"id": i, "text": p["left"]} for i, p in enumerate(pairs)]
@@ -2128,13 +2124,39 @@ def courses_play(request: Request, book_id: int):
                 content['shuffled_left'] = lefts
                 content['shuffled_right'] = rights
             td['parsed_content'] = content
+            
+            # Pobierz postęp ucznia dla tego zadania
+            prog = conn.execute("SELECT score, attempts FROM user_task_progress WHERE user_id=? AND task_id=?", (u["id"], td["id"])).fetchone()
+            td['user_score'] = prog['score'] if prog else None
+            td['attempts'] = prog['attempts'] if prog else 0
+
+            # Ekstrakcja numeru strony z "number" lub "title" (np. "str. 4" -> 4)
+            m = re.search(r'str\.\s*(\d+)', (content.get('number', '') + ' ' + content.get('title', '')).lower())
+            td['page_ref'] = int(m.group(1)) if m else None
+            
             tasks.append(td)
         except Exception as e:
             pass
 
-    # 3. Pobieramy wyekstrahowany tekst OCR z book_chapters
+    # 3. Wyekstrahowany tekst OCR
     chap = conn.execute("SELECT raw_ocr_text FROM book_chapters WHERE book_id=? AND status='completed' LIMIT 1", (book_id,)).fetchone()
-    raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else "Tekst OCR dla tego podręcznika jest obecnie przetwarzany w kolejce N8N."
+    raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else ""
+
+    # 4. Sprawdzamy początkową stronę w PDF (np. ze strony pierwszego zadania)
+    initial_page = 1
+    for t in tasks:
+        if t.get('page_ref'):
+            initial_page = t['page_ref']
+            break
+
+    # Sprawdzamy czy istnieje powiązany podręcznik lub zeszyt ćwiczeń
+    counterpart = None
+    if book['kind'] == 'cwiczenia':
+        cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='podreczniki' LIMIT 1", (b_subj,)).fetchone()
+        if cp: counterpart = dict(cp)
+    elif book['kind'] == 'podreczniki':
+        cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='cwiczenia' LIMIT 1", (b_subj,)).fetchone()
+        if cp: counterpart = dict(cp)
 
     conn.close()
     return templates.TemplateResponse(request, "course_play.html", {
@@ -2143,6 +2165,8 @@ def courses_play(request: Request, book_id: int):
         "target_deck_id": target_deck_id,
         "cards": cards,
         "tasks": tasks,
+        "initial_page": initial_page,
+        "counterpart": counterpart,
         "raw_ocr_text": raw_ocr_text
     })
 

@@ -1,357 +1,1147 @@
-{% extends "base.html" %}{% block title %}{{ book.title }} · E-Tutor 5B{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ book['title'] }} · Warsztat Interaktywny 5B{% endblock %}
 {% block content %}
 <style>
-.etutor-wrapper { max-width: 1200px; margin: 24px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+/* Główny kontener hybrydowy */
+.hybrid-page-wrapper {
+    max-width: 1720px;
+    margin: 0 auto;
+    padding: 12px 20px 32px 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+}
 
-/* Top Header */
-.etutor-header {
-    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px 32px;
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; position: relative; overflow: hidden;
+/* Górny pasek nawigacji i sterowania widokiem */
+.hybrid-top-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    flex-wrap: wrap;
 }
-.etutor-header::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
-    background: {% if 'ćwiczenia' in book.title.lower() or 'cwiczenia' in book.title.lower() %}#10b981{% else %}var(--accent-cyan){% endif %};
-}
-.eh-left { display: flex; align-items: center; gap: 20px; }
-.eh-icon {
-    width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);
-    display: flex; align-items: center; justify-content: center; font-size: 28px;
-}
-.eh-title h1 { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px 0; letter-spacing: -0.5px; }
-.eh-title p { font-size: 13px; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 10px; }
-.eh-badge { background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 
-.eh-actions { display: flex; gap: 12px; }
-.btn-action-pill {
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #fff; padding: 10px 18px;
-    border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.2s;
+.htb-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
-.btn-action-pill:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
 
-/* Main Tabs */
-.tab-nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
-.t-btn {
-    padding: 10px 20px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--text-secondary);
-    font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+.htb-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
 }
-.t-btn:hover { color: #fff; background: rgba(255,255,255,0.03); }
-.t-btn.active { background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
 
-/* TAB: ĆWICZENIA INTERAKTYWNE Z PODRĘCZNIKA */
-.tasks-container { display: flex; flex-direction: column; gap: 24px; }
+.htb-title h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 2px 0;
+    color: #fff;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.htb-title p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge-mode {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Przełącznik trybów ekranu: Skan / Split / Zadania */
+.mode-switcher {
+    display: flex;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.mode-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.mode-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active {
+    background: var(--accent-indigo);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.htb-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pill-stat {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.pill-stat strong {
+    color: #10b981;
+    font-size: 13px;
+}
+
+.btn-pill-action {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-pill-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Główna siatka Split-View */
+.hybrid-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 20px;
+    min-height: calc(100vh - 170px);
+    transition: grid-template-columns 0.25s ease;
+}
+
+/* Warianty widoków */
+.hybrid-grid.mode-scan-only {
+    grid-template-columns: 1fr 0fr;
+}
+.hybrid-grid.mode-scan-only .col-tasks {
+    display: none;
+}
+
+.hybrid-grid.mode-tasks-only {
+    grid-template-columns: 0fr 1fr;
+}
+.hybrid-grid.mode-tasks-only .col-scan {
+    display: none;
+}
+
+/* Lewa Kolumna: Skan PDF z podręcznika */
+.col-scan {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+.scan-toolbar {
+    background: rgba(18, 18, 22, 0.95);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    z-index: 10;
+}
+
+.scan-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pdf-nav-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    color: #e2e8f0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.pdf-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.pdf-page-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.pdf-page-box input {
+    width: 36px;
+    background: transparent;
+    border: none;
+    color: var(--accent-cyan);
+    font-weight: 700;
+    font-size: 13px;
+    text-align: center;
+    outline: none;
+}
+
+/* Chipy szybkich skoków do stron z zadaniami */
+.page-jumps-bar {
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.page-chip {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+}
+.page-chip:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: var(--accent-cyan);
+    color: #38bdf8;
+}
+.page-chip.active {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.scan-viewport {
+    flex: 1;
+    background: #09090b;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+    background-size: 20px 20px;
+}
+
+#pdfCanvas {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    display: block;
+    max-width: 100%;
+}
+
+.pdf-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(9, 9, 11, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 20;
+    transition: opacity 0.3s ease;
+}
+
+/* Prawa Kolumna: Warsztat Ćwiczeń Interaktywnych */
+.col-tasks {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+.tasks-header {
+    background: rgba(18, 18, 22, 0.95);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.tasks-header-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tasks-scroll-pane {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Karta Zadania */
 .task-card {
-    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 28px;
-    display: flex; flex-direction: column; gap: 18px; position: relative; transition: border-color 0.2s;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.task-card:hover { border-color: var(--border-focus); }
-.tc-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 12px; }
-.tc-num { font-size: 12px; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px; }
-.tc-badge-type { background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); padding: 3px 8px; border-radius: 6px; font-size: 10px; color: var(--text-muted); font-weight: 600; }
-.tc-title { font-size: 18px; font-weight: 700; color: #fff; margin: 0; }
-.tc-inst { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
 
-/* Grid pól matematycznych / słówek */
-.calc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 8px 0; }
+.task-card:hover {
+    border-color: var(--border-focus);
+}
+
+.task-card.completed-card {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.03);
+}
+
+.tc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tc-num-badge {
+    font-size: 12px;
+    font-weight: 800;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tc-page-jump {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.tc-page-jump:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+}
+
+.tc-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.tc-inst {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Pola wpisywania zadań */
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
 .calc-item {
-    background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 18px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: border-color 0.2s;
 }
-.calc-label { font-size: 14px; font-weight: 600; color: #e2e8f0; font-family: 'JetBrains Mono', monospace; }
-.calc-inp {
-    background: rgba(0,0,0,0.6); border: 1px solid var(--border-focus); color: #fff; font-size: 15px; font-weight: 700;
-    padding: 6px 12px; border-radius: 8px; width: 90px; text-align: center; outline: none; transition: all 0.2s;
-}
-.calc-inp:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(56,189,248,0.25); }
 
-/* Przyciski weryfikacji i generowania podobnych */
-.tc-actions-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; pt-3; border-top: 1px solid rgba(255,255,255,0.04); }
-.btn-submit-task {
-    background: #10b981; color: #000; font-weight: 700; font-size: 13px; padding: 10px 22px; border-radius: 10px;
-    border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+.calc-item:focus-within {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
 }
-.btn-submit-task:hover { background: #059669; transform: translateY(-1px); }
-.btn-gen-similar {
-    background: rgba(56, 189, 248, 0.1); border: 1px dashed rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 11px; font-weight: 600;
-    padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s;
+
+.calc-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace;
 }
-.btn-gen-similar:hover { background: rgba(56, 189, 248, 0.2); }
-.task-fb { font-size: 13px; font-weight: 600; margin-top: 8px; display: none; line-height: 1.4; }
+
+.calc-inp {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border-focus);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+    width: 85px;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.calc-inp:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(56,189,248,0.3);
+}
 
 /* Piramida liczbowa */
-.pyramid-container { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 0; }
-.pyr-row { display: flex; gap: 12px; }
+.pyramid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 0;
+}
+.pyr-row { display: flex; gap: 10px; }
 .pyr-cell {
-    width: 60px; height: 48px; border-radius: 10px; border: 1px solid var(--border-focus); background: rgba(0,0,0,0.4);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #fff; font-family: monospace;
+    width: 58px; height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--border-focus);
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: #fff; font-family: monospace;
 }
 .pyr-cell input {
-    width: 100%; height: 100%; background: transparent; border: none; text-align: center; color: var(--accent-cyan); font-weight: 800; font-size: 15px; outline: none;
+    width: 100%; height: 100%; background: transparent; border: none;
+    text-align: center; color: var(--accent-cyan); font-weight: 800; font-size: 15px; outline: none;
 }
 
 /* MCQ Options */
-.mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .mcq-btn {
-    background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 14px 18px; border-radius: 12px;
+    background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); padding: 12px 16px; border-radius: 10px;
     font-size: 13px; font-weight: 500; color: #e2e8f0; cursor: pointer; transition: all 0.2s; text-align: left;
 }
 .mcq-btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
 .mcq-btn.selected-correct { background: rgba(16, 185, 129, 0.2) !important; border-color: #10b981 !important; color: #fff !important; }
 .mcq-btn.selected-wrong { background: rgba(239, 68, 68, 0.2) !important; border-color: #ef4444 !important; color: #fff !important; }
 
-/* TAB 2: ANKI SRS */
-.anki-banner {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.05));
-    border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px;
-    display: flex; align-items: center; justify-content: space-between;
+/* Dolny pasek weryfikacji zadania */
+.tc-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-wrap: wrap;
+    gap: 10px;
 }
-.btn-launch-srs {
-    background: #10b981; color: #000; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 12px;
-    text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+
+.btn-submit-task {
+    background: #10b981;
+    color: #000;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
 }
-.cards-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.c-preview-box {
-    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px;
-    display: flex; flex-direction: column; gap: 8px;
+.btn-submit-task:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
-.cp-front { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
-.cp-back { font-size: 13px; color: var(--accent-cyan); line-height: 1.4; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px; }
+
+.btn-hint {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+.btn-hint:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.task-hint-box {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #38bdf8;
+    line-height: 1.4;
+    display: none;
+}
+
+.task-fb {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    display: none;
+    line-height: 1.4;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+/* Modal Brudnopisu (Scratchpad) */
+.scratchpad-drawer {
+    position: fixed;
+    right: 24px;
+    bottom: 80px;
+    width: 380px;
+    height: 420px;
+    background: rgba(18, 18, 24, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    display: none;
+    flex-direction: column;
+    z-index: 999;
+    overflow: hidden;
+}
+
+.scratchpad-header {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.scratchpad-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+}
+
+.scratchpad-textarea {
+    width: 100%;
+    flex: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    color: #fff;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+}
+.scratchpad-textarea:focus {
+    border-color: var(--accent-cyan);
+}
+
+@media (max-width: 1080px) {
+    .hybrid-grid {
+        grid-template-columns: 1fr;
+    }
+    .hybrid-grid.mode-scan-only .col-scan,
+    .hybrid-grid.mode-tasks-only .col-tasks {
+        display: flex;
+    }
+}
 </style>
 
-<div class="etutor-wrapper">
+<div class="hybrid-page-wrapper">
     
-    <!-- NAGŁÓWEK -->
-    <div class="etutor-header">
-        <div class="eh-left">
-            <div class="eh-icon">
-                {% if book.subject == 'Matematyka' %}📐{% elif book.subject == 'Angielski' %}🇬🇧{% else %}📖{% endif %}
+    <!-- GÓRNY PASEK STEROWANIA -->
+    <div class="hybrid-top-bar">
+        <div class="htb-left">
+            <a href="/courses" class="btn-pill-action" title="Wróć do listy kursów">
+                <i data-lucide="arrow-left" style="width: 15px;"></i> Kursy
+            </a>
+            <div class="htb-icon">
+                {% if book['subject'] == 'Matematyka' %}📐{% elif book['subject'] == 'Angielski' %}🇬🇧{% else %}📖{% endif %}
             </div>
-            <div class="eh-title">
-                <h1>{{ book.title }}</h1>
+            <div class="htb-title">
+                <h1>
+                    {{ book['title'] }}
+                    <span class="badge-mode">Model Hybrydowy</span>
+                </h1>
                 <p>
-                    Przedmiot: <strong>{{ book.subject }}</strong>
-                    <span class="eh-badge">Kurs Zeszytu Ćwiczeń</span>
-                    <span id="user-prog-badge" style="color:var(--accent-cyan); font-weight:700;">• Rozdział 1: Str. 4-10</span>
+                    Przedmiot: <strong>{{ book['subject'] }}</strong>
+                    &bull; Klasa {{ book['grade'] }}
+                    {% if counterpart %}
+                    &bull; <a href="/courses/play/{{ counterpart['id'] }}" style="color:var(--accent-cyan); text-decoration:none;">Otwórz {{ counterpart['title'] }} &rarr;</a>
+                    {% endif %}
                 </p>
             </div>
         </div>
-        <div class="eh-actions">
-            <a href="/read/{{ book.id }}" class="btn-action-pill" target="_blank" title="Podgląd oryginalnego skanu w czytniku PDF">
-                <i data-lucide="file-text" style="width: 15px;"></i> Skan PDF
-            </a>
-            <a href="/courses" class="btn-action-pill">
-                <i data-lucide="arrow-left" style="width: 15px;"></i> Wszystkie Kursy
+
+        <!-- PRZEŁĄCZNIK UKŁADU (SPLIT / SKAN / ZADANIA) -->
+        <div class="mode-switcher">
+            <button class="mode-btn" id="btnModeScan" onclick="setGridMode('scan')" title="Tylko podgląd skanu książki">
+                <i data-lucide="book-open" style="width: 14px;"></i> Skan PDF
+            </button>
+            <button class="mode-btn active" id="btnModeSplit" onclick="setGridMode('split')" title="Tryb hybrydowy: skan po lewej, zadania po prawej">
+                <i data-lucide="columns" style="width: 14px;"></i> Hybrydowy (Split)
+            </button>
+            <button class="mode-btn" id="btnModeTasks" onclick="setGridMode('tasks')" title="Tylko panel wpisywania zadań PC">
+                <i data-lucide="check-square" style="width: 14px;"></i> Zadania PC
+            </button>
+        </div>
+
+        <div class="htb-right">
+            <div class="pill-stat">
+                <span>Opanowano:</span>
+                <strong id="kpi-mastered">0 / {{ tasks|length }}</strong>
+            </div>
+
+            <button class="btn-pill-action" onclick="toggleScratchpad()" title="Otwórz brudnopis do szybkich obliczeń">
+                <i data-lucide="edit-2" style="width: 14px;"></i> Brudnopis
+            </button>
+
+            <a href="/read/{{ book['id'] }}" target="_blank" class="btn-pill-action" title="Otwórz pełny czytnik książki w nowej karcie">
+                <i data-lucide="external-link" style="width: 14px;"></i> Pełny PDF
             </a>
         </div>
     </div>
 
-    <!-- TABS NAVIGATION: Dla matematyki domyślnie ĆWICZENIA, dla języków Fiszki obok -->
-    <div class="tab-nav">
-        <button class="t-btn active" id="tab-btn-tasks" onclick="switchTab('tasks', this)">
-            <i data-lucide="check-circle" style="width: 16px;"></i> 1. Zeszyt Ćwiczeń (Rozwiązuj na ekranie)
-        </button>
-        <button class="t-btn" id="tab-btn-anki" onclick="switchTab('anki', this)">
-            <i data-lucide="layers" style="width: 16px;"></i> 2. Fiszki i Audio Anki ({{ cards|length }})
-        </button>
-        <button class="t-btn" id="tab-btn-theory" onclick="switchTab('theory', this)">
-            <i data-lucide="book-open" style="width: 16px;"></i> 3. Wyekstrahowana Teoria (OCR)
-        </button>
-    </div>
+    <!-- SIATKA SPLIT-VIEW -->
+    <div class="hybrid-grid" id="hybridGrid">
+        
+        <!-- LEWA KOLUMNA: ORYGINALNY SKAN ZESZYTU ĆWICZEŃ -->
+        <div class="col-scan">
+            <div class="scan-toolbar">
+                <div class="scan-toolbar-group">
+                    <button class="pdf-nav-btn" onclick="stepPdfPage(-1)" title="Poprzednia strona (Lewo)">
+                        <i data-lucide="chevron-left" style="width: 16px;"></i>
+                    </button>
+                    <div class="pdf-page-box">
+                        <span>Str.</span>
+                        <input type="number" id="pdfPageInput" value="{{ initial_page }}" min="1" max="1" onchange="jumpPdfPage(this.value)">
+                        <span>/ <span id="pdfTotalPagesSpan">-</span></span>
+                    </div>
+                    <button class="pdf-nav-btn" onclick="stepPdfPage(1)" title="Następna strona (Prawo)">
+                        <i data-lucide="chevron-right" style="width: 16px;"></i>
+                    </button>
+                </div>
 
-    <!-- TAB 1: INTERAKTYWNE ZADANIA Z PODRĘCZNIKA / ZESZYTU -->
-    <div id="tab-tasks" class="tab-content" style="display: block;">
-        <div class="tasks-container">
-            {% if tasks %}
+                <div class="scan-toolbar-group">
+                    <button class="pdf-nav-btn" onclick="changeZoom(-0.2)" title="Pomniejsz (-)">
+                        <i data-lucide="zoom-out" style="width: 14px;"></i>
+                    </button>
+                    <button class="pdf-nav-btn" onclick="resetZoom()" style="width: auto; padding: 0 8px; font-size: 11px;" title="Dopasuj do szerokości">
+                        Dopasuj
+                    </button>
+                    <button class="pdf-nav-btn" onclick="changeZoom(0.2)" title="Powiększ (+)">
+                        <i data-lucide="zoom-in" style="width: 14px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pasek szybkich skoków do stron z zadaniami -->
+            <div class="page-jumps-bar">
+                <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-right: 4px;">Skocz do:</span>
+                {% set pages_seen = [] %}
                 {% for t in tasks %}
-                <div class="task-card" id="task-card-{{ t.id }}" data-type="{{ t.task_type }}">
+                    {% if t.page_ref and t.page_ref not in pages_seen %}
+                        {% set _ = pages_seen.append(t.page_ref) %}
+                        <div class="page-chip {% if t.page_ref == initial_page %}active{% endif %}" onclick="jumpPdfPage({{ t.page_ref }})">
+                            Str. {{ t.page_ref }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="scan-viewport" id="scanViewport">
+                <div class="pdf-loading-overlay" id="pdfLoader">
+                    <div class="spinner" style="width:32px; height:32px; border:3px solid rgba(255,255,255,0.1); border-top-color:#10b981; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+                    <span style="font-size: 12px; color: #a1a1aa;">Wczytywanie skanu strony...</span>
+                </div>
+                <canvas id="pdfCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- PRAWA KOLUMNA: WARSZTAT ĆWICZEŃ INTERAKTYWNYCH NA PC -->
+        <div class="col-tasks">
+            <div class="tasks-header">
+                <div class="tasks-header-title">
+                    <i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i>
+                    Warsztat Zadań (Ćwiczenia na PC)
+                </div>
+                <span style="font-size: 12px; color: var(--text-muted);">
+                    {{ tasks|length }} zadań gotowych do rozwiązywania
+                </span>
+            </div>
+
+            <div class="tasks-scroll-pane">
+                {% if tasks %}
+                    {% for t in tasks %}
                     {% set c = t.parsed_content %}
-                    
-                    <div class="tc-top">
-                        <span class="tc-num">{{ c.number if c.number else 'Zadanie ' ~ loop.index }}</span>
-                        <span class="tc-badge-type">Poziom: {{ t.difficulty_level }}/5 &bull; {{ t.task_type }}</span>
-                    </div>
-
-                    <h3 class="tc-title">{{ c.title if c.title else 'Ćwiczenie praktyczne' }}</h3>
-                    <p class="tc-inst">{{ c.instruction }}</p>
-
-                    <!-- Typ: Obliczenia w pamięci / Pola wpisywania (Matematyka & Słówka) -->
-                    {% if c.fields %}
-                    <div class="calc-grid">
-                        {% for f in c.fields %}
-                        <div class="calc-item">
-                            <span class="calc-label">{{ f.label }}</span>
-                            <input type="text" class="calc-inp" data-ans="{{ f.ans }}" placeholder="wpisz..." autocomplete="off">
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <!-- Typ: Zadanie z treścią (Story) -->
-                    {% if c.story %}
-                    <div style="background: rgba(0,0,0,0.25); border-left: 3px solid #10b981; padding: 14px 18px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: #fff;">
-                        {{ c.story }}
-                    </div>
-                    <div class="calc-grid" style="margin-top: 12px;">
-                        {% for q in c.questions %}
-                        <div class="calc-item" style="flex-direction: column; align-items: flex-start;">
-                            <span class="calc-label" style="font-size: 12px; margin-bottom: 6px;">{{ q.label }}</span>
-                            <input type="text" class="calc-inp" data-ans="{{ q.ans }}" placeholder="odpowiedź..." style="width: 100%; text-align: left;" autocomplete="off">
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <!-- Typ: Kolejność działań (Steps) -->
-                    {% if c.steps %}
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        {% for s in c.steps %}
-                        <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-subtle);">
-                            <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; font-family: monospace;">{{ s.expr }}</div>
-                            <div class="calc-grid">
-                                {% for sf in s.sub_fields %}
-                                <div class="calc-item">
-                                    <span class="calc-label" style="font-size: 12px;">{{ sf.label }}</span>
-                                    <input type="text" class="calc-inp" data-ans="{{ sf.ans }}" placeholder="wynik..." autocomplete="off">
-                                </div>
-                                {% endfor %}
+                    <div class="task-card {% if t.user_score and t.user_score >= 70 %}completed-card{% endif %}" id="task-card-{{ t.id }}" data-page="{{ t.page_ref or '' }}">
+                        
+                        <div class="tc-top">
+                            <div class="tc-num-badge">
+                                <span>{{ c.number if c.number else 'Zadanie ' ~ loop.index }}</span>
+                                {% if t.page_ref %}
+                                <button class="tc-page-jump" onclick="jumpPdfPage({{ t.page_ref }})" title="Pokaż stronę {{ t.page_ref }} w lewym oknie skanu">
+                                    📍 Skan str. {{ t.page_ref }}
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                {% if t.user_score and t.user_score >= 70 %}
+                                <span style="background: rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:2px 8px; font-size:10px; font-weight:700;">
+                                    ✅ Rozwiązane ({{ t.user_score }}%)
+                                </span>
+                                {% endif %}
+                                <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
                             </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
 
-                    <!-- Typ: Piramida liczbowa -->
-                    {% if c.rows %}
-                    <div class="pyramid-container">
-                        {% for row in c.rows %}
-                        <div class="pyr-row">
-                            {% set r_idx = loop.index0 %}
-                            {% for cell in row %}
-                                {% set c_idx = loop.index0 %}
-                                {% set key = r_idx ~ '_' ~ c_idx %}
-                                <div class="pyr-cell">
-                                    {% if '[' in cell %}
-                                        <input type="text" data-ans="{{ c.answers[key] }}" placeholder="?">
-                                    {% else %}
-                                        {{ cell }}
-                                    {% endif %}
-                                </div>
+                        <h3 class="tc-title">{{ c.title if c.title else 'Ćwiczenie praktyczne' }}</h3>
+                        <p class="tc-inst">{{ c.instruction }}</p>
+
+                        <!-- TYP: OBLICZENIA W PAMIĘCI / SIATKA PÓL (MATEMATYKA & SŁÓWKA) -->
+                        {% if c.fields %}
+                        <div class="calc-grid">
+                            {% for f in c.fields %}
+                            <div class="calc-item">
+                                <span class="calc-label">{{ f.label }}</span>
+                                <input type="text" class="calc-inp" data-ans="{{ f.ans }}" placeholder="wynik..." autocomplete="off" onkeydown="handleInputEnter(event, {{ t.id }})">
+                            </div>
                             {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                        {% endif %}
 
-                    <!-- Typ: Zdania z lukami (Gramatyka Angielski) -->
-                    {% if c.sentences %}
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        {% for s in c.sentences %}
-                        <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px; font-size: 14px; line-height: 2; color: #fff;">
-                            {{ s.rendered_html|safe if s.rendered_html else s.text }}
+                        <!-- TYP: KOLEJNOŚĆ DZIAŁAŃ (KROKI) -->
+                        {% if c.steps %}
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            {% for s in c.steps %}
+                            <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-subtle);">
+                                <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px; font-family: monospace;">{{ s.expr }}</div>
+                                <div class="calc-grid">
+                                    {% for sf in s.sub_fields %}
+                                    <div class="calc-item">
+                                        <span class="calc-label" style="font-size: 12px;">{{ sf.label }}</span>
+                                        <input type="text" class="calc-inp" data-ans="{{ sf.ans }}" placeholder="wynik..." autocomplete="off" onkeydown="handleInputEnter(event, {{ t.id }})">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                        {% endif %}
 
-                    <!-- Typ: Dialogi szkolne MCQ -->
-                    {% if c.dialogues %}
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        {% for d in c.dialogues %}
-                        <div style="background: rgba(0,0,0,0.25); padding: 14px 18px; border-radius: 10px;">
-                            <div style="font-size: 14px; font-weight: 700; color: #38bdf8; margin-bottom: 10px;">{{ d.prompt }}</div>
-                            <div class="mcq-grid">
-                                {% for opt in d.options %}
-                                <button type="button" class="mcq-btn" onclick="checkDialogueMCQ(this, {{ loop.index0 }}, {{ d.correct }})">
-                                    {{ opt }}
-                                </button>
+                        <!-- TYP: ZADANIE Z TREŚCIĄ (STORY) -->
+                        {% if c.story %}
+                        <div style="background: rgba(0,0,0,0.3); border-left: 3px solid #10b981; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #fff;">
+                            {{ c.story }}
+                        </div>
+                        <div class="calc-grid" style="margin-top: 4px;">
+                            {% for q in c.questions %}
+                            <div class="calc-item" style="flex-direction: column; align-items: flex-start;">
+                                <span class="calc-label" style="font-size: 12px; margin-bottom: 4px;">{{ q.label }}</span>
+                                <input type="text" class="calc-inp" data-ans="{{ q.ans }}" placeholder="odpowiedź..." style="width: 100%; text-align: left;" autocomplete="off" onkeydown="handleInputEnter(event, {{ t.id }})">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- TYP: PIRAMIDA LICZBOWA -->
+                        {% if c.rows %}
+                        <div class="pyramid-container">
+                            {% for row in c.rows %}
+                            <div class="pyr-row">
+                                {% set r_idx = loop.index0 %}
+                                {% for cell in row %}
+                                    {% set c_idx = loop.index0 %}
+                                    {% set key = r_idx ~ '_' ~ c_idx %}
+                                    <div class="pyr-cell">
+                                        {% if '[' in cell %}
+                                            <input type="text" data-ans="{{ c.answers[key] }}" placeholder="?" autocomplete="off" onkeydown="handleInputEnter(event, {{ t.id }})">
+                                        {% else %}
+                                            {{ cell }}
+                                        {% endif %}
+                                    </div>
                                 {% endfor %}
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                        {% endif %}
+
+                        <!-- TYP: ZDANIA Z LUKAMI (CLOZE / GRAMATYKA) -->
+                        {% if c.rendered_html %}
+                        <div style="background: rgba(0,0,0,0.3); padding: 14px 18px; border-radius: 10px; font-size: 14px; line-height: 2.2; color: #fff;">
+                            {{ c.rendered_html|safe }}
+                        </div>
+                        {% endif %}
+
+                        <!-- TYP: DIALOGI SZKOLNE MCQ -->
+                        {% if c.dialogues %}
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            {% for d in c.dialogues %}
+                            <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 10px;">
+                                <div style="font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">{{ d.prompt }}</div>
+                                <div class="mcq-grid">
+                                    {% for opt in d.options %}
+                                    <button type="button" class="mcq-btn" onclick="checkDialogueMCQ(this, {{ loop.index0 }}, {{ d.correct }}, {{ t.id }})">
+                                        {{ opt }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Podpowiedź AI (ukryta domyślnie) -->
+                        {% if c.hint or c.story %}
+                        <div class="task-hint-box" id="hint-box-{{ t.id }}">
+                            💡 <strong>Wskazówka:</strong> {{ c.hint if c.hint else 'Zwróć uwagę na dane podane w treści zadania i wykonaj działania po kolei.' }}
+                        </div>
+                        {% endif %}
+
+                        <!-- PASEK WERYFIKACJI ZADANIA -->
+                        <div class="tc-actions-bar">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button type="button" class="btn-submit-task" onclick="checkTask({{ t.id }})">
+                                    <i data-lucide="check" style="width: 15px;"></i> Sprawdź zadanie
+                                </button>
+                                {% if c.hint or c.story %}
+                                <button type="button" class="btn-hint" onclick="toggleHint({{ t.id }})">
+                                    <i data-lucide="lightbulb" style="width: 13px;"></i> Podpowiedź
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            <div style="font-size: 11px; color: var(--text-muted);">
+                                Naciśnij <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">Enter</kbd> aby sprawdzić
+                            </div>
+                        </div>
+
+                        <div class="task-fb" id="fb-task-{{ t.id }}"></div>
                     </div>
-                    {% endif %}
-
-                    <!-- Pasek Weryfikacji Zadań -->
-                    <div class="tc-actions-bar">
-                        <button type="button" class="btn-submit-task" onclick="checkGenericTask({{ t.id }})">
-                            <i data-lucide="check" style="width: 16px;"></i> Sprawdź to zadanie
-                        </button>
-                        
-                        <a href="/fiszkomat/chat" class="btn-gen-similar" title="Otwórz Kreator AI z suwakiem trudności dla tego tematu">
-                            <i data-lucide="sparkles" style="width: 13px;"></i> Generuj podobne zadania z AI (Zmień trudność)
-                        </a>
+                    {% endfor %}
+                {% else %}
+                    <div style="background: rgba(0,0,0,0.3); padding: 36px; border-radius: 16px; text-align: center; color: var(--text-muted);">
+                        Brak wygenerowanych zadań dla tego podręcznika. Użyj opcji Dostrój AI w panelu administratora.
                     </div>
-                    <div class="task-fb" id="fb-task-{{ t.id }}"></div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div style="background: var(--bg-surface); padding: 32px; border-radius: 16px; text-align: center; color: var(--text-muted);">
-                    Brak przypisanych ćwiczeń dla tego podręcznika.
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- TAB 2: FISZKI I ANKI SRS Z AUDIO -->
-    <div id="tab-anki" class="tab-content" style="display: none;">
-        <div class="anki-banner">
-            <div>
-                <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 4px 0;">Algorytm Powtórek Anki (SRS) & Audio</h3>
-                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Fiszki sprawdzające wiedzę z wymową lektora TTS dla słówek.</p>
+                {% endif %}
             </div>
-            {% if target_deck_id %}
-            <a href="/srs/study/{{ target_deck_id }}" class="btn-launch-srs">
-                <i data-lucide="play" style="width: 16px;"></i> Rozpocznij Trening Anki
-            </a>
-            {% else %}
-            <a href="/srs" class="btn-launch-srs">
-                <i data-lucide="play" style="width: 16px;"></i> Przejdź do Talii
-            </a>
-            {% endif %}
         </div>
 
-        <div class="cards-preview-grid">
-            {% for c in cards %}
-            <div class="c-preview-box">
-                <div class="cp-front">{{ c.front }}</div>
-                <div class="cp-back">{{ c.back }}</div>
-            </div>
-            {% endfor %}
-        </div>
     </div>
-
-    <!-- TAB 3: TEORIA Z PODRĘCZNIKA -->
-    <div id="tab-theory" class="tab-content" style="display: none;">
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 28px; color: #e2e8f0; line-height: 1.7;">
-            <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 12px;">Wyekstrahowany tekst podręcznika (OCR)</h2>
-            <pre style="background: rgba(0,0,0,0.4); padding: 18px; border-radius: 12px; font-size: 13px; color: #38bdf8; font-family: monospace; white-space: pre-wrap; border: 1px solid var(--border-subtle);">{{ raw_ocr_text }}</pre>
-        </div>
-    </div>
-
 </div>
 
+<!-- FLOATING BRUDNOPIS (SCRATCHPAD) -->
+<div class="scratchpad-drawer" id="scratchpadDrawer">
+    <div class="scratchpad-header">
+        <div style="font-size: 13px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="edit-3" style="width: 15px; color: #38bdf8;"></i>
+            Brudnopis do obliczeń
+        </div>
+        <button onclick="toggleScratchpad()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
+            &times;
+        </button>
+    </div>
+    <div class="scratchpad-body">
+        <textarea class="scratchpad-textarea" id="scratchpadText" placeholder="Tutaj możesz swobodnie rozpisywać działania w słupku, ułamki i notatki..."></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-size: 10px; color: var(--text-muted);">Zapisywane automatycznie w pamięci</span>
+            <button class="btn-pill-action" onclick="document.getElementById('scratchpadText').value=''; localStorage.removeItem('sm_scratchpad');" style="padding:4px 8px; font-size:10px;">
+                Wyczyść
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- PDF.js CDN / Lokalny -->
+<script src="/static/pdfjs/pdf.min.js?v={{ v }}"></script>
 <script>
-    function switchTab(tabName, btn) {
-        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
+  if (typeof pdfjsLib === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>');
+  }
+</script>
+<script>
+  (function() {
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/pdfjs/pdf.worker.min.js?v={{ v }}';
+    }
+  })();
+</script>
+
+<script>
+    const BOOK_ID = {{ book['id'] }};
+    const PDF_URL = "/books/{{ book['filename']|urlencode }}?inline=1&v={{ v }}";
+    
+    let pdfDoc = null;
+    let currentPdfPage = {{ initial_page }};
+    let totalPdfPages = 1;
+    let pdfZoom = 'fit';
+    let isRendering = false;
+    let renderPending = false;
+
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    const pageInput = document.getElementById('pdfPageInput');
+    const totalPagesSpan = document.getElementById('pdfTotalPagesSpan');
+    const loader = document.getElementById('pdfLoader');
+
+    // Inicjalizacja podglądu PDF po lewej stronie
+    function initPDF() {
+        if (typeof pdfjsLib === 'undefined') return;
         
-        document.getElementById('tab-' + tabName).style.display = 'block';
-        btn.classList.add('active');
-        if(window.lucide) lucide.createIcons();
+        pdfjsLib.getDocument({
+            url: PDF_URL,
+            cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+            cMapPacked: true
+        }).promise.then(pdf => {
+            pdfDoc = pdf;
+            totalPdfPages = pdf.numPages;
+            totalPagesSpan.innerText = totalPdfPages;
+            pageInput.max = totalPdfPages;
+            
+            if (currentPdfPage > totalPdfPages) currentPdfPage = 1;
+            
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 250);
+            renderPdfPage(currentPdfPage);
+        }).catch(err => {
+            console.error('PDF error:', err);
+            loader.innerHTML = '<div style="color:#ef4444; font-size:12px;">Nie udało się wczytać skanu PDF</div>';
+        });
     }
 
-    // Walidacja uniwersalna dla zadań (pola .calc-inp oraz piramida)
-    function checkGenericTask(taskId) {
+    async function renderPdfPage(num) {
+        if (!pdfDoc) return;
+        if (isRendering) {
+            renderPending = num;
+            return;
+        }
+        isRendering = true;
+
+        try {
+            const page = await pdfDoc.getPage(num);
+            const container = document.getElementById('scanViewport');
+            const padding = 32;
+            const availWidth = Math.max(300, container.clientWidth - padding);
+            const availHeight = Math.max(400, container.clientHeight - padding);
+
+            const unscaled = page.getViewport({ scale: 1.0 });
+            let scale = 1.0;
+            if (pdfZoom === 'fit') {
+                scale = Math.min(availWidth / unscaled.width, availHeight / unscaled.height);
+            } else if (typeof pdfZoom === 'number') {
+                scale = pdfZoom;
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            const viewport = page.getViewport({ scale: scale });
+
+            canvas.width = Math.floor(viewport.width * dpr);
+            canvas.height = Math.floor(viewport.height * dpr);
+            canvas.style.width = Math.floor(viewport.width) + 'px';
+            canvas.style.height = Math.floor(viewport.height) + 'px';
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            pageInput.value = num;
+
+            // Aktualizacja aktywnego chipa strony
+            document.querySelectorAll('.page-chip').forEach(c => {
+                c.classList.toggle('active', c.innerText.trim() === 'Str. ' + num);
+            });
+        } catch(e) {
+            console.warn('Render error:', e);
+        }
+
+        isRendering = false;
+        if (renderPending) {
+            const next = renderPending;
+            renderPending = false;
+            renderPdfPage(next);
+        }
+    }
+
+    function stepPdfPage(delta) {
+        let target = currentPdfPage + delta;
+        jumpPdfPage(target);
+    }
+
+    function jumpPdfPage(num) {
+        let n = parseInt(num, 10);
+        if (isNaN(n)) return;
+        if (n < 1) n = 1;
+        if (n > totalPdfPages) n = totalPdfPages;
+        currentPdfPage = n;
+        renderPdfPage(currentPdfPage);
+    }
+
+    function changeZoom(delta) {
+        let cur = typeof pdfZoom === 'number' ? pdfZoom : 1.0;
+        pdfZoom = Math.max(0.4, Math.min(3.0, cur + delta));
+        renderPdfPage(currentPdfPage);
+    }
+
+    function resetZoom() {
+        pdfZoom = 'fit';
+        renderPdfPage(currentPdfPage);
+    }
+
+    // Przełączanie układu siatki (Split / Skan / Zadania)
+    function setGridMode(mode) {
+        const grid = document.getElementById('hybridGrid');
+        const btnScan = document.getElementById('btnModeScan');
+        const btnSplit = document.getElementById('btnModeSplit');
+        const btnTasks = document.getElementById('btnModeTasks');
+
+        grid.classList.remove('mode-scan-only', 'mode-tasks-only');
+        btnScan.classList.remove('active');
+        btnSplit.classList.remove('active');
+        btnTasks.classList.remove('active');
+
+        if (mode === 'scan') {
+            grid.classList.add('mode-scan-only');
+            btnScan.classList.add('active');
+        } else if (mode === 'tasks') {
+            grid.classList.add('mode-tasks-only');
+            btnTasks.classList.add('active');
+        } else {
+            btnSplit.classList.add('active');
+        }
+
+        setTimeout(() => {
+            if (mode !== 'tasks') resetZoom();
+        }, 300);
+    }
+
+    // Obsługa weryfikacji zadań
+    function handleInputEnter(e, taskId) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            checkTask(taskId);
+        }
+    }
+
+    function checkTask(taskId) {
         const card = document.getElementById('task-card-' + taskId);
         const inputs = card.querySelectorAll('input[data-ans]');
         const fb = document.getElementById('fb-task-' + taskId);
-        
         if (inputs.length === 0) return;
 
         let correct = 0;
         inputs.forEach(inp => {
-            const expected = inp.getAttribute('data-ans').trim().toLowerCase();
-            const val = inp.value.trim().toLowerCase();
-            if (val === expected) {
+            const rawAns = inp.getAttribute('data-ans') || '';
+            const validOptions = rawAns.split('|').map(s => s.trim().toLowerCase().replace(',', '.'));
+            const userVal = inp.value.trim().toLowerCase().replace(',', '.');
+
+            const isMatch = validOptions.some(opt => opt === userVal);
+            if (isMatch && userVal !== '') {
                 inp.style.borderColor = '#10b981';
                 inp.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
                 inp.style.color = '#10b981';
@@ -367,25 +1157,37 @@
         const score = Math.round((correct / inputs.length) * 100);
         if (correct === inputs.length) {
             fb.style.color = '#10b981';
-            fb.innerHTML = `🎉 Znakomicie! Wszystkie ${correct}/${inputs.length} odpowiedzi poprawne! (+10 punktów)`;
+            fb.style.background = 'rgba(16, 185, 129, 0.15)';
+            fb.innerHTML = `🎉 Znakomicie! Wszystkie ${correct}/${inputs.length} odpowiedzi poprawne! (+5 XP)`;
+            card.classList.add('completed-card');
             recordProgress(taskId, 100);
         } else {
             fb.style.color = '#ef4444';
+            fb.style.background = 'rgba(239, 68, 68, 0.15)';
             fb.innerHTML = `Poprawnie: ${correct} z ${inputs.length}. Popraw czerwone pola i spróbuj ponownie!`;
             recordProgress(taskId, score);
         }
     }
 
-    function checkDialogueMCQ(btn, chosen, correct) {
+    function checkDialogueMCQ(btn, chosen, correct, taskId) {
         const parent = btn.parentElement;
         const btns = parent.querySelectorAll('.mcq-btn');
         btns.forEach(b => b.disabled = true);
 
         if (chosen === correct) {
             btn.classList.add('selected-correct');
+            recordProgress(taskId, 100);
         } else {
             btn.classList.add('selected-wrong');
             btns[correct].classList.add('selected-correct');
+            recordProgress(taskId, 50);
+        }
+    }
+
+    function toggleHint(taskId) {
+        const h = document.getElementById('hint-box-' + taskId);
+        if (h) {
+            h.style.display = (h.style.display === 'block') ? 'none' : 'block';
         }
     }
 
@@ -397,13 +1199,45 @@
                 body: JSON.stringify({ task_id: taskId, score: score })
             });
             const d = await res.json();
-            if (d.overall_pct !== undefined) {
-                const badge = document.getElementById('user-prog-badge');
-                if (badge) badge.innerText = `• Opanowano: ${d.overall_pct}% materiału`;
-            }
+            updateMasteredCount();
         } catch(e) {}
     }
 
-    if(window.lucide) lucide.createIcons();
+    function updateMasteredCount() {
+        const completed = document.querySelectorAll('.task-card.completed-card').length;
+        const total = document.querySelectorAll('.task-card').length;
+        const kpi = document.getElementById('kpi-mastered');
+        if (kpi) kpi.innerText = `${completed} / ${total}`;
+    }
+
+    // Obsługa Brudnopisu
+    function toggleScratchpad() {
+        const drawer = document.getElementById('scratchpadDrawer');
+        if (drawer.style.display === 'flex') {
+            drawer.style.display = 'none';
+        } else {
+            drawer.style.display = 'flex';
+            document.getElementById('scratchpadText').focus();
+        }
+    }
+
+    // Auto-save brudnopisu w localStorage
+    const sp = document.getElementById('scratchpadText');
+    if (sp) {
+        sp.value = localStorage.getItem('sm_scratchpad') || '';
+        sp.addEventListener('input', () => {
+            localStorage.setItem('sm_scratchpad', sp.value);
+        });
+    }
+
+    window.addEventListener('load', () => {
+        if (window.lucide) lucide.createIcons();
+        initPDF();
+        updateMasteredCount();
+    });
+
+    window.addEventListener('resize', () => {
+        if (pdfZoom === 'fit') renderPdfPage(currentPdfPage);
+    });
 </script>
 {% endblock %}
