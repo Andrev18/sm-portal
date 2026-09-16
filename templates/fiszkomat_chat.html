@@ -1,23 +1,72 @@
-{% extends "base.html" %}{% block title %}Asystent Fiszkomat AI · Baza Wiedzy 5B{% endblock %}
+{% extends "base.html" %}{% block title %}Kreator AI · Baza Wiedzy 5B{% endblock %}
 {% block content %}
 <style>
-.chat-container {
+/* Kontener główny aplikacji czatu */
+.app-container {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 120px);
     max-width: 900px;
     margin: 0 auto;
 }
-.chat-header {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(158, 127, 255, 0.05));
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 20px;
-    padding: 24px;
-    display: flex;
-    align-items: center;
+
+/* Stan 1: Wybór Materiału (Kafelki) */
+.material-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
 }
+
+.material-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.material-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+}
+
+.m-icon {
+    width: 48px; height: 48px; 
+    border-radius: 12px;
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 16px;
+}
+
+.m-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3;}
+.m-subject { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;}
+
+/* Magiczny Kafelek - AI */
+.material-card.magic {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(158, 127, 255, 0.05));
+    border-color: rgba(99, 102, 241, 0.3);
+}
+.material-card.magic:hover {
+    border-color: var(--accent-indigo);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2);
+}
+.material-card.magic .m-icon {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--accent-indigo);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Stan 2: Czat */
 .chat-window {
     flex: 1;
     background: var(--bg-surface);
@@ -27,7 +76,33 @@
     flex-direction: column;
     overflow: hidden;
     position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
+
+.chat-header-bar {
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.context-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #e0e7ff; padding: 6px 12px; border-radius: 9999px;
+    font-size: 12px; font-weight: 600;
+}
+
+.change-ctx-btn {
+    background: transparent; border: 1px solid var(--border-focus); color: var(--text-secondary);
+    padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; transition: all 0.2s;
+    font-weight: 600;
+}
+.change-ctx-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
 .messages-area {
     flex: 1;
     padding: 24px;
@@ -36,191 +111,154 @@
     flex-direction: column;
     gap: 20px;
 }
-.message-row {
-    display: flex;
-    gap: 16px;
-    max-width: 85%;
-}
-.message-row.me {
-    align-self: flex-end;
-    flex-direction: row-reverse;
-}
-.msg-avatar {
-    width: 40px; height: 40px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: bold; flex-shrink: 0;
-}
+
+.message-row { display: flex; gap: 16px; max-width: 85%; }
+.message-row.me { align-self: flex-end; flex-direction: row-reverse; }
+.msg-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; flex-shrink: 0; }
 .msg-avatar.bot { background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); border: 1px solid rgba(99, 102, 241, 0.3); }
 .msg-avatar.user { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-subtle); text-transform: uppercase; }
 
-.msg-bubble {
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-    padding: 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; color: #e2e8f0;
-}
+.msg-bubble { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; color: #e2e8f0; }
 .message-row.bot .msg-bubble { border-top-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .message-row.me .msg-bubble { background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); border-top-right-radius: 4px; color: #fff; }
 
 .msg-author { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; }
 .message-row.me .msg-author { text-align: right; }
 
-.input-area {
-    padding: 24px;
-    background: rgba(0,0,0,0.3);
+.input-container {
+    background: rgba(0,0,0,0.4);
     border-top: 1px solid var(--border-subtle);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    padding: 20px;
 }
 
-/* Quick Prompts Area */
 .quick-prompts {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 4px;
+    flex-wrap: wrap; /* To rozwiązuje problem uciętych przycisków i paska! */
+    gap: 8px;
+    margin-bottom: 16px;
 }
+
 .quick-btn {
-    padding: 8px 16px; 
-    background: rgba(255,255,255,0.05); 
-    border: 1px solid var(--border-subtle); 
-    color: var(--text-secondary); 
-    border-radius: 20px; 
-    font-size: 12px; 
-    cursor: pointer; 
-    transition: all 0.2s;
-    display: inline-flex; 
-    align-items: center; 
-    gap: 8px; 
-    font-weight: 500;
+    padding: 8px 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+    color: var(--text-secondary); border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
 }
 .quick-btn:hover { background: rgba(99, 102, 241, 0.15); color: #fff; border-color: rgba(99, 102, 241, 0.4); transform: translateY(-1px); }
-.quick-btn i { width: 14px; height: 14px; color: var(--accent-indigo); }
 
-.context-bar {
-    display: flex; gap: 16px; align-items: center;
-}
-.context-select {
-    flex: 1;
-    background: var(--bg-dark);
-    border: 1px solid var(--border-subtle);
-    color: #fff;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 13px;
-    outline: none;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.context-select:hover { border-color: var(--accent-indigo); }
-.context-select:focus { border-color: var(--accent-indigo); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
-
-.chat-form {
-    display: flex; gap: 12px;
-}
-.chat-input {
-    flex: 1;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-focus);
-    color: #fff;
-    padding: 16px 24px;
-    border-radius: 16px;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.2s;
-}
+.chat-form { display: flex; gap: 12px; }
+.chat-input { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-focus); color: #fff; padding: 16px 24px; border-radius: 16px; font-size: 14px; outline: none; transition: all 0.2s; }
 .chat-input:focus { border-color: var(--accent-indigo); box-shadow: inset 0 0 0 1px var(--accent-indigo); }
-.chat-btn {
-    border: none; background: var(--accent-indigo); color: white;
-    padding: 0 28px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.chat-btn:hover { background: #4f46e5; transform: scale(1.02); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4); }
-.chat-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.chat-btn { border: none; background: var(--accent-indigo); color: white; padding: 0 28px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.chat-btn:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
 </style>
 
-<div class="chat-container">
-    <div class="chat-header">
-        <div style="background: rgba(0,0,0,0.4); width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.3); flex-shrink: 0;">
-            <i data-lucide="bot" style="color: var(--accent-indigo); width: 32px; height: 32px;"></i>
+<div class="app-container">
+    
+    <!-- EKRAN 1: WYBÓR MATERIAŁU (Grid) -->
+    <div id="material-view" style="display: block; animation: fadeIn 0.3s ease;">
+        <div style="margin-bottom: 32px;">
+            <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Cześć, z czego robimy fiszki?</h1>
+            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Wybierz podręcznik, ćwiczenie lub zacznij luźną rozmowę z AI o nauce.</p>
         </div>
-        <div>
-            <h1 style="margin: 0 0 6px 0; font-size: 24px; color: #fff; font-weight: 700; letter-spacing: -0.5px;">Wirtualny Nauczyciel 5B</h1>
-            <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.4;">Wybierz książkę poniżej i powiedz, z czego chcesz się sprawdzić. Przygotuję dla Ciebie paczkę fiszek lub odpytam Cię od razu!</p>
+
+        <div class="material-grid">
+            <!-- Kafelek z wiedzą ogólną (Magic) -->
+            <div class="material-card magic" onclick="startChat('Ogólna Baza Wiedzy (AI)', false)">
+                <div class="m-icon"><i data-lucide="sparkles"></i></div>
+                <div class="m-title">Ogólna Inteligencja</div>
+                <div class="m-subject">Wiedza ze Świata</div>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 12px; line-height: 1.4;">Zróbmy fiszki bez konkretnej książki, niech AI samo dobierze fakty dla 5 klasy.</p>
+            </div>
+
+            <!-- Kafelki dla każdej wgranej książki -->
+            {% for b in books %}
+            <div class="material-card" onclick="startChat('{{ b['title'].replace("'", "\'") }}', true)">
+                <div class="m-icon" style="color: var(--text-secondary);"><i data-lucide="book" style="width: 24px; height: 24px;"></i></div>
+                <div class="m-title">{{ b['title'] }}</div>
+                <div class="m-subject">{{ b['subject'] }}</div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 
-    <div class="chat-window">
-        <div class="messages-area custom-scrollbar" id="chat-msgs">
-            <div class="message-row bot">
-                <div class="msg-avatar bot"><i data-lucide="sparkles" style="width: 20px;"></i></div>
-                <div>
-                    <div class="msg-author">Super Mózg AI</div>
-                    <div class="msg-bubble">
-                        Cześć <b>{{ user['name'] }}</b>! 👋<br><br>
-                        Mam dostęp do <strong style="color: var(--accent-cyan);">{{ books|length }} materiałów i książek</strong> w Twoim systemie.<br>
-                        Wybierz książkę na dole ekranu, a potem kliknij jeden z przycisków, jeśli chcesz bym np. ułożył quiz Prawda / Fałsz. 🚀
-                    </div>
-                </div>
+
+    <!-- EKRAN 2: CZAT WŁAŚCIWY (Ukryty domyślnie) -->
+    <div id="chat-view" class="chat-window" style="display: none;">
+        
+        <div class="chat-header-bar">
+            <div class="context-tag">
+                <i data-lucide="book-open" style="width: 14px;"></i> 
+                Materiał: <span id="active-material" style="color: #fff;"></span>
             </div>
+            <button class="change-ctx-btn" onclick="goBackToGrid()">Wróć do wyboru</button>
         </div>
 
-        <div class="input-area">
-            
-            <!-- Konteksty: co i gdzie -->
-            <div class="context-bar">
-                <div style="flex:1;">
-                    <div style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:6px; margin-left:4px;">1. Z jakiej książki się uczymy?</div>
-                    <select id="ctxBook" class="context-select" style="width:100%;">
-                        <option value="">🌍 Wiedza ogólna (z głowy!)</option>
-                        {% for b in books %}
-                        <option value="{{ b['id'] }}">📖 {{ b['title'] }} ({{ b['subject'] }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Jeśli użytkownik to admin, pokaż mu wybór talii wymuszeniowy. -->
-                {% if user['role'] in ('admin', 'teacher') %}
-                <div style="flex:1;">
-                    <div style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:6px; margin-left:4px;">Do jakiej Talii trafia pytania?</div>
-                    <select id="ctxDeck" class="context-select" style="width:100%;">
-                        <option value="">🤔 Nie wiem, zaproponuj</option>
-                        {% for d in decks %}
-                        <option value="{{ d['id'] }}">🗂️ Talia: {{ d['name'] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-            </div>
+        <div class="messages-area custom-scrollbar" id="chat-msgs">
+            <!-- Wiadomość powitalna od AI wygeneruje się w JS -->
+        </div>
 
-            <!-- Pre-zdefiniowane szybkie strzały - ułatwia start uczniowi! wrapowane swobodnie -->
+        <div class="input-container">
+            <!-- Pigułki (Wrapowane, ładne, nienachodzące) -->
             <div class="quick-prompts">
-                <button type="button" onclick="quickFill('Zrób dla mnie krótki quiz Prawda czy Fałsz na podstawie wybranej książki.')" class="quick-btn">
+                <button type="button" onclick="quickFill('Proszę ułóż dla mnie 10 fiszek w formie quizu Prawda czy Fałsz.')" class="quick-btn">
                     <i data-lucide="help-circle"></i> Szybki Quiz (Prawda/Fałsz)
                 </button>
-                <button type="button" onclick="quickFill('Wypisz najważniejsze daty i fakty i wygeneruj do nich fiszki.')" class="quick-btn">
-                    <i data-lucide="calendar"></i> Ważne fakty i daty
+                <button type="button" onclick="quickFill('Zrób test wypełniania luk (np. Mieszko I przyjął chrzest w roku [.....]).')" class="quick-btn">
+                    <i data-lucide="pen-tool"></i> Zdania z lukami
                 </button>
-                <button type="button" onclick="quickFill('Wyjaśnij mi najtrudniejsze pojęcia z tego działu prostymi słowami.')" class="quick-btn">
-                    <i data-lucide="message-square"></i> Wyjaśnij mi pojęcia
-                </button>
-                <button type="button" onclick="quickFill('Chcę przećwiczyć wypełnianie luk w zdaniach (Test Luki).')" class="quick-btn">
-                    <i data-lucide="pen-tool"></i> Trening z lukami
+                <button type="button" onclick="quickFill('Wypisz najważniejsze fakty i daty w formie klasycznych pytań i odpowiedzi.')" class="quick-btn">
+                    <i data-lucide="calendar"></i> Fakty i daty
                 </button>
             </div>
 
             <form id="tform" class="chat-form" onsubmit="sendMsg(event)">
-                <input type="text" id="tmsg" class="chat-input" placeholder="Wpisz lub kliknij podpowiedź po wskazaniu materiału u góry..." autocomplete="off" required>
+                <input type="text" id="tmsg" class="chat-input" placeholder="Napisz mi, co mam zrobić (np. od jakiej strony zacząć)..." autocomplete="off" required>
                 <button type="submit" id="tbtn" class="chat-btn"><i data-lucide="send" style="width: 20px;"></i></button>
             </form>
         </div>
+
     </div>
 </div>
 
 <script>
-    const msgs = document.getElementById('chat-msgs');
+    let currentMaterial = "";
+    let isBook = false;
+
+    // Przełączanie widoków
+    function startChat(materialName, hasBook) {
+        currentMaterial = materialName;
+        isBook = hasBook;
+        
+        document.getElementById('material-view').style.display = 'none';
+        document.getElementById('chat-view').style.display = 'flex';
+        document.getElementById('active-material').innerText = materialName;
+
+        const msgs = document.getElementById('chat-msgs');
+        msgs.innerHTML = ''; // Wyczyść czat przy nowym start
+        
+        // Zbudowanie powitania na podstawie dokonanego wyboru!
+        let greeting = `Cześć <b>{{ user['name'] }}</b>! 👋<br><br>Super, dzisiaj na tapet bierzemy: <strong style="color: var(--accent-cyan);">${materialName}</strong>.<br>`;
+        if(hasBook) {
+            greeting += "Z ilu stron (i z których) wyciągnąć dla Ciebie pytania? A może robimy cały rozdział?";
+        } else {
+            greeting += "Z jakiego konkretnie tematu chcesz ułożyć pytania? Opowiedz mi o tym.";
+        }
+
+        addBot(greeting);
+    }
+
+    function goBackToGrid() {
+        document.getElementById('chat-view').style.display = 'none';
+        document.getElementById('material-view').style.display = 'block';
+    }
+
+
+    /* -- Mechanika Czatu -- */
+    const msgsContainer = document.getElementById('chat-msgs');
     
     function scrollToBottom() {
-        requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+        requestAnimationFrame(() => { msgsContainer.scrollTop = msgsContainer.scrollHeight; });
     }
 
     function quickFill(text) {
@@ -238,7 +276,7 @@
                 <div class="msg-bubble">${txt.replace(/</g,'&lt;')}</div>
             </div>
         `;
-        msgs.appendChild(div);
+        msgsContainer.appendChild(div);
         scrollToBottom();
     }
 
@@ -253,7 +291,7 @@
                 <div class="msg-bubble">${fmt}</div>
             </div>
         `;
-        msgs.appendChild(div);
+        msgsContainer.appendChild(div);
         if(window.lucide) lucide.createIcons();
         scrollToBottom();
     }
@@ -268,22 +306,13 @@
         addMe(txt);
         
         const btn = document.getElementById('tbtn');
-        const originalIcon = btn.innerHTML;
         btn.innerHTML = '<i data-lucide="loader" style="width: 20px; animation: spin 2s linear infinite;"></i>';
-        if(window.lucide) lucide.createIcons();
         btn.disabled = true;
 
-        const bookSelect = document.getElementById('ctxBook');
-        const bookName = bookSelect.options[bookSelect.selectedIndex].text;
-        
-        const deckSelect = document.getElementById('ctxDeck');
-        const deckName = deckSelect ? deckSelect.options[deckSelect.selectedIndex].text : 'Brak';
-
-        const promptContext = `[Ukryte parametry systemowe:
-1. Uczeń użył książki: ${bookSelect.value ? bookName : "Ogólna wiedza bez podręcznika"}
-2. Docelowa talia do zapisu generacji: ${deckName}]
-
-Polecenie ucznia: ${txt}`;
+        const promptContext = `[Ukryty system:
+Obecny analizowany materiał przez ucznia to: ${currentMaterial}. Odpowiadaj opierając się na założeniu, że w nim pracuje.]
+Uczeń odpowiada na pytanie bądź instruuje Cię:
+${txt}`;
 
         try {
             const r = await fetch('/fiszkomat/chat/msg', {
@@ -294,10 +323,10 @@ Polecenie ucznia: ${txt}`;
             const d = await r.json();
             addBot(d.msg || "Błąd odpowiedzi.");
         } catch(err) {
-            addBot("Brak połączenia z Asystentem. Upewnij się, że masz połącznie z AI Server.");
+            addBot("Brak połączenia z Asystentem. Upewnij się, że serwer API odpowiada.");
         }
 
-        btn.innerHTML = originalIcon;
+        btn.innerHTML = '<i data-lucide="send" style="width: 20px;"></i>';
         btn.disabled = false;
         if(window.lucide) lucide.createIcons();
     }
