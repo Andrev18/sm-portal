@@ -1,40 +1,43 @@
-{% extends "base.html" %}{% block title %}Panel OCR i Wsadowy · Baza Wiedzy 5B{% endblock %}
+{% extends "base.html" %}{% block title %}Panel OCR · Baza Wiedzy 5B{% endblock %}
 {% block content %}
-<div class="workspace-container" style="flex-direction: column; overflow-y: auto;">
+<div class="workspace-container" style="flex-direction: column; overflow-y: auto; max-width: 1200px; margin: 0 auto; padding-top: 20px;">
     <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Ośrodek Kontroli Bazy eTutor</h1>
-        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Podręczniki wgrane do systemu wymagają przetworzenia na interaktywną bazę przez serwer OCR N8N. Poniżej zestawienie stanu digitalizacji masowej zlecanej do bazy Supabase.</p>
+        <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Digitalizacja OCR (Skany E-Tutor)</h1>
+        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Panel zarządzania wsadowymi analizami dla wgranych podręczników. Żądania lądują do kolejki sztucznej inteligencji LLM.</p>
     </div>
 
     <!-- Tabela Stanu OCR -->
     <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;">
         <h2 style="font-size: 16px; color: white; display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
             <i data-lucide="server" style="color: var(--accent-indigo); width: 20px;"></i>
-            Kolejka Zadań Masowych AI (Batching)
+            Dostępne Materiały
         </h2>
         
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
-                    <th style="padding: 12px;">ID Książki (Przedmiot)</th>
-                    <th style="padding: 12px;">Plik Źródłowy</th>
-                    <th style="padding: 12px;">Zakres Stron</th>
-                    <th style="padding: 12px;">Zdigitalizowano Pomyślnie? (Baza book_chapters)</th>
-                    <th style="padding: 12px; text-align: right;">Akcja</th>
+                    <th style="padding: 12px; width: 30%;">Book (Źródło danych)</th>
+                    <th style="padding: 12px; width: 15%;">Zakres Stron</th>
+                    <th style="padding: 12px; width: 35%;">Status w Bazie OCR</th>
+                    <th style="padding: 12px; text-align: right; width: 20%;">Generuj</th>
                 </tr>
             </thead>
             <tbody>
                 {% for b in books %}
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
-                    <td style="padding: 16px 12px; color: #fff; font-weight: 600;">#{{ b.id }} - {{ b.title }}</td>
-                    <td style="padding: 16px 12px; color: var(--text-secondary);">{{ b.filename }}</td>
-                    <td style="padding: 16px 12px;">
-                        <input type="text" id="pages-{{b.id}}" placeholder="np. 1-10" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); color: white; padding: 6px 12px; border-radius: 6px; width: 80px; font-size: 12px;">
+                    <td style="padding: 16px 12px; color: #fff; font-weight: 600;">
+                        #{{ b.id }} - {{ b.title }}<br>
+                        <span style="font-weight: 400; color: var(--text-muted); font-size: 10px;">{{ b.filename }}</span>
                     </td>
-                    <td class="status-cell" data-book="{{ b.id }}" style="padding: 16px 12px; color: var(--text-muted); font-size: 12px;">Gotowych stron: 0 (Brak)</td>
+                    <td style="padding: 16px 12px;">
+                        <input type="text" id="pages-{{b.id}}" placeholder="np 1-10" value="1-10" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); color: white; padding: 6px 12px; border-radius: 6px; width: 80px; font-size: 12px;">
+                    </td>
+                    <td id="status-cell-{{ b.id }}" style="padding: 16px 12px; color: var(--text-muted); font-size: 12px;">
+                        Ładowanie statusów...
+                    </td>
                     <td style="padding: 16px 12px; text-align: right;">
-                        <button onclick="startOCR({{ b.id }}, '{{ b.title }}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;">
-                            <i data-lucide="play" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px; margin-right: 4px;"></i> Rozpocznij OCR
+                        <button onclick="startOCR_{{ b.id }}()" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer; transition: all 0.2s;">
+                            <i data-lucide="play" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px; margin-right: 4px;"></i> Uruchom Skan OCR
                         </button>
                     </td>
                 </tr>
@@ -42,93 +45,81 @@
             </tbody>
         </table>
         
-        
-        
-        
         <script>
-        async function fetchStatus3259() {
+        async function poller() {
             try {
-                const res = await fetch('/admin/ocr/status');
+                const res = await fetch('/admin/ocr/status?t=' + Date.now());
                 const data = await res.json();
                 
-                document.querySelectorAll('.status-cell').forEach(cell => {
-                    const bid = cell.getAttribute('data-book');
+                // Uzupełnij stany statyczne
+                let allIds = [];
+                {% for b in books %}
+                allIds.push({{ b.id }});
+                {% endfor %}
+
+                allIds.forEach(bid => {
+                    const c = document.getElementById('status-cell-' + bid);
+                    if(!c) return;
+
                     if (data[bid] && data[bid].length > 0) {
-                        let innerHtml = "";
+                        let htmlChunk = "";
                         data[bid].forEach(job => {
                             if (job.status === "completed") {
-                                innerHtml += `
-                                <div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (OCR zakończony)</span><span>100%</span></div>
+                                htmlChunk += `<div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Pomyślnie zdigitalizowano do bazy)</span><span>100%</span></div>
                                     <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
                                         <div style="width: 100%; height: 100%; background: #10b981;"></div>
                                     </div>
                                 </div>`;
                             } else if(job.status === "pending") {
-                                innerHtml += `
-                                <div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (AI Mieli dane...)</span><span style="animation: pulse 1s infinite;">Przetwarzam</span></div>
+                                htmlChunk += `<div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (W kolejce N8N / Analiza LLM...)</span><span>W toku</span></div>
                                     <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
-                                        <div style="width: 45%; height: 100%; background: #38bdf8; border-radius:4px; position:absolute; animation: progress-indeterminate 1.5s infinite ease-in-out;"></div>
+                                        <div style="width: 35%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
                                     </div>
-                                    <style>
-                                        @keyframes progress-indeterminate {
-                                            0% { left: -45%; }
-                                            100% { left: 100%; }
-                                        }
-                                        @keyframes pulse {
-                                            0%, 100% { opacity: 1; }
-                                            50% { opacity: 0.5; }
-                                        }
-                                    </style>
                                 </div>`;
                             } else {
-                                innerHtml += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px;"><i data-lucide="x-circle" style="width:14px; height:14px; display:inline-block; vertical-align:-2px;"></i> Błąd obróbki dla stron: ${job.pages}</div>`;
+                                htmlChunk += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px; font-weight:600;"> Błąd obróbki dla stron: ${job.pages}</div>`;
                             }
                         });
-                        cell.innerHTML = innerHtml;
+                        c.innerHTML = htmlChunk;
+                    } else {
+                        c.innerHTML = "Brak gotowych rozdziałów w bazie";
                     }
                 });
-                if(window.lucide) lucide.createIcons();
-            } catch(e) {
-                console.error("Polling error", e);
-            }
+            } catch(e) {}
         }
         
-        async function startOCR(bookId, title) {
-            const pages = document.getElementById('pages-'+bookId).value || "1-10";
-            if(!confirm(`Rozpocząć ekstrakcję AI OCR na ${title} (Strony: ${pages})?`)) return;
+        {% for b in books %}
+        async function startOCR_{{ b.id }}() {
+            const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
+            if(!confirm(`Czy zatwierdzasz operację AI Docling dla "{{ b.title }}" (Strony: ${pages})?
+Skrypt ląduje do N8N!`)) return;
             
             try {
-                // UI Optymistyczne renderowanie z paskiem progressu
-                const reqCell = document.querySelector(`.status-cell[data-book='${bookId}']`);
-                reqCell.innerHTML = `
-                                <div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Wysyłanie do N8N...</span><span>...</span></div>
+                const reqCell = document.getElementById('status-cell-{{ b.id }}');
+                reqCell.innerHTML = `<div style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Połączenie z serwerem i tworzenie zlecenia...</span><span>...</span></div>
                                     <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
                                         <div style="width: 10%; height: 100%; background: #38bdf8; border-radius:4px;"></div>
                                     </div>
                                 </div>`;
-                if(window.lucide) lucide.createIcons();
                 
                 const res = await fetch('/admin/ocr/trigger', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ book_id: bookId, pages_range: pages, subject: title })
+                    body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
                 });
-                const d = await res.json();
-                fetchStatus3259();
+                poller(); 
             } catch (err) {
-                alert("Błąd połączenia: " + err);
+                alert("Błąd połączenia z serwerem: " + err);
             }
         }
-        
-        setInterval(fetchStatus3259, 3000);
-        setTimeout(fetchStatus3259, 500); 
+        {% endfor %}
+
+        setInterval(poller, 4000);
+        setTimeout(poller, 300);
         </script>
-
-
-
     </div>
 </div>
 {% endblock %}
