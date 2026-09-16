@@ -1,0 +1,162 @@
+{
+    "name": "[SYSTEM] BATCH OCR - Docling do Supabase eTutor",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "cronExpression",
+                            "expression": "0 2 * * *"
+                        }
+                    ]
+                }
+            },
+            "id": "1",
+            "name": "Nocny Harmonogram (Cron)",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "trigger-ocr-batch",
+                "options": {}
+            },
+            "id": "webhook-trigger",
+            "name": "Webhook R\u0119czny (API)",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                480
+            ],
+            "webhookId": "batch-ocr-docling-start"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://100.64.0.4:3221/v1/docling/convert",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "document_path",
+                            "value": "={{ $json.body.document_path }}"
+                        },
+                        {
+                            "name": "pages",
+                            "value": "={{ $json.body.pages_range }}"
+                        }
+                    ]
+                },
+                "options": {
+                    "timeout": 900000
+                }
+            },
+            "id": "docling",
+            "name": "Docling OCR",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                560,
+                480
+            ]
+        },
+        {
+            "parameters": {
+                "model": "deepseek-chat",
+                "messages": {
+                    "messageValues": [
+                        {
+                            "content": "=\nJeste\u015b zaawansowanym asystentem akademickim. Otrzyma\u0142e\u015b surowy zrzut OCR (mark_down i obiekty okienkowe) z pierwszych 10 stron podr\u0119cznika do {{ $('Webhook R\u0119czny (API)').item.json.body.subject }}. \nWyekstrahuj ten tekst tworz\u0105c ustrukturyzowany zbi\u00f3r JSON: [ { \"chapter\": \"...\", \"theory_text\": \"...\", \"raw_exercises\": [ { \"content\": \"...\" } ] }  ] \nRozstrzygnij poprawnie j\u0119zyk. Usu\u0144 numery stron. Nie tra\u0107 wiedzy teoretycznej! \nOto OCR:\n{{ $json.text }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "llm-extract",
+            "name": "LLM (OmniRoute API) Czyszczenie w JSON",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                840,
+                480
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://10.10.10.157:8000/rest/v1/book_chapters",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"book_id\": {{ $('Webhook R\u0119czny (API)').item.json.body.book_id }},\n  \"raw_ocr_text\": {{ $json.choices[0].message.content }},\n  \"pages_range\": \"{{ $('Webhook R\u0119czny (API)').item.json.body.pages_range }}\",\n  \"status\": \"completed\"\n}"
+            },
+            "id": "db-insert",
+            "name": "Zapis do bazy (Supabase)",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1120,
+                480
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook R\u0119czny (API)": {
+            "main": [
+                [
+                    {
+                        "node": "Docling OCR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Docling OCR": {
+            "main": [
+                [
+                    {
+                        "node": "LLM (OmniRoute API) Czyszczenie w JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "LLM (OmniRoute API) Czyszczenie w JSON": {
+            "main": [
+                [
+                    {
+                        "node": "Zapis do bazy (Supabase)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOperationTimeout": 1800000,
+        "saveDataErrorExecution": "all",
+        "saveDataSuccessExecution": "all"
+    },
+    "tags": []
+}

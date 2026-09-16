@@ -45,7 +45,57 @@ BUILD_TS = str(int(_time.time()))
 templates = Jinja2Templates(directory="templates")
 templates.env.globals["v"] = BUILD_TS  # cache-busting: /static/x.css?v={{ v }}
 
-# ---------------------------------------------------------------- AI (DeepSeek)
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ AI (DeepSeek)
 AI_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 AI_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
 
@@ -83,7 +133,57 @@ def ai_speak_url(text: str) -> str:
     """URL do wymowy (Web Speech API obsluguje to po stronie przegladarki)."""
     return f"/tts?text={_urlquote(text[:300])}"
 
-# ---------------------------------------------------------------- DB
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ DB
 
 
 def db() -> sqlite3.Connection:
@@ -462,7 +562,57 @@ _c.commit()
 _c.close()
 
 
-# ---------------------------------------------------------------- routing
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ routing
 
 
 def current_user(request: Request) -> Optional[sqlite3.Row]:
@@ -496,7 +646,57 @@ def require_role(user, *roles):
     return user
 
 
-# ---------------------------------------------------------------- PIN / gamifikacja
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ PIN / gamifikacja
 
 
 def pin_users():
@@ -549,7 +749,57 @@ def user_streak(uid: int) -> int:
     return streak
 
 
-# ---------------- liga tygodniowa, tytuly, rajd klasowy
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ liga tygodniowa, tytuly, rajd klasowy
 
 TITLES = [(1000, "Legenda 5B 🐉"), (500, "Władca Wiedzy 👑"), (250, "Mistrz Fiszek 🥋"),
           (100, "Pogromca Zadań ⚔️"), (0, "Nowicjusz 5B 🌱")]
@@ -603,7 +853,57 @@ def _coins_spent(uid: int) -> int:
     return int(row["s"])
 
 
-# ---------------- API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ API: misja dnia, ekwipunek, sesja fiszek (JSON bez przeladowan)
 
 PETDEX_LIST = [
     {"slug": "boxcat", "name": "Boxcat", "img": "/static/pets/boxcat.png", "streak_req": 0, "points_req": 0, "desc": "Rudo-biały kotek w kartonowym pudełku."},
@@ -720,7 +1020,57 @@ def api_review(card_id: int, request: Request, rating: int = Form(...)):
             "next": {"id": row["id"], "front": row["front"], "back": row["back"]} if row else None}
 
 
-# ---------------------------------------------------------------- gate (haslo dostepu)
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ gate (haslo dostepu)
 
 
 def gate_ok(request: Request) -> bool:
@@ -741,7 +1091,57 @@ def gate_post(request: Request, code: str = Form("")):
     return templates.TemplateResponse(request, "gate.html", {"msg": "Błędne hasło dostępu"}, status_code=401)
 
 
-# ---------------------------------------------------------------- routing
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ routing
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -779,7 +1179,57 @@ def manifest():
     return FileResponse("static/manifest.json", media_type="application/manifest+json")
 
 
-# ---------------- dodawanie tresci: plik / zdjecie / notatka -> fiszki
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ dodawanie tresci: plik / zdjecie / notatka -> fiszki
 
 @app.get("/add", response_class=HTMLResponse)
 def add_page(request: Request):
@@ -1086,7 +1536,57 @@ def serwisy_page(request: Request):
         "points": user_points(user["id"]), "streak": user_streak(user["id"])})
 
 
-# ---------------- dzialy przedmiotow
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ dzialy przedmiotow
 
 @app.get("/subjects", response_class=HTMLResponse)
 def subjects_list(request: Request):
@@ -1155,7 +1655,57 @@ def subject_new(request: Request, name: str = Form(""), icon: str = Form("📘")
     return RedirectResponse("/subjects", 302)
 
 
-# ---------------- tablica wynikow / statystyki
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ tablica wynikow / statystyki
 
 @app.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard(request: Request):
@@ -1170,7 +1720,57 @@ def leaderboard(request: Request):
                                       {"user": user, "board": board, "me": user["id"]})
 
 
-# ---------------- pomysly / wishlist
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ pomysly / wishlist
 
 @app.get("/ideas", response_class=HTMLResponse)
 def ideas_page(request: Request):
@@ -1344,7 +1944,57 @@ def book_file(filename: str):
     return FileResponse(path, filename=filename)
 
 
-# ---------------- SRS (SM-2)
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ SRS (SM-2)
 
 @app.get("/srs", response_class=HTMLResponse)
 def srs_home(request: Request):
@@ -1576,7 +2226,57 @@ Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z 
     except Exception as e:
         return {"msg": f"Ups, błąd modelu AI: {str(e)}"}
 
-# ---------------- Forum + chat + ogloszenia
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ Forum + chat + ogloszenia
 
 @app.get("/forum", response_class=HTMLResponse)
 def forum(request: Request):
@@ -1668,7 +2368,57 @@ def announcement_read(request: Request, aid: int):
     return RedirectResponse("/announcements", 302)
 
 
-# ---------------- Panel nauczyciela
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+ Panel nauczyciela
 
 @app.post("/teacher/users")
 def teacher_create_user(request: Request, login_: str = Form(""), name: str = Form(""), role: str = Form("student"), password: str = Form(""), pin: str = Form("")):
@@ -1756,7 +2506,57 @@ def assign(request: Request, student: int = Form(...), kind: str = Form(...), re
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ---------------------------------------------------------------- VULCAN e-Dziennik API & Page
+
+@app.get("/admin/ocr", response_class=HTMLResponse)
+def admin_ocr_panel(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        raise HTTPException(403, "Not authorized")
+    conn = db()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
+    return templates.TemplateResponse(request, "dashboard_ocr.html", {"user": user, "books": books})
+
+@app.post("/admin/ocr/trigger")
+async def admin_ocr_trigger(request: Request):
+    user = require(current_user(request))
+    if user['role'] != 'admin':
+        return {"msg": "Odmowa."}
+    
+    data = await request.json()
+    bd = data.get("book_id")
+    pg = data.get("pages_range", "1-10")
+    subj = data.get("subject", "Nieznany")
+    
+    conn = db()
+    b = conn.execute("SELECT * FROM books WHERE id=?", (bd,)).fetchone()
+    conn.close()
+    
+    if not b:
+        return {"msg": "Nie znaleziono id powiazanej księgi do parsowania."}
+        
+    import requests
+    # Wyrzuca żądanie uderzające na wczoraj tworzony workflow fiszek w n8n... Tutaj nowy dedykowany webhook:
+    # N8N Mikrus IP
+    try:
+        url = "http://100.64.0.2:20285/webhook/batch-ocr-docling-start"
+        payload = {
+            "book_id": bd,
+            "document_path": f"/data/books/{b['filename']}", # Path INSIDE the container which has mounted docs. Wait docling-serve mount inside mikrus needs external paths or URL. Since docling server runs separate, best if we provide HTTP URL to file.
+            "doc_url": f"https://sm.b2bgliwice.pl/static/books/{b['filename']}", # ZimaOS serves it through CDN!
+            "pages_range": pg,
+            "subject": subj
+        }
+        # My na razi wyślemy zasymulowane z racji na błąd montowania plikow lokalnych w ZimaOS pomiedzy zdalnym maszynowym mikrusem
+        # request bedzie musiał uznac plik po URL 
+        # R = requests.post(url, json=payload, timeout=5)
+        # return {"msg": f"Pchnięto webhooka do N8N na IP Mikrusa. Response URL ok."}
+        return {"msg": "Polecenie wysłano na szynę. (Obecnie: dry-run, N8N pipe requires visual config to connect Docling 100.64)"}
+    except Exception as e:
+         return {"msg": f"Błąd N8N: {e}"}
+
+# ----------------
+------------------------------------------------ VULCAN e-Dziennik API & Page
 @app.get("/api/vulcan/data")
 def vulcan_data_api(request: Request):
     user = require(current_user(request))
