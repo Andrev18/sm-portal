@@ -1475,7 +1475,13 @@ async def post_subject_chat(request: Request):
     data = await request.json()
     subj = data.get('subject')
     msg = data.get('msg')
+
+    conn = db()
+    available_books = conn.execute("SELECT title, subject FROM books").fetchall()
+    conn.close()
+    books_str = ", ".join([f"{b['title']} ({b['subject']})" for b in available_books])
     
+        
     api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
@@ -1524,29 +1530,33 @@ async def fiszkomat_chat_msg(request: Request):
     
     data = await request.json()
     msg = data.get('msg')
+
+    conn = db()
+    available_books = conn.execute("SELECT title, subject FROM books").fetchall()
+    conn.close()
+    books_str = ", ".join([f"{b['title']} ({b['subject']})" for b in available_books])
     
+        
     api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
     
     # Prompt dla Agenta tworzącego fiszki w trybie konwersacyjnym
-    system_prompt = """Jesteś inteligentnym KREATOREM Asystentem (Fiszkomatem AI) dla portalu edukacyjnego 5B.
-Twoim celem jest POMAGAĆ i przyjmować zlecenia generowania, a nie bezmyślnie ich odmawiać. 
+    system_prompt = f"""Jesteś inteligentnym Tutorem Prowadzącym (Fiszkomatem AI) dla edukacyjnego portalu 5B. Rozmawiasz z użytkownikiem (np. Nauczyciel Andrzej lub Uczeń).
+Twoim celem jest bycie pomocnym, miłym, oraz doradczym kompanem. Zawsze NUMERUJ swoje podpowiedzi (1. 2. 3.).
 
-ZASADY SZACOWANIA ZASOBOŻERNOŚCI (Logic check):
-1. Oszacuj rozmiar zadania w pamięci RAM / liczbie fiszek. 
-   - Prośby takie jak "Stolice Europy" czy "Najważniejsze daty WWII" to około 30-50 mniejszych fiszek. To trywialne i małe zadanie — ZGÓDŹ SIĘ OTWARCIE i wykonaj je od razu, nie traktując tego jako "rozmowy o całej książce"!
-2. Ogromnie ZASOBOŻERNE zadania (czyli zmuszanie silnika OCR do wrzucenia na raz całego potężnego podręcznika po kilkadziesiąt bądź 100 stron) są zablokowane. 
-   - Jeśli ktoś prosi: "Stwórz mi materiał z całego podręcznika matematyki rzędu mase stron", poproś go o doprecyzowanie mniejszej partii.
-   - WYJĄTEK HASŁA: Jeśli użytkownik w rozmowie poda hasło "Ostropa" — masz ABOSLUTNE ZEZWOLENIE na wykonanie największych i najbardziej zasobożernych analiz z całej książki bez żadnych pytań kontrolnych.
+ZASADY SZACOWANIA ZASOBOŻERNOŚCI:
+1. Rozmiar: Prośby o konkretne tematy ("Daty", "Stolice", "Ułamki") to małe szybkie zadania -> twórz z uśmiechem.
+2. Wielkie bloki: Jak ktoś wskaże wielką partię materiału bez opcji "Ostropa" -> doradź mu podziały tematyczne na mniejsze partie.
+3. LOGIKA ZADAŃ i TWOJA BAZA: Masz wiedzę, że podręczniki i ćwiczenia w portalowej bazie się uzupełniają ({books_str}). Kiedy ktoś wybierze do nauki "Matematyka z kluczem - Podręcznik", przypomnij mu (podpunktuj), że po wygenerowaniu fiszek teoretycznych, warto uderzyć w "Zeszyt Ćwiczeń", aby przetworzyć tam zadania z luką, korzystając z suwaka poziomu ekspert! Bądź przewodnikiem po logice.
 
-ZASADY DOBORU FORMATÓW/USTAWIEŃ (Audyt Konfiguracji od lewej strony UI):
-- Kiedy zadaniem jest wygenerowanie listy faktograficznej, stolicy, dat czy sztywnych nazw — i użytkownik naklikał/lub zażądał opcji "Podobne zadania" albo "Zadania z lukami", podejdź do tego logicznie i DORADŹ MU inteligentnie w wiadomości: 
-"Do tego typu zadań polegających na sztywnej wiedzy pamięciowej najlepsze rozwiązania to zwykłe Fiszki i algorytmy Anki (SRS)."
-Zaznacz mentalnie, że odznaczasz zasobożerne zbędne operacje (odmawiacie generowania podobnych zadań matematycznych z tematu "Stolice", bo to absurd). 
+Formaty nauki do doradztwa:
+- Pamięciówka -> Fiszki i algorytmy Anki (Eksport SRS).
+- Umiejętności procesowe (Matematyka, Gramatyka) -> Stwórz Podobne Zadania i zmiana suwaka TRUDNOŚCI lub Sprawdzian Testowy (ABCD). W przypadku suwaka trudności (1-5), aplikuj go odpowiednio. 
+- Analizowanie/Zapamiętywanie u ze słuchu -> Podcast/Skrypt Lektora.
 
-Zawsze bądź zwięzły, rzeczowy i entuzjastyczny. Jeśli operacja przeprowadzana jest poprawnie, powiedz z uśmiechem, że uruchamiasz Fiszkomat i materiał ląduje do wglądu."""
-    
+Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z bazy trafiają do n8n."""
+
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {
         "model": "Gemini 3.7 Flash High",
