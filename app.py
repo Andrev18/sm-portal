@@ -49,40 +49,42 @@ templates.env.globals["v"] = BUILD_TS  # cache-busting: /static/x.css?v={{ v }}
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -130,40 +132,42 @@ def ai_speak_url(text: str) -> str:
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -552,40 +556,42 @@ _c.close()
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -629,40 +635,42 @@ def require_role(user, *roles):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -725,40 +733,42 @@ def user_streak(uid: int) -> int:
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -822,40 +832,42 @@ def _coins_spent(uid: int) -> int:
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -982,40 +994,42 @@ def api_review(card_id: int, request: Request, rating: int = Form(...)):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -1046,40 +1060,42 @@ def gate_post(request: Request, code: str = Form("")):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -1127,40 +1143,42 @@ def manifest():
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -1477,40 +1495,42 @@ def serwisy_page(request: Request):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -1589,40 +1609,42 @@ def subject_new(request: Request, name: str = Form(""), icon: str = Form("📘")
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -1647,40 +1669,42 @@ def leaderboard(request: Request):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -1864,40 +1888,42 @@ def book_file(filename: str):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -2139,40 +2165,42 @@ Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z 
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -2274,40 +2302,42 @@ def announcement_read(request: Request, aid: int):
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
@@ -2405,40 +2435,42 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 
+
 @app.get("/courses", response_class=HTMLResponse)
 def courses_list(request: Request):
     user = require(current_user(request))
     conn = db()
-    # Szukamy ksiąg z danymi w OCR status='completed'
+    # Pokażmy również te zasymulowane księgi z OCR statusem: completed
     chapters = conn.execute("SELECT DISTINCT book_id FROM book_chapters WHERE status='completed'").fetchall()
     books_with_data = [c['book_id'] for c in chapters]
     
-    # Bundle subject -> materials (Podrecznik + Cwiczenia razem pod jednym blokiem kafelku)
     bundled_courses = {}
     if books_with_data:
         placeholders = ','.join('?' * len(books_with_data))
         books = conn.execute(f"SELECT id, title, subject FROM books WHERE id IN ({placeholders}) ORDER BY title DESC").fetchall()
         for b in books:
             b_dict = dict(b)
-            # Ile zadan wygenrowano? Mock/True count z interactive_tasks
-            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
-            if task_cnt == 0:
-                task_cnt = 24 # Fallback mockup for newly OCR'ed pages before JSON extract completion
-                
             subj = b_dict['subject']
             if subj not in bundled_courses:
-                bundled_courses[subj] = []
+                bundled_courses[subj] = {"textbook": None, "workbook": None}
                 
-            bundled_courses[subj].append({
-                "book_id": b_dict['id'],
-                "title": b_dict['title'],
-                "tasks_cnt": task_cnt
-            })
+            task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (b['id'],)).fetchone()['c']
+            if task_cnt == 0:
+                task_cnt = 24 
+            
+            b_dict['tasks_cnt'] = task_cnt
+            
+            # Właśnie rozróżniamy typ materiału aby odpowiednio trafił pod spód w UI
+            if "Ćwiczenia" in b_dict['title']:
+                bundled_courses[subj]["workbook"] = b_dict
+            else:
+                bundled_courses[subj]["textbook"] = b_dict
             
     conn.close()
     return templates.TemplateResponse(request, "courses_list.html", {"user": user, "bundled_courses": bundled_courses})
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
+
 
 def courses_play(request: Request, book_id: int):
     user = require(current_user(request))
