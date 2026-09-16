@@ -1,150 +1,178 @@
-{% extends "base.html" %}{% block title %}Panel OCR · Baza Wiedzy 5B{% endblock %}
-{% block content %}
-<div class="workspace-container" style="flex-direction: column; overflow-y: auto; max-width: 1200px; margin: 0 auto; padding-top: 20px;">
-    <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">Digitalizacja OCR (Skany E-Tutor)</h1>
-        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Panel zarządzania wsadowymi analizami dla wgranych podręczników. Żądania lądują do kolejki sztucznej inteligencji LLM.</p>
+
+<style>
+/* Modern Minimalist UI for OCR */
+.admin-ocr-container { max-width: 900px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+.ocr-header { margin-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 24px; }
+.ocr-title { font-size: 24px; font-weight: 600; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+.ocr-desc { color: var(--text-muted); font-size: 13px; line-height: 1.5; margin: 0; max-width: 600px; }
+
+.ocr-card {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 16px;
+    display: flex; align-items: center; padding: 16px 20px; transition: all 0.2s;
+}
+.ocr-card:hover { border-color: var(--border-focus); background: rgba(255,255,255,0.02); }
+
+.ocr-info { flex: 2; display: flex; flex-direction: column; gap: 4px; }
+.ocr-book-title { color: #e2e8f0; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;}
+.ocr-book-meta { color: var(--text-muted); font-size: 11px; }
+
+.ocr-controls { flex: 1; display: flex; align-items: center; gap: 12px; justify-content: center; }
+.ocr-input-range { 
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); color: #fff; 
+    padding: 8px 12px; border-radius: 6px; font-size: 12px; width: 100px; text-align: center;
+    transition: all 0.2s;
+}
+.ocr-input-range:focus { border-color: #3b82f6; outline: none; }
+
+.ocr-actions { flex: 1; display: flex; justify-content: flex-end; gap: 8px; }
+.btn-action { 
+    padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; transition: all 0.2s;
+}
+.btn-queue { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
+.btn-queue:hover { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
+.btn-now { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+.btn-now:hover { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); }
+
+/* Minimalist Progress Line Status */
+.status-indicator { 
+    margin-top: 12px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: space-between;
+}
+.status-label { display: flex; align-items: center; gap: 6px; }
+.status-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 6px; overflow: hidden; position: relative;}
+.status-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+</style>
+
+<div class="admin-ocr-container">
+    <div class="ocr-header">
+        <h1 class="ocr-title">Silnik Digitalizacji (OCR)</h1>
+        <p class="ocr-desc">Zleć wsadowe analizowanie PDF do ustrukturyzowanej pamięci systemu dla Fiszkomatów AI. Kolejkuj żądania, by optymalizować użycie tokenów API DeepSeek/Gemini w czasie.</p>
     </div>
 
-    <!-- Tabela Stanu OCR -->
-    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;">
-        <h2 style="font-size: 16px; color: white; display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
-            <i data-lucide="server" style="color: var(--accent-indigo); width: 20px;"></i>
-            Dostępne Materiały
-        </h2>
-        
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
-                    <th style="padding: 12px; width: 30%;">Book (Źródło danych)</th>
-                    <th style="padding: 12px; width: 15%;">Zakres Stron</th>
-                    <th style="padding: 12px; width: 35%;">Status w Bazie OCR</th>
-                    <th style="padding: 12px; text-align: center; width: 10%;">Zaplanuj</th><th style="padding: 12px; text-align: right; width: 15%;">Natychmiast Limit</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for b in books %}
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
-                    <td style="padding: 16px 12px; color: #fff; font-weight: 600;">
-                        #{{ b.id }} - {{ b.title }}<br>
-                        <span style="font-weight: 400; color: var(--text-muted); font-size: 10px;">{{ b.filename }}</span>
-                    </td>
-                    <td style="padding: 16px 12px;">
-                        <input type="text" id="pages-{{b.id}}" placeholder="np 1-10" value="1-10" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); color: white; padding: 6px 12px; border-radius: 6px; width: 80px; font-size: 12px;">
-                    </td>
-                    <td id="status-cell-{{ b.id }}" style="padding: 16px 12px; color: var(--text-muted); font-size: 12px;">
-                        Ładowanie statusów...
-                    </td>
-                    
-                    <td style="padding: 16px 12px; text-align: center;">
-                        <button onclick="queueOCR_{{ b.id }}()" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer;">
-                            <i data-lucide="clock" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> W Kolejke
-                        </button>
-                    </td>
-                    <td style="padding: 16px 12px; text-align: right;">
-                        <button onclick="startOCR_{{ b.id }}()" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer;">
-                            <i data-lucide="play" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> Teraz!
-                        </button>
-                    </td>
-
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        
-        <script>
-        async function poller() {
-            try {
-                const res = await fetch('/admin/ocr/status?t=' + Date.now());
-                const data = await res.json();
-                
-                let allIds = [];
-                {% for b in books %}
-                allIds.push({{ b.id }});
-                {% endfor %}
-
-                allIds.forEach(bid => {
-                    const c = document.getElementById('status-cell-' + bid);
-                    if(!c) return;
-
-                    if (data[bid] && data[bid].length > 0) {
-                        let htmlChunk = "";
-                        data[bid].forEach(job => {
-                            if (job.status === "completed") {
-                                htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#10b981; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Wyciągnięte do bazy)</span><span>100%</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
-                                        <div style="width: 100%; height: 100%; background: #10b981;"></div>
-                                    </div>
-                                </div>`;
-                            } else if(job.status === "pending") {
-                                htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Przetwarzanie Docling LLM...)</span><span style="animation: pulse 1s infinite;">Teraz!</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden; position: relative;">
-                                        <div style="width: 50%; height: 100%; background: #38bdf8; border-radius:4px; position:absolute; animation: progress-indeterminate 1.5s infinite ease-in-out;"></div>
-                                    </div>
-                                </div>`;
-                            } else if(job.status === "queued") {
-                                htmlChunk += `<div style="margin-top:8px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#fbbf24; font-weight:600; margin-bottom:4px;"><span>Str. ${job.pages} (Oczekuje na odnowienie limitów)</span><span>Wstrzymano</span></div>
-                                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow:hidden;">
-                                        <div style="width: 10%; height: 100%; background: #fbbf24; border-radius:4px;"></div>
-                                    </div>
-                                </div>`;
-                            } else {
-                                htmlChunk += `<div style="margin-top:8px; color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px; font-weight:600;"> Błąd obróbki dla stron: ${job.pages}</div>`;
-                            }
-                        });
-                        c.innerHTML = htmlChunk;
-                    } else {
-                        c.innerHTML = "Brak gotowych rozdziałów w bazie";
-                    }
-                });
-            } catch(e) {}
-        }
-        
+    <div class="ocr-list">
         {% for b in books %}
-        async function queueOCR_{{ b.id }}() {
-            const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
-            try {
-                const res = await fetch('/admin/ocr/trigger?queue=1', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
-                });
-                poller(); 
-            } catch (err) { }
-        }
-        
-        async function startOCR_{{ b.id }}() {
-            const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
-            if(!confirm(`Czy zatwierdzasz natychmiastowe przepalenie limitów na "${{ b.title }}" (Strony: ${pages})?`)) return;
-            try {
-                const res = await fetch('/admin/ocr/trigger', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
-                });
-                poller(); 
-            } catch (err) { }
-        }
+        <div class="ocr-card">
+            <div class="ocr-info">
+                <div class="ocr-book-title"><i data-lucide="book" style="width: 14px; color: var(--text-muted);"></i> {{ b.title }}</div>
+                <div class="ocr-book-meta">{{ b.filename }} &bull; ID: {{ b.id }}</div>
+                <div id="status-cell-{{ b.id }}" style="width: 100%;">
+                    <div class="status-indicator" style="color: var(--text-muted);">Brak aktywnych zadań wyodrębniania w N8N</div>
+                </div>
+            </div>
+            
+            <div class="ocr-controls">
+                <input type="text" id="pages-{{b.id}}" class="ocr-input-range" placeholder="np. 1-10" value="1-10">
+            </div>
+            
+            <div class="ocr-actions">
+                <button class="btn-action btn-queue" onclick="queueOCR_{{ b.id }}()">
+                    <i data-lucide="clock" style="width:12px;"></i> W Kolejkę
+                </button>
+                <button class="btn-action btn-now" onclick="startOCR_{{ b.id }}()">
+                    <i data-lucide="zap" style="width:12px;"></i> Na żywo
+                </button>
+            </div>
+        </div>
         {% endfor %}
-
-        setInterval(poller, 2000);
-        setTimeout(poller, 500);
-        </script>
-        <style>
-            @keyframes progress-indeterminate {
-                0% { left: -50%; }
-                100% { left: 100%; }
-            }
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
-        </style>
-
     </div>
 </div>
+
+<script>
+async function poller() {
+    try {
+        const res = await fetch('/admin/ocr/status?t=' + Date.now());
+        const data = await res.json();
+        
+        let allIds = [];
+        {% for b in books %}
+        allIds.push({{ b.id }});
+        {% endfor %}
+
+        allIds.forEach(bid => {
+            const c = document.getElementById('status-cell-' + bid);
+            if(!c) return;
+
+            if (data[bid] && data[bid].length > 0) {
+                let htmlChunk = "";
+                data[bid].forEach(job => {
+                    if (job.status === "completed") {
+                        htmlChunk += `
+                        <div class="status-indicator" style="color: #10b981;">
+                            <span class="status-label"><i data-lucide="check-circle" style="width:12px;"></i> Str. ${job.pages} gotowe</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="status-bar-bg"><div class="status-bar-fill" style="width: 100%; background: #10b981;"></div></div>`;
+                    } else if(job.status === "pending") {
+                        htmlChunk += `
+                        <div class="status-indicator" style="color: #3b82f6;">
+                            <span class="status-label"><i data-lucide="loader" style="width:12px; animation: spin 2s linear infinite;"></i> AI Przetwarza str. ${job.pages}...</span>
+                            <span>W toku</span>
+                        </div>
+                        <div class="status-bar-bg"><div class="status-bar-fill" style="width: 45%; background: #3b82f6; position: absolute; animation: progress-indeterminate 1.5s infinite ease-in-out;"></div></div>`;
+                    } else if(job.status === "queued") {
+                        htmlChunk += `
+                        <div class="status-indicator" style="color: #f59e0b;">
+                            <span class="status-label"><i data-lucide="clock" style="width:12px;"></i> Str. ${job.pages} w kolejce do wykonania</span>
+                            <span>Czeka</span>
+                        </div>
+                        <div class="status-bar-bg"><div class="status-bar-fill" style="width: 15%; background: #f59e0b;"></div></div>`;
+                    } else {
+                        htmlChunk += `
+                        <div class="status-indicator" style="color: #ef4444;">
+                            <span class="status-label"><i data-lucide="x-circle" style="width:12px;"></i> Błąd obróbki stron ${job.pages}</span>
+                        </div>`;
+                    }
+                });
+                c.innerHTML = htmlChunk;
+            } else {
+                c.innerHTML = '<div class="status-indicator" style="color: var(--text-muted);">Brak zindeksowanych fragmentów tekstowych (0%)</div>';
+            }
+        });
+        if(window.lucide) lucide.createIcons();
+    } catch(e) {}
+}
+
+{% for b in books %}
+async function queueOCR_{{ b.id }}() {
+    const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
+    try {
+        const reqCell = document.getElementById('status-cell-{{ b.id }}');
+        reqCell.innerHTML = `<div class="status-indicator" style="color: #f59e0b;"><span class="status-label"><i data-lucide="loader" style="width:12px; animation: spin 2s linear infinite;"></i> Dodawanie do kolejki...</span></div>`;
+        if(window.lucide) lucide.createIcons();
+        
+        await fetch('/admin/ocr/trigger?queue=1', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
+        });
+        poller(); 
+    } catch (err) { }
+}
+
+async function startOCR_{{ b.id }}() {
+    const pages = document.getElementById('pages-{{ b.id }}').value || "1-10";
+    if(!confirm(`Zużyć tokeny na procesowanie stron ${pages} natychmiast?`)) return;
+    try {
+        const reqCell = document.getElementById('status-cell-{{ b.id }}');
+        reqCell.innerHTML = `<div class="status-indicator" style="color: #3b82f6;"><span class="status-label"><i data-lucide="loader" style="width:12px; animation: spin 2s linear infinite;"></i> Przesyłanie na serwer...</span></div>`;
+        if(window.lucide) lucide.createIcons();
+        
+        await fetch('/admin/ocr/trigger', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ book_id: {{ b.id }}, pages_range: pages, subject: "{{ b.title }}" })
+        });
+        poller(); 
+    } catch (err) { }
+}
+{% endfor %}
+
+setInterval(poller, 2500);
+setTimeout(poller, 300);
+</script>
+<style>
+@keyframes progress-indeterminate {
+    0% { left: -50%; }
+    100% { left: 100%; }
+}
+</style>
 {% endblock %}
