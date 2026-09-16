@@ -1946,7 +1946,7 @@ def import_queue(deck_id: int):
 
 
 @app.get("/admin/ocr", response_class=HTMLResponse)
-def admin_ocr_panel(request: Request, response: Response):
+def admin_ocr_panel(request: Request):
     user = require(current_user(request))
     if user['role'] != 'admin':
         raise HTTPException(403, "Not authorized")
