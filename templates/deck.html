@@ -118,16 +118,37 @@
         {% if cards %}
             <div style="max-height: 600px; overflow-y: auto; padding-right: 8px;">
                 {% for c in cards %}
-                <div class="card-item">
-                    <div class="card-side" style="border-right: 1px solid var(--border-subtle); padding-right: 16px;">
-                        <strong>Przód (Pytanie)</strong>
-                        <span style="color: #e2e8f0;">{{ c['front'] }}</span>
+                <div class="card-item" id="card_{{ c['id'] }}">
+                    <div class="card-side" style="border-right: 1px solid var(--border-subtle); padding-right: 16px; position:relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                            <strong>Przód (Pytanie)</strong>
+                            {% if user['role'] in ('admin','teacher') %}
+                            <button title="Edytuj" onclick="document.getElementById('edit_modal_{{ c['id'] }}').style.display='flex';" style="background:transparent; border:none; cursor:pointer; color:var(--text-muted);"><i data-lucide="edit" style="width:12px;height:12px;"></i></button>
+                            {% endif %}
+                        </div>
+                        <span style="color: #e2e8f0;" id="fval_{{ c['id'] }}">{{ c['front'] }}</span>
                     </div>
                     <div class="card-side">
                         <strong>Tył (Odpowiedź)</strong>
-                        <span style="color: var(--accent-cyan);">{{ c['back'] }}</span>
+                        <span style="color: var(--accent-cyan);" id="bval_{{ c['id'] }}">{{ c['back'] }}</span>
                     </div>
                 </div>
+                
+                {% if user['role'] in ('admin','teacher') %}
+                <div id="edit_modal_{{ c['id'] }}" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+                    <div class="ai-panel" style="width:100%; max-width:500px; background:#121215; border:1px solid var(--border-focus);">
+                        <h3 style="color:#fff; margin:0 0 16px 0;">Edycja Fiszki #{{ c['id'] }}</h3>
+                        <form onsubmit="inlineSaveCard(event, {{ c['id'] }})" style="display:flex; flex-direction:column; gap:12px;">
+                            <textarea id="inp_f_{{ c['id'] }}" class="form-input" rows="3">{{ c['front'] }}</textarea>
+                            <textarea id="inp_b_{{ c['id'] }}" class="form-input" rows="3">{{ c['back'] }}</textarea>
+                            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                                <button type="button" class="btn" onclick="document.getElementById('edit_modal_{{ c['id'] }}').style.display='none';">Anuluj</button>
+                                <button type="submit" class="btn primary">Zapisz</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
                 {% endfor %}
             </div>
         {% else %}
@@ -153,10 +174,28 @@
 
             <form id="genForm" onsubmit="generateCards(event)">
                 <div class="form-group">
-                    <label>Skan Podręcznika (.PDF)</label>
-                    <input type="file" id="pdfFile" accept=".pdf" required class="form-input" style="padding: 8px; font-size: 12px; border: 1px dashed var(--border-focus); background: rgba(0,0,0,0.2);">
+                    <label>Źródło Podręcznika / Ćwiczeń</label>
+                    <div style="display: flex; gap: 8px;">
+                      <select id="bookSelector" class="form-input" style="flex: 1;" onchange="document.getElementById('pdfFile').disabled = this.value !== '';">
+                          <option value="">-- Wgraj nowy skan --</option>
+                          {% for b in books %}
+                          <option value="{{ b['id'] }}">{{ b['title'] }}</option>
+                          {% endfor %}
+                      </select>
+                    </div>
+                    <div style="margin-top: 8px;">
+                      <input type="file" id="pdfFile" accept=".pdf" class="form-input" style="padding: 8px; font-size: 11px; border: 1px dashed var(--border-focus); background: rgba(0,0,0,0.2);" title="Zostanie użyty tylko gdy powyzsza opcja jest pusta">
+                    </div>
                 </div>
                 
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between"><span>Format zadań AI</span></label>
+                    <select id="taskFormat" class="form-input" style="margin-bottom: 8px;">
+                        <option value="qa">Pytanie-Odpowiedź (Faktologia)</option>
+                        <option value="cloze">Wypełnij luki w zdaniu</option>
+                        <option value="math">Rozwiąż równanie (Matematyka)</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Docelowa L. Zadań (Fiszek)</label>
                     <input type="number" id="cardCount" value="10" min="1" max="50" class="form-input">
@@ -210,14 +249,19 @@
 
 {% if user['role'] in ('admin','teacher') %}
 <script>
-    async function generateCards(e) {
+        async function generateCards(e) {
         e.preventDefault();
         const btn = document.getElementById('btnGen');
         const status = document.getElementById('genStatus');
         const fileInput = document.getElementById('pdfFile');
+        const bookSelect = document.getElementById('bookSelector');
         const count = document.getElementById('cardCount').value;
+        const taskFormat = document.getElementById('taskFormat').value;
 
-        if (!fileInput.files[0]) return;
+        if (!fileInput.files[0] && !bookSelect.value) {
+            alert('Wybierz podręcznik z listy lub załącz plik PDF ze skanem.');
+            return;
+        }
 
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader" style="width:16px; animation: spin 2s linear infinite;"></i> Pracuje (n8n)...';
@@ -226,9 +270,15 @@
         try {
             const formData = new FormData();
             formData.append('card_count', count);
-            formData.append('upload', fileInput.files[0]);
+            formData.append('format', taskFormat);
+            if (bookSelect.value) {
+                formData.append('book_id', bookSelect.value);
+            } else if (fileInput.files[0]) {
+                formData.append('upload', fileInput.files[0]);
+            }
 
-            const response = await fetch(`/admin/decks/{{ deck['id'] }}/generate-ai`, {
+            const deckId = "{{ deck['id'] }}";
+            const response = await fetch(`/admin/decks/${deckId}/generate-ai`, {
                 method: 'POST',
                 body: formData
             });
@@ -267,6 +317,25 @@
             alert('Błąd połączenia z Twoim serwerem portalu.');
         }
     }
+
+    async function inlineSaveCard(e, cid) {
+        e.preventDefault();
+        const f = document.getElementById('inp_f_'+cid).value;
+        const b = document.getElementById('inp_b_'+cid).value;
+        const fd = new FormData();
+        fd.append('front', f);
+        fd.append('back', b);
+        
+        try {
+            const resp = await fetch('/srs/card/' + cid + '/edit', { method: 'POST', body: fd });
+            if(resp.ok) {
+                document.getElementById('fval_'+cid).innerText = f;
+                document.getElementById('bval_'+cid).innerText = b;
+                document.getElementById('edit_modal_'+cid).style.display='none';
+            } else alert("Błąd zapisu!");
+        } catch(err) { alert("Błąd połączenia." + err); }
+    }
 </script>
+
 {% endif %}
 {% endblock %}

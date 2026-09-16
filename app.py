@@ -1755,6 +1755,45 @@ import os
 import psycopg2
 
 @app.post("/admin/decks/{deck_id}/import-queue")
+
+import requests
+
+@app.post("/srs/card/{card_id}/edit")
+def edit_card(card_id: int, front: str = Form(...), back: str = Form(...), user = Depends(require_teacher)):
+    with get_db() as db:
+        db.execute("UPDATE cards SET front=?, back=? WHERE id=?", (front, back, card_id))
+        db.commit()
+    # It redirects or returns JSON depending on how client handles it.
+    return {"status": "ok"}
+
+@app.post("/admin/decks/{deck_id}/generate-ai")
+async def generate_ai(deck_id: int, card_count: int = Form(...), upload: UploadFile = File(...), user = Depends(require_teacher)):
+    deck_name = None
+    with get_db() as c:
+        c.execute("SELECT name FROM decks WHERE id=?", (deck_id,))
+        rv = c.fetchone()
+        if rv: deck_name = rv['name']
+    
+    if not deck_name:
+        return {"error": "Brak talii"}
+        
+    try:
+        content = await upload.read()
+        res = requests.post(
+            "http://100.64.0.2:20285/webhook/fiszki-generate",
+            headers={"X-Gen-Key": "CHANGE_ME_wspolny_sekret"},
+            data={"deck_name": deck_name, "card_count": str(card_count)},
+            files={"upload": (upload.filename, content, upload.content_type)},
+            timeout=30
+        )
+        if res.status_code == 200:
+            return {"status": "ok"}
+        else:
+            return {"error": f"N8N error: {res.status_code} - {res.text}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def import_queue(deck_id: int):
     # Dodałem mock dla uproszczenia (wymaga tokena) żeby tylko przetestować
     deck_name = None
@@ -1775,7 +1814,7 @@ def import_queue(deck_id: int):
             rows = cur.fetchall()
             for sid, front, back, topic, page in rows:
                 with get_db() as db:
-                    db.execute("INSERT INTO flashcards (deck_id, front, back) VALUES (?, ?, ?)", (deck_id, front, back))
+                    db.execute("INSERT INTO cards (deck_id, front, back) VALUES (?, ?, ?)", (deck_id, front, back))
                     db.commit()
                 added += 1
             if rows:
