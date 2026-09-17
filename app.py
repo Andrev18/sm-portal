@@ -2593,7 +2593,7 @@ def courses_play(request: Request, book_id: int):
     
     # 2. Pobieramy zadania interaktywne przypisane do chapterów tej książki wraz z zapisanym postępem ucznia
     raw_tasks = conn.execute("""
-        SELECT it.*, utp.score as user_score, utp.attempts as user_attempts
+        SELECT it.*, utp.score as user_score, utp.attempts as user_attempts, utp.last_attempt as user_last_attempt
         FROM interactive_tasks it 
         JOIN book_chapters bc ON it.chapter_id = bc.id 
         LEFT JOIN user_task_progress utp ON it.id = utp.task_id AND utp.user_id = ?
@@ -2604,7 +2604,7 @@ def courses_play(request: Request, book_id: int):
     # Jeśli dla tego book_id nie ma jeszcze zadań, ale mamy powiązaną książkę z tego samego przedmiotu z zadaniami (np. podręcznik vs zeszyt ćwiczeń)
     if not raw_tasks:
         raw_tasks = conn.execute("""
-            SELECT it.*, utp.score as user_score, utp.attempts as user_attempts
+            SELECT it.*, utp.score as user_score, utp.attempts as user_attempts, utp.last_attempt as user_last_attempt
             FROM interactive_tasks it 
             JOIN book_chapters bc ON it.chapter_id = bc.id 
             JOIN books b ON bc.book_id = b.id
@@ -2635,14 +2635,36 @@ def courses_play(request: Request, book_id: int):
                 content['shuffled_left'] = lefts
                 content['shuffled_right'] = rights
             td['parsed_content'] = content
-            # Ekstrakcja numeru strony z "number" lub "title" (np. "str. 4" -> 4)
+            # Ekstrakcja numeru strony, rozdziału i tematu z "number" lub "title"
             import re as _re
-            m = _re.search(r'str\.\s*(\d+)', (content.get('number', '') + ' ' + content.get('title', '')).lower())
-            td['page_ref'] = int(m.group(1)) if m else None
+            num_str = content.get('number', '')
+            title_str = content.get('title', '')
+            full_text = (num_str + ' ' + title_str).lower()
+            m = _re.search(r'str\.\s*(\d+)', full_text)
+            page_num = int(m.group(1)) if m else None
+            td['page_ref'] = page_num
+
+            # Ekstrakcja numeru ćwiczenia/zadania
+            m_ex = _re.search(r'zadanie\s*(\d+)', num_str.lower())
+            td['exercise_num'] = int(m_ex.group(1)) if m_ex else None
+
+            # Przypisanie tematyczne (Dział / Rozdział / Zagadnienie)
+            if page_num in (3, 4):
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Zapis i porównywanie liczb"
+            elif page_num in (5, 6):
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Działania pamięciowe i sprytne liczenie"
+            else:
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Ćwiczenia z podręcznika"
 
             tasks.append(td)
         except Exception as e:
             pass
+
+    # Sortowanie zadań według logicznej kolejności stron i numerów ćwiczeń
+    tasks.sort(key=lambda x: (x.get('page_ref') or 999, x.get('exercise_num') or 999, x.get('id') or 0))
 
     # 3. Pobieramy wyekstrahowany tekst OCR z book_chapters
     chap = conn.execute("SELECT raw_ocr_text FROM book_chapters WHERE book_id=? AND status='completed' LIMIT 1", (book_id,)).fetchone()

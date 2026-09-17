@@ -194,20 +194,38 @@
 }
 
 .task-page-filter-bar {
-    background: rgba(0, 0, 0, 0.25);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(13, 17, 23, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: 8px 16px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 6px;
+}
+
+.tpf-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     overflow-x: auto;
     white-space: nowrap;
 }
 
+.tpf-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
 .tp-filter-chip {
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
     border-radius: 6px;
     padding: 4px 10px;
     font-size: 11px;
@@ -215,18 +233,45 @@
     cursor: pointer;
     transition: all 0.15s ease;
     user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .tp-filter-chip:hover {
-    background: rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .tp-filter-chip.active {
     background: #10b981;
     color: #09090b;
     border-color: #10b981;
+    font-weight: 700;
+}
+
+.tp-subfilter-chip {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tp-subfilter-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.tp-subfilter-chip.active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #38bdf8;
     font-weight: 700;
 }
 
@@ -533,7 +578,7 @@
     color: #cbd5e1 !important;
 }
 
-/* Minimalistyczna mikro-statystyka zadania */
+/* Minimalistyczna mikro-statystyka zadania z bogatym dymkiem (Tooltip) */
 .task-stat-micro {
     display: inline-flex;
     align-items: center;
@@ -546,6 +591,12 @@
     line-height: 1;
     font-family: 'JetBrains Mono', monospace;
     user-select: none;
+    position: relative;
+    cursor: help;
+}
+.task-stat-micro:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 .stat-dot {
     width: 6px;
@@ -558,6 +609,67 @@
 .stat-dot.dot-new { background: #64748b; }
 .stat-pct { font-weight: 700; color: #f1f5f9; }
 .stat-att { font-size: 10px; color: var(--text-muted); }
+
+/* Zaawansowany, czytelny dymek ze szczegółami postępu */
+.stat-tooltip-popover {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: 250px;
+    background: #0d131f;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    z-index: 1000;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    transform: translateY(4px);
+    pointer-events: none;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+    text-align: left;
+}
+.stat-tooltip-popover::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 20px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #0d131f transparent transparent transparent;
+}
+.task-stat-micro:hover .stat-tooltip-popover {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+.stp-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.stp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+.stp-val {
+    font-weight: 600;
+    color: #e2e8f0;
+}
+.stp-badge-ok { color: #10b981; font-weight: 700; }
+.stp-badge-warn { color: #f59e0b; font-weight: 700; }
+.stp-badge-none { color: #64748b; }
 
 /* Wybór wielu zadań (Wyraźny przycisk wyboru na karcie) */
 .tc-select-btn {
@@ -1797,21 +1909,43 @@
                     </div>
                 </div>
 
-                <!-- PASEK FILTRU STRON DLA ZADAŃ PC -->
+                <!-- HIERARCHICZNY PASEK FILTRÓW: DZIAŁY -> TEMATY / STRONY -->
                 <div class="task-page-filter-bar" id="taskPageFilterBar">
-                    <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-right: 4px;">Filtruj zadania:</span>
-                    <button type="button" class="tp-filter-chip active" id="tp-chip-all" onclick="filterTasksMode('all')">
-                        Wszystkie ({{ tasks|length }})
-                    </button>
-                    {% set pages_seen = [] %}
-                    {% for t in tasks %}
-                        {% if t.page_ref and t.page_ref not in pages_seen %}
-                            {% set _ = pages_seen.append(t.page_ref) %}
-                            <button type="button" class="tp-filter-chip" id="tp-chip-{{ t.page_ref }}" onclick="filterTasksMode({{ t.page_ref }})">
-                                Str. {{ t.page_ref }}
-                            </button>
-                        {% endif %}
-                    {% endfor %}
+                    <!-- POZIOM 1: ROZDZIAŁ / DZIAŁ -->
+                    <div class="tpf-row">
+                        <span class="tpf-label"><i data-lucide="book-open" style="width: 12px; color: var(--accent-cyan);"></i> Dział:</span>
+                        <button type="button" class="tp-filter-chip active" id="filter-chap-all" onclick="filterByChapter('all')">
+                            Wszystkie działy ({{ tasks|length }})
+                        </button>
+                        <button type="button" class="tp-filter-chip" id="filter-chap-1" onclick="filterByChapter('1. Liczby naturalne')">
+                            Rozdział 1: Liczby naturalne
+                        </button>
+                    </div>
+
+                    <!-- POZIOM 2: ZAGADNIENIE / TEMAT / STRONY -->
+                    <div class="tpf-row" id="topicFilterRow" style="padding-top: 2px;">
+                        <span class="tpf-label"><i data-lucide="compass" style="width: 12px; color: #10b981;"></i> Temat:</span>
+                        <button type="button" class="tp-subfilter-chip active" id="filter-topic-all" onclick="filterByTopic('all')">
+                            Wszystkie zagadnienia
+                        </button>
+                        <button type="button" class="tp-subfilter-chip" id="filter-topic-1" onclick="filterByTopic('Zapis i porównywanie liczb')">
+                            Zapis i porównywanie liczb (Str. 3-4)
+                        </button>
+                        <button type="button" class="tp-subfilter-chip" id="filter-topic-2" onclick="filterByTopic('Działania pamięciowe i sprytne liczenie')">
+                            Działania pamięciowe (Str. 5-6)
+                        </button>
+                        <div style="border-left: 1px solid rgba(255,255,255,0.1); height: 14px; margin: 0 4px;"></div>
+                        <span class="tpf-label" style="font-size: 9px;">Str:</span>
+                        {% set pages_seen = [] %}
+                        {% for t in tasks %}
+                            {% if t.page_ref and t.page_ref not in pages_seen %}
+                                {% set _ = pages_seen.append(t.page_ref) %}
+                                <button type="button" class="tp-subfilter-chip" id="tp-chip-{{ t.page_ref }}" onclick="filterTasksMode({{ t.page_ref }})">
+                                    s. {{ t.page_ref }}
+                                </button>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
 
                 <!-- PASEK WYBORU WIELU ZADAŃ (BATCH GENERATION) -->
@@ -1843,7 +1977,7 @@
                 {% if tasks %}
                     {% for t in tasks %}
                     {% set c = t.parsed_content %}
-                    <div class="task-card {% if t.user_score and t.user_score >= 70 %}completed-card{% endif %}" id="task-card-{{ t.id }}" data-page="{{ t.page_ref or '' }}">
+                    <div class="task-card {% if t.user_score and t.user_score >= 70 %}completed-card{% endif %}" id="task-card-{{ t.id }}" data-page="{{ t.page_ref or '' }}" data-chapter="{{ t.chapter_name or '1. Liczby naturalne' }}" data-topic="{{ t.topic_name or 'Ćwiczenia' }}">
                         
                         <div class="tc-top">
                             <div class="tc-num-badge">
@@ -1855,8 +1989,8 @@
                                 {% endif %}
                             </div>
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <!-- MINIMALISTYCZNA MIKRO-STATYSTYKA ZADANIA -->
-                                <div class="task-stat-micro" id="stat-task-{{ t.id }}" title="Historia rozwiązywania tego zadania">
+                                <!-- MINIMALISTYCZNA MIKRO-STATYSTYKA ZADANIA Z BOGATYM DYMKIEM -->
+                                <div class="task-stat-micro" id="stat-task-{{ t.id }}">
                                     {% if t.user_score is not none and t.user_score > 0 %}
                                         <span class="stat-dot dot-done"></span>
                                         <span class="stat-pct">{{ t.user_score }}%</span>
@@ -1870,6 +2004,40 @@
                                         <span class="stat-pct">0%</span>
                                         <span class="stat-att">(nowe)</span>
                                     {% endif %}
+
+                                    <div class="stat-tooltip-popover">
+                                        <div class="stp-title">
+                                            <span>📊 Statystyki zadania</span>
+                                            <span style="color: var(--accent-cyan); font-size: 10px;">ID #{{ t.id }}</span>
+                                        </div>
+                                        <div class="stp-row">
+                                            <span>Status:</span>
+                                            <span class="stp-val {% if t.user_score and t.user_score >= 70 %}stp-badge-ok{% elif t.user_attempts %}stp-badge-warn{% else %}stp-badge-none{% endif %}">
+                                                {% if t.user_score and t.user_score >= 70 %}✓ Opanowane
+                                                {% elif t.user_attempts %}W trakcie (do poprawy)
+                                                {% else %}Jeszcze nierozwiązane
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="stp-row">
+                                            <span>Najlepszy wynik:</span>
+                                            <span class="stp-val">{{ t.user_score or 0 }}%</span>
+                                        </div>
+                                        <div class="stp-row">
+                                            <span>Liczba prób:</span>
+                                            <span class="stp-val">{{ t.user_attempts or 0 }}</span>
+                                        </div>
+                                        {% if t.user_last_attempt %}
+                                        <div class="stp-row">
+                                            <span>Ostatnia próba:</span>
+                                            <span class="stp-val" style="font-size: 10px;">{{ t.user_last_attempt[:16] }}</span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="stp-row" style="margin-top: 6px; padding-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10px; color: #64748b;">
+                                            <span>Dział:</span>
+                                            <span class="stp-val" style="font-size: 10px; color: #94a3b8;">{{ t.chapter_name or 'Liczby naturalne' }}</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
@@ -2137,17 +2305,17 @@
                 <i data-lucide="panel-left-open" style="width:14px;"></i> Pokaż lewy panel
             </button>
             <div class="tasks-header" style="background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.25);">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="extra-task-glow-badge">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                    <div class="extra-task-glow-badge" style="flex-shrink: 0;">
                         <i data-lucide="sparkles" style="width: 13px;"></i>
-                        <span>ZADANIE DODATKOWE</span>
+                        <span>WARIANTY</span>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 13px; font-weight: 700; color: #fff;" id="similarPanelTitle">Wariant Treningowy</span>
-                        <span style="font-size: 11px; color: #94a3b8;" id="similarPanelSubtitle">Wygenerowane zadanie z nowymi danymi</span>
+                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                        <span style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="similarPanelTitle">Wariant Treningowy</span>
+                        <span style="font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="similarPanelSubtitle">Wygenerowane zadanie z nowymi danymi</span>
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                     <button type="button" class="print-panel-btn" onclick="printSpecificPanel('similar')" title="Drukuj tylko ten zestaw wariantów treningowych A4">
                         <i data-lucide="printer" style="width: 13px;"></i> <span>Drukuj A4</span>
                     </button>
@@ -2453,14 +2621,23 @@
         }, 300);
     }
 
-    function filterTasksMode(page) {
-        updateFilterChips(page);
+    let currentFilterChapter = 'all';
+    let currentFilterTopic = 'all';
+    let currentFilterPage = 'all';
 
+    function applyTaskFilters() {
         const cards = document.querySelectorAll('#tasksListContainer .task-card');
         let visibleCount = 0;
         cards.forEach(card => {
             const p = card.getAttribute('data-page');
-            if (page === 'all' || !p || p === "" || parseInt(p, 10) === parseInt(page, 10)) {
+            const ch = card.getAttribute('data-chapter');
+            const top = card.getAttribute('data-topic');
+
+            const matchChap = (currentFilterChapter === 'all' || ch === currentFilterChapter);
+            const matchTop = (currentFilterTopic === 'all' || top === currentFilterTopic);
+            const matchPage = (currentFilterPage === 'all' || !p || p === "" || parseInt(p, 10) === parseInt(currentFilterPage, 10));
+
+            if (matchChap && matchTop && matchPage) {
                 card.style.display = 'flex';
                 visibleCount++;
             } else {
@@ -2472,21 +2649,54 @@
         if (emptyNotice) {
             emptyNotice.style.display = (visibleCount === 0) ? 'block' : 'none';
         }
-
-        if (currentGridMode === 'split' && page !== 'all') {
-            jumpBookPage(page);
-        }
     }
 
-    function updateFilterChips(page) {
-        document.querySelectorAll('.tp-filter-chip').forEach(c => {
+    function filterByChapter(chap) {
+        currentFilterChapter = chap;
+        document.querySelectorAll('.tpf-row .tp-filter-chip').forEach(c => c.classList.remove('active'));
+        if (chap === 'all') {
+            const el = document.getElementById('filter-chap-all');
+            if (el) el.classList.add('active');
+        } else {
+            const el = document.getElementById('filter-chap-1');
+            if (el) el.classList.add('active');
+        }
+        applyTaskFilters();
+    }
+
+    function filterByTopic(topic) {
+        currentFilterTopic = topic;
+        currentFilterPage = 'all'; // reset page filter when picking topic
+        document.querySelectorAll('#topicFilterRow .tp-subfilter-chip').forEach(c => c.classList.remove('active'));
+        if (topic === 'all') {
+            const el = document.getElementById('filter-topic-all');
+            if (el) el.classList.add('active');
+        } else if (topic.includes('Zapis')) {
+            const el = document.getElementById('filter-topic-1');
+            if (el) el.classList.add('active');
+        } else {
+            const el = document.getElementById('filter-topic-2');
+            if (el) el.classList.add('active');
+        }
+        applyTaskFilters();
+    }
+
+    function filterTasksMode(page) {
+        currentFilterPage = page;
+        currentFilterTopic = 'all'; // clear topic constraint
+        document.querySelectorAll('#topicFilterRow .tp-subfilter-chip').forEach(c => {
             c.classList.remove('active');
-            if (page === 'all' && c.id === 'tp-chip-all') {
+            if (page === 'all' && c.id === 'filter-topic-all') {
                 c.classList.add('active');
             } else if (c.id === 'tp-chip-' + page) {
                 c.classList.add('active');
             }
         });
+        applyTaskFilters();
+
+        if (currentGridMode === 'split' && page !== 'all') {
+            jumpBookPage(page);
+        }
     }
 
     // Ergonomiczne kontrolki (Chips, Pills, Sliders, Multi-Select)
@@ -2630,10 +2840,30 @@
             const statBox = document.getElementById('stat-task-' + taskId);
             if (statBox) {
                 const dotClass = score >= 70 ? 'dot-done' : 'dot-retry';
+                const statusTxt = score >= 70 ? '✓ Opanowane' : 'W trakcie (do poprawy)';
+                const badgeClass = score >= 70 ? 'stp-badge-ok' : 'stp-badge-warn';
                 statBox.innerHTML = `
                     <span class="stat-dot ${dotClass}"></span>
                     <span class="stat-pct">${score}%</span>
                     <span class="stat-att">(zapisane)</span>
+                    <div class="stat-tooltip-popover">
+                        <div class="stp-title">
+                            <span>📊 Statystyki zadania</span>
+                            <span style="color: var(--accent-cyan); font-size: 10px;">ID #${taskId}</span>
+                        </div>
+                        <div class="stp-row">
+                            <span>Status:</span>
+                            <span class="stp-val ${badgeClass}">${statusTxt}</span>
+                        </div>
+                        <div class="stp-row">
+                            <span>Ostatni wynik:</span>
+                            <span class="stp-val">${score}%</span>
+                        </div>
+                        <div class="stp-row">
+                            <span>Status zapisu:</span>
+                            <span class="stp-val stp-badge-ok">Zapisano w bazie</span>
+                        </div>
+                    </div>
                 `;
             }
         } catch(e) {}
@@ -2912,11 +3142,9 @@
         const headerBtnGroup = document.getElementById('similarHeaderBtnGroup');
         if (headerBtnGroup) headerBtnGroup.style.display = 'inline-flex';
 
-        if (difficulty === 'identical') {
-            grid.classList.add('left-collapsed');
-            const icon = document.getElementById('iconSimilarFullscreen');
-            if (icon) icon.setAttribute('data-lucide', 'minimize-2');
-        }
+        // Uwaga: Kopia / Identyczny zachowuje się analogicznie jak pozostałe warianty w trybie split-view (nie zwija lewego panelu)
+        const icon = document.getElementById('iconSimilarFullscreen');
+        if (icon) icon.setAttribute('data-lucide', 'maximize-2');
 
         const totalSimCount = Object.keys(currentSimilarTasksStore).length;
         const panelTitle = document.getElementById('similarPanelTitle');
@@ -2930,12 +3158,12 @@
         if (panelSubtitle) {
             panelSubtitle.innerText = totalSimCount === 1 
                 ? `Poziom: ${activeSimilarTask.difficulty_level}/5 • ${activeSimilarTask.difficulty_tag || 'Standardowy'}`
-                : `Wygenerowano ${totalSimCount} zadań ćwiczeniowych`;
+                : `Wygenerowano ${totalSimCount} ${totalSimCount < 5 ? 'zadania' : 'zadań'} ćwiczeniowych`;
         }
 
         const countBadge = document.getElementById('similarCountBadge');
         if (countBadge) {
-            countBadge.innerText = `${totalSimCount} ${totalSimCount === 1 ? 'zadanie' : 'zadania'}`;
+            countBadge.innerText = `${totalSimCount} ${totalSimCount === 1 ? 'zadanie' : (totalSimCount < 5 ? 'zadania' : 'zadań')}`;
         }
 
         // Renderuj zadania w prawym panelu w układzie vis-à-vis (identyczny rozmiar i wysokość)
