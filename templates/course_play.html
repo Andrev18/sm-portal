@@ -518,6 +518,130 @@
 .mcq-btn.selected-correct { background: rgba(16, 185, 129, 0.2) !important; border-color: #10b981 !important; color: #fff !important; }
 .mcq-btn.selected-wrong { background: rgba(239, 68, 68, 0.2) !important; border-color: #ef4444 !important; color: #fff !important; }
 
+/* Ergonomiczne kontrolki wyboru (Chips / Pills / Sliders) */
+.calc-chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+.num-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: 'JetBrains Mono', monospace;
+}
+.num-chip:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: var(--accent-cyan);
+    color: #fff;
+    transform: translateY(-1px);
+}
+.num-chip.active {
+    background: var(--accent-cyan);
+    color: #09090b;
+    border-color: var(--accent-cyan);
+    font-weight: 700;
+}
+.pill-group {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+}
+.pill-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle);
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.pill-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+.pill-btn.active {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: #10b981;
+    color: #10b981;
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+.slider-card {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border-subtle);
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+.slider-axis {
+    position: relative;
+    margin: 10px 0 4px;
+}
+.slider-axis input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-cyan);
+    cursor: pointer;
+}
+.slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: monospace;
+    margin-top: 2px;
+}
+.slider-val-badge {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: var(--accent-cyan);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 6px;
+    margin-left: 8px;
+    font-family: monospace;
+}
+.multi-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 0;
+}
+.multi-chip {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-subtle);
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: monospace;
+}
+.multi-chip:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+}
+.multi-chip.selected {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10b981;
+    color: #10b981;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
 /* Dolny pasek weryfikacji zadania */
 .tc-actions-bar {
     display: flex;
@@ -814,11 +938,76 @@
                         {% if c.fields %}
                         <div class="calc-grid">
                             {% for f in c.fields %}
-                            <div class="calc-item">
-                                <span class="calc-label">{{ f.label }}</span>
-                                <input type="text" class="calc-inp" data-ans="{{ f.ans }}" placeholder="wynik..." autocomplete="off" onkeydown="handleInputEnter(event, {{ t.id }})">
+                            <div class="calc-item" style="{% if f.chips or f.options %}flex-direction: column; align-items: stretch; gap: 6px;{% endif %}">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%;">
+                                    <span class="calc-label">{{ f.label }}</span>
+                                    {% if f.options %}
+                                        <div class="pill-group">
+                                            {% for opt in f.options %}
+                                            <button type="button" class="pill-btn" onclick="setPillValue(this, '{{ opt }}')">{{ opt }}</button>
+                                            {% endfor %}
+                                            <input type="hidden" class="calc-inp" data-ans="{{ f.ans }}" autocomplete="off">
+                                        </div>
+                                    {% else %}
+                                        <input type="text" class="calc-inp" data-ans="{{ f.ans }}" placeholder="wynik..." autocomplete="off" onkeydown="handleInputEnter(event, {{ t.id }})">
+                                    {% endif %}
+                                </div>
+                                {% if f.chips %}
+                                <div class="calc-chips-wrap">
+                                    <span style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-right: 4px; align-self: center;">Wybierz:</span>
+                                    {% for ch in f.chips %}
+                                    <button type="button" class="num-chip" onclick="setFieldValueFromChip(this, '{{ ch }}')">{{ ch }}</button>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- TYP: SUWAKI / OŚ LICZBOWA -->
+                        {% if c.sliders %}
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            {% for sl in c.sliders %}
+                            <div class="slider-card">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="calc-label" style="font-size: 13px;">{{ sl.label }}</span>
+                                    <div>
+                                        <span style="font-size: 11px; color: var(--text-muted);">Wybrano:</span>
+                                        <span class="slider-val-badge" id="sl-badge-{{ t.id }}-{{ loop.index0 }}">{{ sl.val|default(sl.min) }}</span>
+                                    </div>
+                                </div>
+                                <div class="slider-axis">
+                                    <input type="range" 
+                                           min="{{ sl.min }}" 
+                                           max="{{ sl.max }}" 
+                                           step="{{ sl.step|default(1) }}" 
+                                           value="{{ sl.val|default(sl.min) }}"
+                                           oninput="updateSliderVal(this, 'sl-inp-{{ t.id }}-{{ loop.index0 }}', 'sl-badge-{{ t.id }}-{{ loop.index0 }}')">
+                                    <div class="slider-ticks">
+                                        <span>{{ sl.min }}</span>
+                                        {% if sl.mid %}<span>{{ sl.mid }}</span>{% endif %}
+                                        <span>{{ sl.max }}</span>
+                                    </div>
+                                    <input type="hidden" id="sl-inp-{{ t.id }}-{{ loop.index0 }}" class="calc-inp" data-ans="{{ sl.ans }}" value="{{ sl.val|default(sl.min) }}">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- TYP: KAFELKI WIELOKROTNEGO WYBORU (MULTI-SELECT CHIPS) -->
+                        {% if c.multi_chips %}
+                        <div style="background: rgba(0,0,0,0.3); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-subtle);">
+                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Kliknij kwoty, aby je zaznaczyć:</div>
+                            <div class="multi-chips-grid">
+                                {% for mc in c.multi_chips %}
+                                <button type="button" class="multi-chip" data-val="{{ mc.val }}" onclick="toggleMultiChip(this, 'mc-inp-{{ t.id }}')">
+                                    {{ mc.label }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" id="mc-inp-{{ t.id }}" class="calc-inp" data-ans="{{ c.ans }}" value="">
                         </div>
                         {% endif %}
 
@@ -1185,6 +1374,58 @@
         }, 300);
     }
 
+    // Ergonomiczne kontrolki (Chips, Pills, Sliders, Multi-Select)
+    function setFieldValueFromChip(chipBtn, val) {
+        const parent = chipBtn.closest('.calc-item') || chipBtn.closest('.calc-group');
+        if (!parent) return;
+        const inp = parent.querySelector('input[data-ans]');
+        if (inp) {
+            inp.value = val;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+            const container = chipBtn.parentElement;
+            container.querySelectorAll('.num-chip').forEach(c => c.classList.remove('active'));
+            chipBtn.classList.add('active');
+        }
+    }
+
+    function setPillValue(pillBtn, val) {
+        const group = pillBtn.closest('.pill-group');
+        if (!group) return;
+        const inp = group.querySelector('input[data-ans]');
+        if (inp) {
+            inp.value = val;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        group.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        pillBtn.classList.add('active');
+    }
+
+    function updateSliderVal(slider, targetInputId, badgeId) {
+        const val = slider.value;
+        const badge = document.getElementById(badgeId);
+        if (badge) badge.innerText = val;
+        const inp = document.getElementById(targetInputId);
+        if (inp) {
+            inp.value = val;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
+    function toggleMultiChip(chipBtn, hiddenInputId) {
+        chipBtn.classList.toggle('selected');
+        const container = chipBtn.parentElement;
+        const selectedVals = [];
+        container.querySelectorAll('.multi-chip.selected').forEach(c => {
+            selectedVals.push(c.getAttribute('data-val').trim());
+        });
+        selectedVals.sort();
+        const inp = document.getElementById(hiddenInputId);
+        if (inp) {
+            inp.value = selectedVals.join(';');
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
     // Obsługa weryfikacji zadań
     function handleInputEnter(e, taskId) {
         if (e.key === 'Enter') {
@@ -1206,15 +1447,22 @@
             const userVal = inp.value.trim().toLowerCase().replace(',', '.');
 
             const isMatch = validOptions.some(opt => opt === userVal);
+            const container = inp.closest('.calc-item') || inp.closest('.slider-card') || inp.closest('.pill-group') || inp;
             if (isMatch && userVal !== '') {
                 inp.style.borderColor = '#10b981';
                 inp.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
                 inp.style.color = '#10b981';
+                if (container && container !== inp) {
+                    container.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                }
                 correct++;
             } else {
                 inp.style.borderColor = '#ef4444';
                 inp.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
                 inp.style.color = '#ef4444';
+                if (container && container !== inp) {
+                    container.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                }
             }
         });
 
