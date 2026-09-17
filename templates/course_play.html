@@ -387,153 +387,183 @@
     flex-wrap: wrap;
 }
 
-/* Przyciski o równej, smukłej wysokości 30px w spójnej estetyce */
+/* Przyciski o równej, wyrazistej wysokości 32px w spójnej estetyce */
 .act-btn-primary {
-    height: 30px;
-    padding: 0 12px;
-    border-radius: 6px;
-    background: #10b981;
-    border: 1px solid #10b981;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.15s ease;
-    user-select: none;
-    line-height: 1;
+    height: 32px !important;
+    padding: 0 14px !important;
+    border-radius: 8px !important;
+    background: #10b981 !important;
+    border: 1px solid #10b981 !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.15s ease !important;
+    user-select: none !important;
+    line-height: 1 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35) !important;
 }
 .act-btn-primary:hover {
-    background: #059669;
-    border-color: #059669;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    background: #059669 !important;
+    border-color: #059669 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45) !important;
+    transform: translateY(-1px) !important;
 }
 
 .act-btn-ghost {
-    height: 30px;
-    padding: 0 10px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #cbd5e1;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.15s ease;
-    user-select: none;
-    line-height: 1;
+    height: 32px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #f1f5f9 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.15s ease !important;
+    user-select: none !important;
+    line-height: 1 !important;
 }
 .act-btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
 }
 
 /* JEDEN ZUNIFIKOWANY SEGMENTOWANY PRZYCISK WARIANTÓW (CAPSULE) */
 .variant-segmented-control {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 7px;
-    padding: 2px;
-    gap: 1px;
-    height: 30px;
-    box-sizing: border-box;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: #090d16 !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border-radius: 8px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+    height: 32px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 .vsc-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    padding: 0 8px 0 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border-right: 1px solid rgba(255, 255, 255, 0.07);
-    height: 100%;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    color: var(--accent-cyan) !important;
+    padding: 0 8px 0 8px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+    height: 100% !important;
 }
 
 .vsc-seg {
-    height: 24px;
-    padding: 0 8px;
-    border-radius: 5px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.15s ease;
-    user-select: none;
+    height: 26px !important;
+    padding: 0 9px !important;
+    border-radius: 6px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: #cbd5e1 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 0.15s ease !important;
+    user-select: none !important;
 }
 
 .seg-dot {
+    width: 7px !important;
+    height: 7px !important;
+    border-radius: 50% !important;
+    display: inline-block !important;
+}
+
+/* Wybrzuszenie / zmiana koloru po najechaniu i kliknięciu */
+.vsc-seg.seg-green .seg-dot { background: #10b981 !important; box-shadow: 0 0 6px rgba(16, 185, 129, 0.8) !important; }
+.vsc-seg.seg-green:hover {
+    background: rgba(16, 185, 129, 0.22) !important;
+    border-color: rgba(16, 185, 129, 0.6) !important;
+    color: #34d399 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.vsc-seg.seg-yellow .seg-dot { background: #eab308 !important; box-shadow: 0 0 6px rgba(234, 179, 8, 0.8) !important; }
+.vsc-seg.seg-yellow:hover {
+    background: rgba(234, 179, 8, 0.22) !important;
+    border-color: rgba(234, 179, 8, 0.6) !important;
+    color: #fde047 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3) !important;
+}
+
+.vsc-seg.seg-red .seg-dot { background: #ef4444 !important; box-shadow: 0 0 6px rgba(239, 68, 68, 0.8) !important; }
+.vsc-seg.seg-red:hover {
+    background: rgba(239, 68, 68, 0.22) !important;
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    color: #fca5a5 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+.vsc-seg.seg-blue .seg-dot { background: #3b82f6 !important; box-shadow: 0 0 6px rgba(59, 130, 246, 0.8) !important; }
+.vsc-seg.seg-blue:hover {
+    background: rgba(59, 130, 246, 0.22) !important;
+    border-color: rgba(59, 130, 246, 0.6) !important;
+    color: #93c5fd !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.vsc-seg:active {
+    transform: translateY(0) !important;
+}
+
+.act-shortcut kbd {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 3px 6px !important;
+    border-radius: 5px !important;
+    font-size: 11px !important;
+    color: #cbd5e1 !important;
+}
+
+/* Minimalistyczna mikro-statystyka zadania */
+.task-stat-micro {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1;
+    font-family: 'JetBrains Mono', monospace;
+    user-select: none;
+}
+.stat-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     display: inline-block;
 }
-
-/* Wybrzuszenie / zmiana koloru po najechaniu i kliknięciu */
-.vsc-seg.seg-green .seg-dot { background: #10b981; }
-.vsc-seg.seg-green:hover {
-    background: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #34d399;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
-}
-
-.vsc-seg.seg-yellow .seg-dot { background: #eab308; }
-.vsc-seg.seg-yellow:hover {
-    background: rgba(234, 179, 8, 0.15);
-    border-color: rgba(234, 179, 8, 0.4);
-    color: #fde047;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.2);
-}
-
-.vsc-seg.seg-red .seg-dot { background: #ef4444; }
-.vsc-seg.seg-red:hover {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
-}
-
-.vsc-seg.seg-blue .seg-dot { background: #3b82f6; }
-.vsc-seg.seg-blue:hover {
-    background: rgba(59, 130, 246, 0.15);
-    border-color: rgba(59, 130, 246, 0.4);
-    color: #93c5fd;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-}
-
-.vsc-seg:active {
-    transform: translateY(0);
-}
-
-.act-shortcut kbd {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-size: 10px;
-    color: #94a3b8;
-}
+.stat-dot.dot-done { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.7); }
+.stat-dot.dot-retry { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.7); }
+.stat-dot.dot-new { background: #64748b; }
+.stat-pct { font-weight: 700; color: #f1f5f9; }
+.stat-att { font-size: 10px; color: var(--text-muted); }
 
 /* Wybór wielu zadań (Wyraźny przycisk wyboru na karcie) */
 .tc-select-btn {
@@ -1831,11 +1861,23 @@
                                 {% endif %}
                             </div>
                             <div style="display:flex; align-items:center; gap:8px;">
-                                {% if t.user_score and t.user_score >= 70 %}
-                                <span style="background: rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:2px 8px; font-size:10px; font-weight:700;">
-                                    ✅ Rozwiązane ({{ t.user_score }}%)
-                                </span>
-                                {% endif %}
+                                <!-- MINIMALISTYCZNA MIKRO-STATYSTYKA ZADANIA -->
+                                <div class="task-stat-micro" id="stat-task-{{ t.id }}" title="Historia rozwiązywania tego zadania">
+                                    {% if t.user_score is not none and t.user_score > 0 %}
+                                        <span class="stat-dot dot-done"></span>
+                                        <span class="stat-pct">{{ t.user_score }}%</span>
+                                        <span class="stat-att">({{ t.user_attempts or 1 }}x)</span>
+                                    {% elif t.user_attempts and t.user_attempts > 0 %}
+                                        <span class="stat-dot dot-retry"></span>
+                                        <span class="stat-pct">{{ t.user_score or 0 }}%</span>
+                                        <span class="stat-att">({{ t.user_attempts }}x)</span>
+                                    {% else %}
+                                        <span class="stat-dot dot-new"></span>
+                                        <span class="stat-pct">0%</span>
+                                        <span class="stat-att">(nowe)</span>
+                                    {% endif %}
+                                </div>
+
                                 <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
                                 <label class="tc-select-btn" id="sel-btn-{{ t.id }}" title="Zaznacz to zadanie do zestawu ćwiczeń">
                                     <input type="checkbox" class="task-select-cb" id="cb-task-{{ t.id }}" value="{{ t.id }}" onchange="handleCbChange({{ t.id }})">
@@ -2589,6 +2631,17 @@
             });
             const d = await res.json();
             updateMasteredCount();
+            
+            // Dynamicznie zaktualizuj mikro-statystykę na karcie
+            const statBox = document.getElementById('stat-task-' + taskId);
+            if (statBox) {
+                const dotClass = score >= 70 ? 'dot-done' : 'dot-retry';
+                statBox.innerHTML = `
+                    <span class="stat-dot ${dotClass}"></span>
+                    <span class="stat-pct">${score}%</span>
+                    <span class="stat-att">(zapisane)</span>
+                `;
+            }
         } catch(e) {}
     }
 
