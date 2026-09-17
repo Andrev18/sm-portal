@@ -2795,6 +2795,32 @@ def courses_print_worksheet(request: Request, book_id: int):
             pass
 
     tasks.sort(key=lambda x: (x.get('page_ref') or 999, x.get('exercise_num') or 999, x.get('id') or 0))
+
+    # Filtrowanie wydruku na żądanie użytkownika (jedno zadanie, zaznaczone zadania, konkretna strona lub zagadnienie)
+    task_id_param = request.query_params.get("task_id")
+    task_ids_param = request.query_params.get("task_ids")
+    page_param = request.query_params.get("page")
+    topic_param = request.query_params.get("topic")
+
+    if task_id_param:
+        try:
+            t_id = int(task_id_param)
+            tasks = [t for t in tasks if t['id'] == t_id]
+        except Exception:
+            pass
+    elif task_ids_param:
+        id_set = {int(x.strip()) for x in task_ids_param.split(',') if x.strip().isdigit()}
+        if id_set:
+            tasks = [t for t in tasks if t['id'] in id_set]
+    elif page_param and page_param != 'all':
+        try:
+            p_num = int(page_param)
+            tasks = [t for t in tasks if t.get('page_ref') == p_num]
+        except Exception:
+            pass
+    elif topic_param and topic_param != 'all':
+        tasks = [t for t in tasks if t.get('topic_name') == topic_param]
+
     conn.close()
 
     return templates.TemplateResponse(request, "course_print.html", {

@@ -2044,7 +2044,10 @@
                                 <i data-lucide="flame"></i> <span>Trudne</span>
                             </button>
                         </div>
-                        <button type="button" class="btn-clear-batch" onclick="clearSelectedTasks()">Odznacz</button>
+                            <button type="button" class="btn-clear-batch" style="background:#10b981; color:#fff; border-color:#10b981; font-weight:700; display:inline-flex; align-items:center; gap:4px;" onclick="printSelectedTasks()" title="Drukuj tylko zaznaczone zadania A4">
+                                <i data-lucide="printer" style="width:13px;"></i> Drukuj zaznaczone
+                            </button>
+                            <button type="button" class="btn-clear-batch" onclick="clearSelectedTasks()">Odznacz</button>
                     </div>
                 </div>
 
@@ -2121,6 +2124,9 @@
                                 </div>
 
                                 <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
+                                <button type="button" class="card-close-btn" onclick="printSingleTask({{ t.id }})" title="Drukuj tylko to zadanie (str. {{ t.page_ref or '3' }}) A4" style="color: #38bdf8;">
+                                    <i data-lucide="printer" style="width: 13px;"></i>
+                                </button>
                                 <button type="button" class="card-close-btn" onclick="hideBaseTask({{ t.id }})" title="Ukryj to zadanie z widoku">
                                     <i data-lucide="x" style="width: 14px;"></i>
                                 </button>
@@ -2996,7 +3002,42 @@
         }, { once: true });
     }
 
+    function printSingleTask(taskId) {
+        window.open(`/courses/print/{{ book["id"] }}?task_id=${taskId}&auto=1`, '_blank');
+    }
+
+    function printSelectedTasks() {
+        const cbs = document.querySelectorAll('.task-select-cb:checked');
+        if (cbs.length > 0) {
+            const ids = Array.from(cbs).map(cb => cb.value).join(',');
+            window.open(`/courses/print/{{ book["id"] }}?task_ids=${ids}&auto=1`, '_blank');
+        } else {
+            printWorksheet();
+        }
+    }
+
     function printWorksheet() {
+        // 1. Jeśli uczeń zaznaczył konkretne zadania checkboxami "Do zestawu", drukujemy dokładnie te zadania!
+        const cbs = document.querySelectorAll('.task-select-cb:checked');
+        if (cbs.length > 0) {
+            const ids = Array.from(cbs).map(cb => cb.value).join(',');
+            window.open(`/courses/print/{{ book["id"] }}?task_ids=${ids}&auto=1`, '_blank');
+            return;
+        }
+
+        // 2. Jeśli uczeń ma wybrany konkretny filtr strony (np. str. 5), drukujemy zadania z tej strony!
+        if (currentFilterPage && currentFilterPage !== 'all') {
+            window.open(`/courses/print/{{ book["id"] }}?page=${currentFilterPage}&auto=1`, '_blank');
+            return;
+        }
+
+        // 3. Jeśli uczeń ma wybrane konkretne zagadnienie tematyczne, drukujemy ten zakres!
+        if (currentFilterTopic && currentFilterTopic !== 'all') {
+            window.open(`/courses/print/{{ book["id"] }}?topic=${encodeURIComponent(currentFilterTopic)}&auto=1`, '_blank');
+            return;
+        }
+
+        // 4. W przeciwnym razie drukujemy kompletny zeszyt zadań
         window.open('/courses/print/{{ book["id"] }}?auto=1', '_blank');
     }
 

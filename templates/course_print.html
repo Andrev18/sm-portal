@@ -155,7 +155,13 @@ body {
 
 <div class="no-print-bar">
     <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-weight:700;">{{ book['title'] }} • Kompletny arkusz do druku A4 (Wszystkie {{ tasks|length }} zadań)</span>
+        <span style="font-weight:700;">
+            {% if tasks|length == 1 %}
+                {{ tasks[0].parsed_content.number }} • {{ tasks[0].parsed_content.title }} (Druk A4)
+            {% else %}
+                {{ book['title'] }} • Wybrane zadania do druku ({{ tasks|length }})
+            {% endif %}
+        </span>
     </div>
     <div style="display:flex; gap:10px;">
         <button class="print-btn" onclick="window.print()">🖨️ Drukuj / Zapisz jako PDF</button>
@@ -166,7 +172,13 @@ body {
 <div style="max-width: 210mm; margin: 0 auto; padding: 20px;">
     <div class="print-sheet-header">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h1 style="margin:0; font-size:20px; font-weight:800;">{{ book['title'] }} • Arkusz Ćwiczeń</h1>
+            <h1 style="margin:0; font-size:18px; font-weight:800;">
+                {% if tasks|length == 1 %}
+                    {{ book['title'] }} • {{ tasks[0].parsed_content.number }}
+                {% else %}
+                    {{ book['title'] }} • Arkusz Ćwiczeń
+                {% endif %}
+            </h1>
             <span style="font-size:14px; font-weight:700; color:#475569;">Klasa {{ book['grade'] }}</span>
         </div>
         <div class="school-meta">
