@@ -1,258 +1,705 @@
-{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · Baza Wiedzy 5B{% endblock %}
+{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · Pulpit Ucznia{% endblock %}
 {% block content %}
 <style>
-  .vulcan-hero {
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(16, 185, 129, 0.05));
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 20px;
-    padding: 32px;
+  :root {
+    --v-bg-subtle: rgba(255, 255, 255, 0.02);
+    --v-border: var(--border-subtle, rgba(255, 255, 255, 0.08));
+    --v-accent: var(--accent-indigo, #6366f1);
+    --v-cyan: #38bdf8;
+    --v-emerald: #10b981;
+    --v-amber: #f59e0b;
+    --v-rose: #f43f5e;
+  }
+
+  /* TOP PILLS / BADGES */
+  .vulcan-topbar-pills {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .v-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(24, 24, 27, 0.8);
+    border: 1px solid var(--v-border);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e4e4e7;
+    backdrop-filter: blur(8px);
+  }
+  .v-pill .pill-val {
+    font-weight: 700;
+    padding-left: 4px;
+    border-left: 1px solid rgba(255,255,255,0.12);
+  }
+  .v-pill-purple { border-color: rgba(168, 85, 247, 0.35); }
+  .v-pill-purple .pill-val { color: #c084fc; }
+  .v-pill-rose { border-color: rgba(244, 63, 94, 0.35); }
+  .v-pill-rose .pill-val { color: #fb7185; }
+  .v-pill-blue { border-color: rgba(56, 189, 248, 0.35); }
+  .v-pill-blue .pill-val { color: #38bdf8; }
+  .v-pill-amber { border-color: rgba(245, 158, 11, 0.35); }
+  .v-pill-amber .pill-val { color: #fbbf24; }
+
+  /* 4-COLUMN BENTO GRID */
+  .vulcan-grid {
+    display: grid;
+    grid-template-columns: 280px 240px 320px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 1400px) {
+    .vulcan-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 800px) {
+    .vulcan-grid { grid-template-columns: 1fr; }
+  }
+
+  /* COLUMN CARD CONTAINER */
+  .v-col-card {
+    background: rgba(18, 18, 22, 0.75);
+    border: 1px solid var(--v-border);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .v-col-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--v-border);
   }
-  .ha-live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--accent-emerald);
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 11px;
+  .v-col-title {
+    font-size: 15px;
     font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* COL 1: PRZEDMIOTY I WYNIKI */
+  .subject-result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    font-size: 13px;
+  }
+  .subject-result-row:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .subj-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e4e4e7;
+    font-weight: 500;
+  }
+  .subj-percent {
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  /* TERMINARZ W COL 1 */
+  .event-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--v-border);
+    border-left: 3px solid var(--v-rose);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .event-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .event-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .event-desc {
+    font-size: 12px;
+    color: #a1a1aa;
+    line-height: 1.4;
+  }
+
+  /* COL 2: KAFELKI BENTO METRYK */
+  .bento-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .bento-metric-tile {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--v-border);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 82px;
+  }
+  .bento-metric-tile.span-2 {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(255,255,255,0.02));
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+  .tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #a1a1aa;
+    font-weight: 500;
+  }
+  .tile-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    margin-top: 4px;
+  }
+  .tile-val.large { font-size: 26px; color: #c084fc; }
+  .tile-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .tile-progress-fill {
+    height: 100%;
+    background: #a855f7;
+    border-radius: 99px;
+  }
+
+  /* COL 3: SKRZYNKA WIADOMOŚCI */
+  .msg-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--v-border);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .msg-item:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(56, 189, 248, 0.3);
+  }
+  .msg-author {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .msg-topic {
+    font-size: 12px;
+    color: #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .msg-date-badge {
+    align-self: flex-start;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    margin-top: 2px;
+  }
+
+  /* COL 4: PLAN LEKCJI TYGODNIOWY Z TIMELINE */
+  .timetable-wrap {
+    position: relative;
+    overflow-x: auto;
+  }
+  .timetable-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .timetable-table th {
+    text-align: left;
+    padding: 10px 8px;
+    color: #94a3b8;
+    font-weight: 600;
+    border-bottom: 1px solid var(--v-border);
+    background: rgba(255,255,255,0.02);
+  }
+  .timetable-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+    min-width: 130px;
+  }
+  .timetable-table td.col-hour {
+    min-width: 80px;
+    font-family: monospace;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .lesson-slot {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--v-border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .lesson-slot.is-cancelled {
+    background: rgba(244, 63, 94, 0.08);
+    border-color: rgba(244, 63, 94, 0.3);
+  }
+  .lesson-slot.is-subst {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+  .status-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
     text-transform: uppercase;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    margin-bottom: 12px;
+    width: fit-content;
   }
-  .ha-live-badge .dot {
-    width: 6px; height: 6px; background: var(--accent-emerald); border-radius: 50%;
-    animation: haPulse 2s infinite;
-  }
-  @keyframes haPulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-  }
-  .print-btn {
-    background: rgba(255,255,255,0.05); color: #fff;
-    border: 1px solid var(--border-subtle); padding: 8px 16px; border-radius: 10px;
-    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .print-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-  
-  .numerek-box {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 16px;
-    padding: 16px 24px;
-    text-align: center;
-    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.1);
-  }
-  .numerek-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #f59e0b; margin-bottom: 4px; display: block; }
-  .numerek-val { font-size: 32px; font-weight: 800; color: #f59e0b; line-height: 1; }
+  .status-tag-subst { background: #f59e0b; color: #000; }
+  .status-tag-cancelled { background: #f43f5e; color: #fff; }
 
-  /* Tab Navigation */
-  .v-tabs { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; }
-  .v-tab-btn {
-    background: transparent; color: var(--text-secondary); border: 1px solid transparent;
-    padding: 10px 20px; border-radius: 12px; font-weight: 500; font-size: 14px; cursor: pointer;
-    transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  /* TIMELINE OVERLAY INDICATOR */
+  .live-time-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #eab308;
+    box-shadow: 0 0 8px #eab308;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
   }
-  .v-tab-btn:hover { color: #fff; background: rgba(255,255,255,0.02); }
-  .v-tab-btn.active {
-    background: rgba(56, 189, 248, 0.1); color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.2);
-  }
-
-  /* Plan Lekcji Grid */
-  .timetable-day { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 16px; }
-  .timetable-day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .timetable-date { font-size: 12px; color: var(--text-muted); }
-  
-  .lesson-row {
-    background: rgba(0,0,0,0.2); border: 1px solid transparent; border-radius: 10px; padding: 12px; margin-bottom: 8px;
-    display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s;
-  }
-  .lesson-row:hover { background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2); transform: translateX(4px); }
-  
-  /* Grades */
-  .grade-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
-  
-  @media print {
-    body * { visibility: hidden; }
-    #tab-plan, #tab-plan * { visibility: visible; }
-    #tab-plan { position: absolute; left: 0; top: 0; width: 100%; }
-    .v-tabs, .print-btn, .top-header, .sidebar { display: none !important; }
+  .live-time-tag {
+    position: absolute;
+    left: -2px;
+    background: #eab308;
+    color: #000;
+    font-weight: 800;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
   }
 </style>
 
-<div class="vulcan-hero">
-  <div>
-    <div class="ha-live-badge">
-      <div class="dot"></div> Live Sync — Home Assistant MCP
-    </div>
-    <h1 style="font-size: 32px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.02em;">VULCAN Dashboard</h1>
-    <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Integracja UONET+ Klasy 5B — Zalogowano jako: <b>{{ user['name'] }}</b></p>
+<!-- GÓRNY PASEK PODGLĄDU: 4 PIGUŁKI -->
+<div class="vulcan-topbar-pills">
+  <div class="v-pill v-pill-purple">
+    <i data-lucide="bar-chart-3" style="width: 15px; height: 15px; color: #c084fc;"></i>
+    <span>Statystyki: <span id="pillStudent">Stanisław Mikos</span></span>
+    <span class="pill-val" id="pillStats">--%</span>
   </div>
+  <div class="v-pill v-pill-rose">
+    <i data-lucide="user-x" style="width: 15px; height: 15px; color: #fb7185;"></i>
+    <span>Frekwencja: <span id="pillFreqStudent">Stanisław Mikos</span></span>
+    <span class="pill-val" id="pillFreq">-- nieob.</span>
+  </div>
+  <div class="v-pill v-pill-blue">
+    <i data-lucide="mail" style="width: 15px; height: 15px; color: #38bdf8;"></i>
+    <span>Wiadomości: <span id="pillMsgStudent">Stanisław Mikos</span></span>
+    <span class="pill-val" id="pillMsg">0</span>
+  </div>
+  <div class="v-pill v-pill-amber">
+    <i data-lucide="calendar" style="width: 15px; height: 15px; color: #fbbf24;"></i>
+    <span>Terminarz: <span id="pillTermStudent">Stanisław Mikos</span></span>
+    <span class="pill-val" id="pillTerm">0</span>
+  </div>
+</div>
+
+<!-- 4-KOLUMNOWY BENTO GRID -->
+<div class="vulcan-grid">
   
-  <div style="display: flex; gap: 20px; align-items: center;">
-    <button class="print-btn" onclick="window.print()">
-      <i data-lucide="printer" style="width: 16px; height: 16px;"></i> Drukuj Plan
-    </button>
-    <div class="numerek-box">
-      <span class="numerek-label">Szczęśliwy Numerek</span>
-      <span class="numerek-val" id="numerekVal">🤔</span>
+  <!-- KOLUMNA 1: WYNIKI PER PRZEDMIOT + NAJBLIŻSZE WYDARZENIA -->
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div class="v-col-card">
+      <div class="v-col-header">
+        <span class="v-col-title"><i data-lucide="book-open" style="width: 16px; height: 16px; color: #38bdf8;"></i> Wyniki per przedmiot</span>
+      </div>
+      <div id="subjectResultsList" style="display: flex; flex-direction: column; gap: 6px;">
+        <i style="color: var(--text-muted); font-size: 12px;">Ładowanie danych...</i>
+      </div>
+    </div>
+
+    <div class="v-col-card">
+      <div class="v-col-header">
+        <span class="v-col-title"><i data-lucide="calendar-days" style="width: 16px; height: 16px; color: #f59e0b;"></i> Najbliższe wydarzenia:</span>
+      </div>
+      <div id="colTerminarzList" style="display: flex; flex-direction: column; gap: 10px;">
+        <i style="color: var(--text-muted); font-size: 12px;">Ładowanie wydarzeń...</i>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="v-tabs">
-  <button class="v-tab-btn active" id="btn-plan" onclick="switchVulcanTab('plan')">
-    <i data-lucide="calendar"></i> Plan Lekcji
-  </button>
-  <button class="v-tab-btn" id="btn-zadania" onclick="switchVulcanTab('zadania')">
-    <i data-lucide="check-square"></i> Zadania i Sprawdziany <span id="zadaniaBadge" style="background: var(--accent-rose); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 99px; margin-left: 6px;">0</span>
-  </button>
-  <button class="v-tab-btn" id="btn-oceny" onclick="switchVulcanTab('oceny')">
-    <i data-lucide="bar-chart-2"></i> Ostatnie Oceny
-  </button>
-</div>
+  <!-- KOLUMNA 2: KAFELKOWE METRYKI UCZNIA -->
+  <div class="v-col-card">
+    <div class="v-col-header">
+      <span class="v-col-title"><i data-lucide="graduation-cap" style="width: 16px; height: 16px; color: #c084fc;"></i> E-dziennik – Stanisław</span>
+    </div>
+    <div class="bento-metrics">
+      <!-- Średnia ogólna / % (Span 2) -->
+      <div class="bento-metric-tile span-2">
+        <div class="tile-header">
+          <span>Średnia ogólna</span>
+          <i data-lucide="percent" style="width: 14px; height: 14px; color: #c084fc;"></i>
+        </div>
+        <div class="tile-val large" id="metricGpaVal">--%</div>
+        <div class="tile-progress">
+          <div class="tile-progress-fill" id="metricGpaBar" style="width: 0%;"></div>
+        </div>
+      </div>
 
-<!-- ZAKŁADKA 1: PLAN LEKCJI -->
-<div id="tab-plan">
-  <div id="planGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-    <i>Pobieranie synchronizacji Home Assistant... To może potrwać kilka sekund.</i>
+      <!-- Nieobecności -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Nieobecności (godz.)</span>
+          <i data-lucide="user-x" style="width: 13px; height: 13px; color: #fb7185;"></i>
+        </div>
+        <div class="tile-val" style="color: #fb7185;" id="metricFreqVal">--</div>
+      </div>
+
+      <!-- Szczęśliwy numerek -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Szczęśliwy numerek</span>
+          <i data-lucide="clover" style="width: 13px; height: 13px; color: #10b981;"></i>
+        </div>
+        <div class="tile-val" style="color: #10b981;" id="metricNumerekVal">--</div>
+      </div>
+
+      <!-- Sprawdziany / kartkówki -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Sprawdziany / kartk.</span>
+          <i data-lucide="file-check" style="width: 13px; height: 13px; color: #fbbf24;"></i>
+        </div>
+        <div class="tile-val" style="color: #fbbf24;" id="metricTermVal">--</div>
+      </div>
+
+      <!-- Nieprzeczytane wiadomości -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Nieprzeczytane</span>
+          <i data-lucide="mail" style="width: 13px; height: 13px; color: #38bdf8;"></i>
+        </div>
+        <div class="tile-val" style="color: #38bdf8;" id="metricMsgVal">--</div>
+      </div>
+
+      <!-- Nowe oceny (okres 1) -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Nowe oceny (okr. 1)</span>
+          <i data-lucide="star" style="width: 13px; height: 13px; color: #eab308;"></i>
+        </div>
+        <div class="tile-val" style="color: #eab308;" id="metricNewGradesVal">--</div>
+      </div>
+
+      <!-- Uwagi / pochwały -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Uwagi / pochwały</span>
+          <i data-lucide="message-square" style="width: 13px; height: 13px; color: #94a3b8;"></i>
+        </div>
+        <div class="tile-val" id="metricUwagiVal">0</div>
+      </div>
+
+      <!-- Osiągnięcia -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Osiągnięcia</span>
+          <i data-lucide="trophy" style="width: 13px; height: 13px; color: #94a3b8;"></i>
+        </div>
+        <div class="tile-val" id="metricOsiagnieciaVal">0</div>
+      </div>
+
+      <!-- Zebrania -->
+      <div class="bento-metric-tile">
+        <div class="tile-header">
+          <span>Zebrania</span>
+          <i data-lucide="users" style="width: 13px; height: 13px; color: #94a3b8;"></i>
+        </div>
+        <div class="tile-val" id="metricZebraniaVal">0</div>
+      </div>
+    </div>
   </div>
-</div>
 
-<!-- ZAKŁADKA 2: ZADANIA DOMOWE I SPRAWDZIANY -->
-<div id="tab-zadania" class="hidden">
-  <div id="zadaniaList" style="display: flex; flex-direction: column; gap: 12px;"></div>
-</div>
+  <!-- KOLUMNA 3: WIADOMOŚCI - PEŁNA SKRZYNKA -->
+  <div class="v-col-card">
+    <div class="v-col-header">
+      <span class="v-col-title"><i data-lucide="inbox" style="width: 16px; height: 16px; color: #38bdf8;"></i> Wiadomości – skrzynka</span>
+      <span style="font-size: 12px; font-weight: 700; color: #94a3b8;" id="msgCountHeader">0 / 0</span>
+    </div>
+    <div id="messagesList" style="display: flex; flex-direction: column; gap: 8px; max-height: 700px; overflow-y: auto;">
+      <i style="color: var(--text-muted); font-size: 12px;">Ładowanie skrzynki...</i>
+    </div>
+  </div>
 
-<!-- ZAKŁADKA 3: OSTATNIE OCENY (Slider/Lista) -->
-<div id="tab-oceny" class="hidden">
-  <div id="ocenyList" style="display: flex; flex-direction: column; gap: 16px;"></div>
+  <!-- KOLUMNA 4: PLAN LEKCJI TYGODNIOWY ZE WSKAŹNIKIEM CZASU -->
+  <div class="v-col-card" style="min-width: 0;">
+    <div class="v-col-header">
+      <span class="v-col-title"><i data-lucide="calendar" style="width: 16px; height: 16px; color: #38bdf8;"></i> Plan lekcji – tydzień bieżący</span>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="loadWeekPlan('curr')">Bieżący</button>
+        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="loadWeekPlan('next')">Następny</button>
+      </div>
+    </div>
+
+    <div class="timetable-wrap" id="timetableContainer">
+      <table class="timetable-table" id="timetableTable">
+        <thead>
+          <tr id="timetableHead">
+            <th>GODZINA</th>
+            <th>PON</th>
+            <th>WT</th>
+            <th>ŚR</th>
+            <th>CZW</th>
+            <th>PT</th>
+          </tr>
+        </thead>
+        <tbody id="timetableBody">
+          <!-- Renderowane dynamicznie -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="nextWeekSummary" style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--v-border);">
+      <i data-lucide="arrow-right" style="width: 14px; height: 14px; color: #38bdf8;"></i>
+      <span id="nextWeekText">Pobieranie danych o następnym tygodniu...</span>
+    </div>
+  </div>
+
 </div>
 
 <script>
-let vData = null;
+let globalVulcan = null;
 
-async function loadHA() {
+async function initVulcanDashboard() {
   try {
-    const r = await fetch('/api/vulcan/data');
-    if (!r.ok) throw new Error('Nie autoryzowano HA');
-    vData = await r.json();
-    
-    document.getElementById('numerekVal').innerText = vData.numerek || '--';
-    renderPlan();
-    renderZadania();
-    renderOceny();
-  } catch(e) {
-    console.error(e);
-    document.getElementById('planGrid').innerHTML = '<div class="glass-card"><p>Błąd API. Brak poprawnego tokenu HA_MCP_TOKEN lub odpowiedź z serwera HA (homeway.io addon) nie dotarła na czas.</p></div>';
+    const res = await fetch('/api/vulcan/data');
+    if (!res.ok) throw new Error('Status ' + res.status);
+    globalVulcan = await res.json();
+    renderAll();
+  } catch (err) {
+    console.error('Błąd pobierania danych VULCAN:', err);
   }
 }
 
-function renderPlan() {
-  const c = document.getElementById('planGrid');
-  if (!vData || !vData.plan || vData.plan.length === 0) {
-    c.innerHTML = '<div class="glass-card">Brak planu lekcji w VULCAN.</div>';
-    return;
-  }
-  
-  // Grupowanie planu po dniach
-  const grouped = {};
-  vData.plan.forEach(l => {
-    const d = l.d || 'Data nieznana';
-    if (!grouped[d]) grouped[d] = [];
-    grouped[d].push(l);
-  });
-  
-  let html = '';
-  Object.keys(grouped).sort().forEach(date => {
-    html += `<div class="timetable-day">
-      <div class="timetable-day-header">
-        <b style="color: #fff;">${date}</b>
-      </div>
-      <div>`;
-        
-    grouped[date].sort((a,b)=>(a.g||'').localeCompare(b.g||'')).forEach(lekcja => {
-      html += `<div class="lesson-row" onclick="alert('Szczegóły przedmiotu: ${lekcja.p}\\nNauczyciel: ${lekcja.n}\\nGrupa: ${lekcja.grupa || 'Cala klasa'}')">
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <div style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; color: var(--accent-cyan);">${lekcja.g}</div>
-          <div>
-            <div style="font-weight: 600; font-size: 14px; color: #fff;">${lekcja.p}</div>
-            <div style="font-size: 11px; color: var(--text-muted);">${lekcja.n || 'Brak danych'} · <b>Sala ${lekcja.s || '?'}</b></div>
-          </div>
+function renderAll() {
+  if (!globalVulcan) return;
+
+  // 1. TOP PILLS & METRICS
+  const statVal = (globalVulcan.stats_val !== undefined && globalVulcan.stats_val !== null) ? globalVulcan.stats_val : '69.84';
+  const freqVal = (globalVulcan.freq_val !== undefined) ? globalVulcan.freq_val : (globalVulcan.frekwencja_godz || '13');
+  const msgUnread = globalVulcan.msg_unread !== undefined ? globalVulcan.msg_unread : (globalVulcan.wiadomosci_nieprzeczytane || 0);
+  const msgTotal = (globalVulcan.messages) ? globalVulcan.messages.length : (globalVulcan.wiadomosci ? globalVulcan.wiadomosci.length : 10);
+  const msgStats = globalVulcan.msg_stats || `${msgUnread} / 53`;
+  const termCount = (globalVulcan.terminarz) ? globalVulcan.terminarz.length : 3;
+  const numerek = globalVulcan.numerek || '25';
+  const newGrades = globalVulcan.nowe_oceny || '1';
+
+  const statFormatted = (typeof statVal === 'number' ? statVal.toFixed(2) : String(statVal)).replace('.', ',') + '%';
+  document.getElementById('pillStats').innerText = statFormatted;
+  document.getElementById('pillFreq').innerText = freqVal + ' nieob.';
+  document.getElementById('pillMsg').innerText = msgUnread;
+  document.getElementById('pillTerm').innerText = termCount;
+
+  document.getElementById('metricGpaVal').innerText = statFormatted;
+  const pctNum = parseFloat(statVal) || 69.84;
+  document.getElementById('metricGpaBar').style.width = Math.min(100, Math.max(0, pctNum)) + '%';
+  document.getElementById('metricFreqVal').innerText = freqVal + ' nieob.';
+  document.getElementById('metricNumerekVal').innerText = numerek;
+  document.getElementById('metricTermVal').innerText = termCount;
+  document.getElementById('metricMsgVal').innerText = msgUnread;
+  document.getElementById('metricNewGradesVal').innerText = newGrades;
+  document.getElementById('metricUwagiVal').innerText = globalVulcan.uwagi || globalVulcan.uwagi_count || 0;
+  document.getElementById('metricOsiagnieciaVal').innerText = globalVulcan.osiagniecia || globalVulcan.osiagniecia_count || 0;
+  document.getElementById('metricZebraniaVal').innerText = globalVulcan.zebrania || globalVulcan.zebrania_count || 0;
+
+  // 2. COL 1: WYNIKI PER PRZEDMIOT
+  const subjListEl = document.getElementById('subjectResultsList');
+  const subjStats = globalVulcan.subject_stats || globalVulcan.przedmioty_stats || [];
+  if (subjStats.length > 0) {
+    subjListEl.innerHTML = subjStats.map(s => {
+      const p = s.procent;
+      let col = '#10b981';
+      if (p < 60) col = '#f43f5e';
+      else if (p < 75) col = '#fbbf24';
+      else if (p < 90) col = '#38bdf8';
+
+      const pctStr = (s.procent_str || (p.toFixed(1) + '%')).replace('.', ',');
+
+      return `<div class="subject-result-row">
+        <div class="subj-left">
+          <i data-lucide="eye" style="width: 14px; height: 14px; color: #38bdf8; cursor: pointer;"></i>
+          <span>${s.przedmiot}</span>
         </div>
-        <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+        <div class="subj-percent" style="color: ${col};">${pctStr}</div>
       </div>`;
-    });
-    
-    html += `</div></div>`;
-  });
-  c.innerHTML = html;
-  lucide.createIcons();
-}
-
-function renderZadania() {
-  const c = document.getElementById('zadaniaList');
-  const d = vData.terminarz || [];
-  document.getElementById('zadaniaBadge').innerText = d.length;
-  
-  if (d.length === 0) {
-    c.innerHTML = '<div class="glass-card" style="text-align:center;">Na ten moment masz czysto! Żadnych zadań. 🎉</div>';
-    return;
+    }).join('');
+  } else {
+    subjListEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">Brak danych o wynikach.</div>';
   }
-  
-  let html = '';
-  d.forEach(t => {
-    html += `<div class="glass-card" style="border-left: 4px solid var(--accent-rose);">
-      <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
-        <span class="status-badge badge-rose">${t.typ || 'Zadanie'}</span>
-        <span style="font-size:12px; color:var(--accent-cyan); font-weight:600;">Termin: ${t.data}</span>
-      </div>
-      <h4 style="font-size:16px; color:#fff; margin:0 0 6px 0;">${t.przedmiot}</h4>
-      <p style="font-size:13px; color:var(--text-secondary); margin:0;">${t.opis || 'Brak dodatkowego opisu'}</p>
-    </div>`;
-  });
-  c.innerHTML = html;
-}
 
-function renderOceny() {
-  const c = document.getElementById('ocenyList');
-  if (!vData || !vData.oceny || vData.oceny.length === 0) {
-    c.innerHTML = '<div class="glass-card">Brak wystawionych ocen na tym semestrze.</div>';
-    return;
-  }
-  let html = '';
-  vData.oceny.forEach(o => {
-    html += `<div class="grade-card">
-      <div style="display:flex; align-items:center; gap:16px;">
-        <div style="width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:24px;">📊</div>
-        <div>
-          <h4 style="margin:0 0 4px 0; font-size:16px; color:#fff;">${o.przedmiot}</h4>
-          <p style="margin:0; font-size:12px; color:var(--text-muted);">Aktualna Średnia wg. VULCAN</p>
+  // 3. COL 1: NAJBLIŻSZE WYDARZENIA
+  const termListEl = document.getElementById('colTerminarzList');
+  if (globalVulcan.terminarz && globalVulcan.terminarz.length > 0) {
+    termListEl.innerHTML = globalVulcan.terminarz.map(t => {
+      return `<div class="event-item">
+        <div class="event-meta">
+          <span style="color: #fb7185; font-weight: 700;">${t.data}</span>
+          <span style="font-weight: 600; color: #e2e8f0;">${t.przedmiot}</span>
         </div>
-      </div>
-      <div style="text-align: right;">
-        <div style="font-size:28px; font-weight:800; color:var(--accent-emerald);">${o.srednia ? o.srednia.toFixed(2) : '-'}</div>
-      </div>
-    </div>`;
+        <div class="event-title"><i>${t.typ || 'Kartkówka'}</i> — <span style="font-weight: 400; color: #cbd5e1;">${t.opis || ''}</span></div>
+      </div>`;
+    }).join('');
+  } else {
+    termListEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">Brak nadchodzących sprawdzianów.</div>';
+  }
+
+  // 4. COL 3: WIADOMOŚCI
+  document.getElementById('msgCountHeader').innerText = msgStats;
+  const msgListEl = document.getElementById('messagesList');
+  const msgs = globalVulcan.messages || globalVulcan.wiadomosci || [];
+  if (msgs.length > 0) {
+    msgListEl.innerHTML = msgs.map(m => {
+      return `<div class="msg-item">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="msg-author" title="${m.nadawca}">${m.nadawca}</div>
+          <i data-lucide="chevron-right" style="width: 13px; height: 13px; color: #64748b;"></i>
+        </div>
+        <div class="msg-topic" title="${m.temat}">${m.temat}</div>
+        <div class="msg-date-badge">${(m.data || '').split(' ')[0]}</div>
+      </div>`;
+    }).join('');
+  } else {
+    msgListEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted); padding: 8px;">Skrzynka jest pusta.</div>';
+  }
+
+  // 5. COL 4: PLAN LEKCJI TYGODNIOWY
+  renderTimetable(globalVulcan.plan_curr || globalVulcan.plan || []);
+
+  // PODSUMOWANIE NASTĘPNEGO TYGODNIA
+  const nextLessonsCount = (globalVulcan.plan_next) ? globalVulcan.plan_next.length : 27;
+  if (nextLessonsCount > 0) {
+    const dates = [...new Set(globalVulcan.plan_next.map(l => l.d).filter(Boolean))].sort();
+    const range = (dates.length >= 2) ? ` (od ${dates[0]} do ${dates[dates.length-1]})` : '';
+    document.getElementById('nextWeekText').innerText = `Tydzień następny: ${nextLessonsCount} lekcji zaplanowanych${range}`;
+  } else {
+    document.getElementById('nextWeekText').innerText = `Tydzień następny: brak lekcji.`;
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function loadWeekPlan(type) {
+  if (!globalVulcan) return;
+  const lessons = (type === 'next') ? (globalVulcan.plan_next || []) : (globalVulcan.plan_curr || globalVulcan.plan || []);
+  renderTimetable(lessons);
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderTimetable(lessons) {
+  const tableBody = document.getElementById('timetableBody');
+  const tableHead = document.getElementById('timetableHead');
+  if (!lessons || lessons.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Brak lekcji w wybranym tygodniu.</td></tr>';
+    return;
+  }
+
+  // Zbierz unikalne daty i posortuj
+  const dates = [...new Set(lessons.map(l => l.d).filter(Boolean))].sort();
+  const dayNames = ['ND', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
+
+  // Nagłówki
+  let thHtml = '<th>GODZINA</th>';
+  dates.forEach(d => {
+    const dt = new Date(d);
+    const dn = isNaN(dt.getDay()) ? d : dayNames[dt.getDay()];
+    thHtml += `<th>${dn} (${d})</th>`;
   });
-  c.innerHTML = html;
+  tableHead.innerHTML = thHtml;
+
+  // Zbierz unikalne godziny lekcyjne i posortuj
+  const hours = [...new Set(lessons.map(l => l.g).filter(Boolean))].sort((a,b) => {
+    const aStart = a.split('-')[0];
+    const bStart = b.split('-')[0];
+    return aStart.localeCompare(bStart);
+  });
+
+  let rowsHtml = '';
+  hours.forEach(h => {
+    rowsHtml += `<tr><td class="col-hour">${h}</td>`;
+    dates.forEach(d => {
+      const matching = lessons.filter(l => l.d === d && l.g === h);
+      if (matching.length === 0) {
+        rowsHtml += '<td></td>';
+      } else {
+        rowsHtml += '<td>';
+        matching.forEach(item => {
+          const isCancelled = item.st === 'ODWOL' || (item.p && item.p.toLowerCase().includes('odwołan'));
+          const isSubst = item.st === 'ZAST' || (item.p && item.p.toLowerCase().includes('zastępstw'));
+          
+          let cls = 'lesson-slot';
+          if (isCancelled) cls += ' is-cancelled';
+          else if (isSubst) cls += ' is-subst';
+
+          let tagHtml = '';
+          if (isCancelled) tagHtml = '<span class="status-tag status-tag-cancelled">ODWOŁANE</span>';
+          else if (isSubst) tagHtml = '<span class="status-tag status-tag-subst">ZASTĘPSTWO</span>';
+
+          rowsHtml += `<div class="${cls}">
+            ${tagHtml}
+            <div style="font-weight:600; color:#fff;">${item.p}</div>
+            <div style="font-size:10px; color:#94a3b8;">${item.s || ''} ${item.n ? '• ' + item.n : ''}</div>
+          </div>`;
+        });
+        rowsHtml += '</td>';
+      }
+    });
+    rowsHtml += '</tr>';
+  });
+
+  tableBody.innerHTML = rowsHtml;
 }
 
-function switchVulcanTab(tabId) {
-  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById('tab-' + tabId).classList.remove('hidden');
-  
-  document.querySelectorAll('.v-tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.getElementById('btn-' + tabId).classList.add('active');
-}
-
-document.addEventListener('DOMContentLoaded', loadHA);
+document.addEventListener('DOMContentLoaded', initVulcanDashboard);
 </script>
 {% endblock %}

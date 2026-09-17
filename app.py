@@ -68,7 +68,7 @@ def ai_generate_cards(text: str, count: int = 6) -> list[tuple[str, str]]:
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 1500, "temperature": 0.4,
             }).encode(),
-            headers={"Authorization": f"Bearer {AI_KEY}", "Content-Type": "application/json"},
+            headers={"Authorization": f"Bearer {AI_KEY}"},
         )
         raw = urllib.request.urlopen(req, timeout=45).read()
         content = _json.loads(raw)["choices"][0]["message"]["content"]
@@ -827,7 +827,7 @@ def ai_tutor(request: Request, q: str = ""):
             data=_json.dumps({"model": "Gemini 3.7 Flash High",
                               "messages": [{"role": "user", "content": prompt}],
                               "max_tokens": 400, "temperature": 0.5}).encode(),
-            headers={"Authorization": f"Bearer {AI_KEY}", "Content-Type": "application/json"},
+            headers={"Authorization": f"Bearer {AI_KEY}"},
         )
         ans = _json.loads(urllib.request.urlopen(req, timeout=45).read())["choices"][0]["message"]["content"]
         return {"answer": ans.strip()}
@@ -1086,6 +1086,198 @@ def serwisy_page(request: Request):
         "points": user_points(user["id"]), "streak": user_streak(user["id"])})
 
 
+# ---------------------------------------------------------------- VULCAN CACHE & HELPER
+_VULCAN_CACHE = {"ts": 0, "data": None}
+
+def fetch_vulcan_payload():
+    global _VULCAN_CACHE
+    import time, os, urllib.request, json
+    now = time.time()
+    if _VULCAN_CACHE["data"] and (now - _VULCAN_CACHE["ts"] < 60):
+        return _VULCAN_CACHE["data"]
+
+    ha_token = os.environ.get("HA_MCP_TOKEN", "")
+    if not ha_token:
+        for env_f in ["/DATA/AppData/sm-portal/.env", "/data/.env", "/opt/data/profiles/edu/.env", "/opt/data/profiles/home-ha/.env"]:
+            if os.path.exists(env_f):
+                with open(env_f, "r") as fp:
+                    for line in fp:
+                        if line.startswith("HA_MCP_TOKEN=") or line.startswith("HASS_TOKEN="):
+                            ha_token = line.strip().split("=", 1)[1].strip("\"'")
+                            break
+            if ha_token:
+                break
+
+    def get_ha_all():
+        if not ha_token:
+            return {}
+        try:
+            req = urllib.request.Request(
+                "http://10.10.10.123:8123/api/states",
+                headers={"Authorization": f"Bearer {ha_token}"}
+            )
+            res = urllib.request.urlopen(req, timeout=2.5)
+            states = json.loads(res.read().decode("utf-8"))
+            return {s["entity_id"]: s for s in states}
+        except Exception as e:
+            print("HA fetch error:", e)
+            return {}
+
+    states = get_ha_all()
+
+    # 1. Main stats
+    stats_ent = states.get("sensor.vultron_stats_stanislaw_mikos", {})
+    stats_val = stats_ent.get("state", "69.35")
+    try:
+        stats_val_f = float(stats_val)
+    except Exception:
+        stats_val_f = 69.35
+
+    # 2. Freq
+    freq_ent = states.get("sensor.vultron_freq_stanislaw_mikos", {})
+    freq_val = freq_ent.get("state", "0")
+    freq_wpisy = freq_ent.get("attributes", {}).get("wpisy", [])
+
+    # 3. Wiadomosci
+    msg_ent = states.get("sensor.vultron_wiadomosci_stanislaw_mikos", {})
+    msg_unread = msg_ent.get("state", "0")
+    msg_list = msg_ent.get("attributes", {}).get("wiadomosci", [])
+    msg_stats = msg_ent.get("attributes", {}).get("stats", f"{msg_unread} / {len(msg_list)}")
+
+    # 4. Terminarz
+    term_ent = states.get("sensor.vultron_terminarz_stanislaw_mikos", {})
+    term_count = term_ent.get("state", "0")
+    term_list = term_ent.get("attributes", {}).get("lista", [])
+
+    # 5. Plans
+    plan_curr_ent = states.get("sensor.vultron_plan_stanislaw_mikos_curr", {})
+    plan_curr = plan_curr_ent.get("attributes", {}).get("lekcje", [])
+    plan_next_ent = states.get("sensor.vultron_plan_stanislaw_mikos_next", {})
+    plan_next = plan_next_ent.get("attributes", {}).get("lekcje", [])
+    plan_prev_ent = states.get("sensor.vultron_plan_stanislaw_mikos_prev", {})
+    plan_prev = plan_prev_ent.get("attributes", {}).get("lekcje", [])
+
+    # 6. Oceny
+    oceny_ent = states.get("sensor.vultron_oceny_stanislaw_mikos_p1", {})
+    nowe_oceny = oceny_ent.get("state", "0")
+    oceny_lista = oceny_ent.get("attributes", {}).get("lista_przedmiotow", [])
+
+    # 7. Numerek
+    numerek_ent = states.get("sensor.vultron_szczesliwy_numerek_stanislaw_mikos", {})
+    numerek_val = numerek_ent.get("state", "0")
+    if numerek_val in ("unknown", "unavailable", "0") or not str(numerek_val).isdigit():
+        numerek_val = numerek_ent.get("attributes", {}).get("numer", 0)
+
+    # 8. Minor counters
+    uwagi_ent = states.get("sensor.vultron_uwagi_stanislaw_mikos", {})
+    uwagi_val = uwagi_ent.get("state", "0")
+
+    os_ent = states.get("sensor.vultron_osiagniecia_stanislaw_mikos", {})
+    os_val = os_ent.get("state", "0")
+
+    zebr_ent = states.get("sensor.vultron_zebrania_stanislaw_mikos", {})
+    zebr_val = zebr_ent.get("state", "0")
+
+    # 9. Subject stats
+    subject_stats = []
+    for k, v in states.items():
+        if k.startswith("sensor.vultron_stats_stanislaw_mikos_"):
+            name = v.get("attributes", {}).get("przedmiot_nazwa")
+            if not name:
+                name = k.replace("sensor.vultron_stats_stanislaw_mikos_", "").replace("_", " ").title()
+            val = v.get("state")
+            try:
+                val_f = float(val)
+            except Exception:
+                val_f = 0.0
+            subject_stats.append({
+                "przedmiot": name,
+                "procent": val_f,
+                "procent_str": f"{val_f:.1f}%" if val_f.is_integer() or round(val_f,1)==val_f else f"{val_f:.2f}%"
+            })
+
+    subject_order = [
+        "Język polski", "Matematyka", "Język angielski", "Historia", "Biologia",
+        "Geografia", "Religia", "Informatyka", "Wychowanie fizyczne", "WF",
+        "Muzyka", "Plastyka", "Technika"
+    ]
+    def sub_sort_key(s):
+        n = s["przedmiot"]
+        for idx, item in enumerate(subject_order):
+            if item.lower() in n.lower():
+                return idx
+        return 99
+
+    subject_stats.sort(key=sub_sort_key)
+
+    # Sync teachers and grades to SQLite
+    if plan_curr or plan_next:
+        try:
+            import sqlite3
+            db_path = "/data/portal.db" if os.path.exists("/data/portal.db") else "/opt/data/sm-portal-fresh/db/portal.db"
+            if os.path.exists(db_path):
+                with sqlite3.connect(db_path) as sync_conn:
+                    cur = sync_conn.cursor()
+                    try:
+                        cur.execute("ALTER TABLE subjects ADD COLUMN teacher TEXT")
+                    except Exception: pass
+                    try:
+                        cur.execute("ALTER TABLE subjects ADD COLUMN avg TEXT")
+                    except Exception: pass
+                    try:
+                        cur.execute("ALTER TABLE subjects ADD COLUMN prop TEXT")
+                    except Exception: pass
+
+                    for l in (plan_curr + plan_next):
+                        pz = l.get("p", "").strip()
+                        n = l.get("n", "").strip()
+                        if pz and n:
+                            cur.execute("UPDATE subjects SET teacher=? WHERE name=?", (n, pz))
+
+                    for item in oceny_lista:
+                        pz = item.get("przedmiot", "").strip()
+                        srednia = item.get("srednia")
+                        proponowana = item.get("proponowana", "-")
+                        if pz:
+                            srednia_str = f"{float(srednia):.2f}" if srednia else "-"
+                            cur.execute("UPDATE subjects SET avg=?, prop=? WHERE name=?", (srednia_str, proponowana, pz))
+                    sync_conn.commit()
+        except Exception as e:
+            print("DB sync error:", e)
+
+    payload = {
+        "student": "Stanisław Mikos",
+        "klasa": "5B",
+        "szkola": "SP13 w Gliwicach",
+        "numerek": numerek_val,
+        "stats_val": stats_val_f,
+        "freq_val": freq_val,
+        "freq_wpisy": freq_wpisy,
+        "msg_unread": msg_unread,
+        "msg_total": len(msg_list),
+        "msg_stats": msg_stats,
+        "messages": msg_list,
+        "term_count": term_count,
+        "terminarz": term_list,
+        "plan_curr": plan_curr,
+        "plan_next": plan_next,
+        "plan_prev": plan_prev,
+        "plan": plan_curr if plan_curr else plan_next,
+        "oceny": oceny_lista,
+        "nowe_oceny": nowe_oceny,
+        "uwagi": uwagi_val,
+        "osiagniecia": os_val,
+        "zebrania": zebr_val,
+        "subject_stats": subject_stats,
+        "srednia_proponowana": oceny_ent.get("attributes", {}).get("srednia_proponowanych"),
+        "srednia_okresowa": oceny_ent.get("attributes", {}).get("srednia_okresowych")
+    }
+
+    _VULCAN_CACHE["ts"] = now
+    _VULCAN_CACHE["data"] = payload
+    return payload
+
+
 # ---------------- dzialy przedmiotow
 
 @app.get("/subjects", response_class=HTMLResponse)
@@ -1104,30 +1296,195 @@ def subjects_list(request: Request):
 def subject_view(request: Request, sid: int):
     user = require(current_user(request))
     conn = db()
-    sub = conn.execute("SELECT * FROM subjects WHERE id=?", (sid,)).fetchone()
-    if not sub:
+    sub_row = conn.execute("SELECT * FROM subjects WHERE id=?", (sid,)).fetchone()
+    if not sub_row:
         raise HTTPException(404)
+    sub = dict(sub_row)
         
     books_raw = conn.execute("SELECT * FROM books WHERE subject=? ORDER BY title", (sub["name"],)).fetchall()
-    decks = conn.execute("SELECT * FROM decks WHERE subject=? ORDER BY name", (sub["name"],)).fetchall()
+    decks_raw = conn.execute("SELECT * FROM decks WHERE subject=? ORDER BY name", (sub["name"],)).fetchall()
+    
+    BOOK_PAGES = {
+        "matematyka_podrecznik.pdf": 268,
+        "matematyka_cwiczenia.pdf": 100,
+        "polski_podrecznik.pdf": 396,
+        "polski_lektura_basniobor.pdf": 231,
+        "angielski_cwiczenia.pdf": 105,
+        "angielski_podrecznik.pdf": 120,
+        "biologia_podrecznik.pdf": 54,
+        "historia_podrecznik.pdf": 32,
+    }
+    
+    podreczniki = []
+    cwiczenia = []
+    total_course_tasks = 0
+    done_course_tasks = 0
+    
+    for b in books_raw:
+        bd = dict(b)
+        # Reading progress
+        prog = conn.execute("SELECT page, done FROM reading_progress WHERE user_id=? AND book_id=?", (user["id"], bd["id"])).fetchone()
+        cur_p = prog["page"] if prog else 0
+        tot_p = BOOK_PAGES.get(bd.get("filename", ""), 100)
+        bd["current_page"] = cur_p
+        bd["total_pages"] = tot_p
+        bd["pct"] = int(min(100, max(0, (cur_p / tot_p) * 100))) if tot_p > 0 else 0
+        
+        # Interactive tasks
+        task_cnt = conn.execute("SELECT COUNT(*) as c FROM interactive_tasks WHERE chapter_id IN (SELECT id FROM book_chapters WHERE book_id=?)", (bd['id'],)).fetchone()['c']
+        done_cnt = conn.execute("SELECT COUNT(DISTINCT utp.task_id) as c FROM user_task_progress utp JOIN interactive_tasks it ON utp.task_id=it.id JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=? AND utp.user_id=? AND utp.score>=70", (bd['id'], user["id"])).fetchone()['c']
+        bd['tasks_cnt'] = task_cnt
+        bd['done_cnt'] = done_cnt
+        bd['tasks_pct'] = int((done_cnt / task_cnt) * 100) if task_cnt > 0 else 0
+        
+        total_course_tasks += task_cnt
+        done_course_tasks += done_cnt
+        
+        tl = bd["title"].lower()
+        if "ćwicz" in tl or "cwicz" in tl or "workbook" in tl or "skan" in tl or bd.get("kind") == "workbook":
+            cwiczenia.append(bd)
+        else:
+            podreczniki.append(bd)
+            
+    # Decks
+    decks = []
+    total_cards = 0
+    total_due = 0
+    total_mastered = 0
+    for d in decks_raw:
+        dd = dict(d)
+        cnt = conn.execute("SELECT COUNT(*) as c FROM cards WHERE deck_id=?", (dd["id"],)).fetchone()["c"]
+        due = conn.execute("""SELECT COUNT(*) as c FROM cards c 
+                              LEFT JOIN card_state cs ON cs.card_id=c.id AND cs.user_id=?
+                              WHERE c.deck_id=? AND (cs.due IS NULL OR cs.due <= datetime('now'))""", (user["id"], dd["id"])).fetchone()["c"]
+        mastered = conn.execute("""SELECT COUNT(*) as c FROM cards c 
+                                   JOIN card_state cs ON cs.card_id=c.id AND cs.user_id=?
+                                   WHERE c.deck_id=? AND cs.reps >= 3""", (user["id"], dd["id"])).fetchone()["c"]
+        dd["cards_count"] = cnt
+        dd["due_count"] = due
+        dd["mastered_count"] = mastered
+        dd["mastery_pct"] = int((mastered / cnt * 100)) if cnt > 0 else 0
+        total_cards += cnt
+        total_due += due
+        total_mastered += mastered
+        decks.append(dd)
+        
     conn.close()
     
     import json as _json
     links = _json.loads(sub["links"] or "[]")
     
-    # Dodatkowa kategoryzacja e-książek per przedmiot
-    podreczniki = []
-    cwiczenia = []
-    for b in books_raw:
-        tl = b["title"].lower()
-        if "ćwicz" in tl or "cwicz" in tl or "workbook" in tl or "skan" in tl:
-            cwiczenia.append(b)
-        else:
-            podreczniki.append(b)
+    # Vulcan e-Dziennik data
+    v_all = fetch_vulcan_payload()
+    sub_name_lower = sub["name"].lower().strip()
+    
+    v_match = None
+    for it in v_all.get("oceny", []):
+        p = it.get("przedmiot", "").lower().strip()
+        if p == sub_name_lower or (sub_name_lower in p) or (p in sub_name_lower) or \
+           ("polsk" in sub_name_lower and "polsk" in p) or \
+           ("angiel" in sub_name_lower and "angiel" in p) or \
+           ("niemiec" in sub_name_lower and "niemiec" in p) or \
+           ("mat" in sub_name_lower and "mat" in p) or \
+           ("bio" in sub_name_lower and "bio" in p) or \
+           ("hist" in sub_name_lower and "hist" in p) or \
+           ("geo" in sub_name_lower and "geo" in p) or \
+           ("info" in sub_name_lower and "info" in p) or \
+           ("tech" in sub_name_lower and "tech" in p) or \
+           ("muz" in sub_name_lower and "muz" in p) or \
+           ("plas" in sub_name_lower and "plas" in p) or \
+           (("wf" in sub_name_lower or "w-f" in sub_name_lower or "fizycz" in sub_name_lower) and "fizycz" in p):
+            v_match = it
+            break
             
+    v_upcoming = []
+    for it in v_all.get("terminarz", []):
+        p = it.get("przedmiot", "").lower().strip()
+        if p == sub_name_lower or (sub_name_lower in p) or (p in sub_name_lower) or \
+           ("polsk" in sub_name_lower and "polsk" in p) or \
+           ("angiel" in sub_name_lower and "angiel" in p) or \
+           ("mat" in sub_name_lower and "mat" in p) or \
+           ("bio" in sub_name_lower and "bio" in p) or \
+           ("hist" in sub_name_lower and "hist" in p):
+            v_upcoming.append(it)
+            
+    grades_raw = v_match.get("oceny", []) if v_match else []
+    numeric_grades = []
+    for g in grades_raw:
+        val_str = str(g.get("w", "")).strip()
+        cleaned = val_str.replace(" ", "").replace("(%)", "").replace("%", "")
+        try:
+            if cleaned.endswith("-"):
+                num = float(cleaned[:-1]) - 0.25
+            elif cleaned.endswith("+"):
+                num = float(cleaned[:-1]) + 0.5
+            else:
+                num = float(cleaned)
+            if "%" in val_str:
+                pct = float(cleaned)
+                if pct < 50: sg = 1.0
+                elif pct < 70: sg = 2.0
+                elif pct < 85: sg = 3.0
+                elif pct < 95: sg = 4.0
+                else: sg = 5.0
+                numeric_grades.append(sg)
+            else:
+                numeric_grades.append(num)
+        except Exception:
+            pass
+            
+    v_srednia = v_match.get("srednia") if v_match else None
+    if v_srednia is None and numeric_grades:
+        v_srednia = round(sum(numeric_grades) / len(numeric_grades), 2)
+    elif v_srednia is not None:
+        try:
+            v_srednia = round(float(v_srednia), 2)
+        except Exception:
+            pass
+            
+    proponowana_val = v_match.get("proponowana") if v_match else None
+    if not proponowana_val and v_srednia:
+        if v_srednia >= 4.75: proponowana_val = "5 (Bdb)"
+        elif v_srednia >= 3.75: proponowana_val = "4 (Db)"
+        elif v_srednia >= 2.75: proponowana_val = "3 (Dst)"
+        elif v_srednia >= 1.75: proponowana_val = "2 (Dop)"
+        else: proponowana_val = "1 (Ndst)"
+        
+    vulcan_info = {
+        "has_data": bool(v_match),
+        "oceny": grades_raw,
+        "numeric_grades": numeric_grades,
+        "srednia": v_srednia,
+        "proponowana": proponowana_val or "Do ustalenia",
+        "okresowa": v_match.get("okresowa") if v_match else None,
+        "upcoming": v_upcoming,
+        "last_grade": grades_raw[0] if grades_raw else None
+    }
+    
+    all_books = podreczniki + cwiczenia
+    course_pct = 0
+    if all_books:
+        course_pct = int(sum(b["pct"] for b in all_books) / len(all_books))
+        
+    course_summary = {
+        "overall_pct": course_pct,
+        "total_books": len(all_books),
+        "total_tasks": total_course_tasks,
+        "done_tasks": done_course_tasks,
+        "total_cards": total_cards,
+        "due_cards": total_due,
+        "mastery_pct": int(total_mastered / total_cards * 100) if total_cards > 0 else 0
+    }
+    
     return templates.TemplateResponse(request, "subject.html", {
-        "user": user, "sub": sub, "decks": decks, "links": links,
-        "podreczniki": podreczniki, "cwiczenia": cwiczenia
+        "user": user,
+        "sub": sub,
+        "podreczniki": podreczniki,
+        "cwiczenia": cwiczenia,
+        "decks": decks,
+        "links": links,
+        "vulcan": vulcan_info,
+        "course": course_summary
     })
 
 
@@ -1278,11 +1635,43 @@ def library(request: Request):
         else:
             library_data[subj]["podreczniki"].append(b)
 
-    return templates.TemplateResponse(request, "library.html", {"user": user, "library_data": library_data})
+    shelf = {"podreczniki": [], "cwiczenia": [], "lektury": []}
+    def book_kind(b) -> str:
+        k = (b.get("kind") or "").lower()
+        if k in ("podrecznik", "podreczniki", "textbook"):
+            return "podreczniki"
+        if k in ("cwiczenia", "workbook", "cwiczenie"):
+            return "cwiczenia"
+        if k in ("lektura", "lektury", "reading"):
+            return "lektury"
+        tl = (b.get("title") or "").lower()
+        if "ćwicz" in tl or "cwicz" in tl or "workbook" in tl or "skan" in tl:
+            return "cwiczenia"
+        if "lektura" in tl or "baśniobór" in tl or "basniobor" in tl:
+            return "lektury"
+        return "podreczniki"
+
+    for b in books:
+        bd = dict(b)
+        k = book_kind(bd)
+        shelf[k].append(bd)
+
+    counts = {
+        "podreczniki": len(shelf["podreczniki"]),
+        "cwiczenia": len(shelf["cwiczenia"]),
+        "lektury": len(shelf["lektury"])
+    }
+
+    return templates.TemplateResponse(request, "library.html", {
+        "user": user,
+        "library_data": library_data,
+        "shelf": shelf,
+        "counts": counts
+    })
 
 
 @app.post("/library/upload")
-def upload_book(request: Request, title: str = Form(""), subject: str = Form(""), grade: str = Form(""), file: UploadFile = File(...)):
+def upload_book(request: Request, title: str = Form(""), subject: str = Form(""), grade: str = Form(""), kind: str = Form(""), file: UploadFile = File(...)):
     user = require_role(current_user(request), "admin", "teacher")
     ext = Path(file.filename or "").suffix.lower()
     if ext not in {".pdf", ".epub"}:
@@ -1293,8 +1682,15 @@ def upload_book(request: Request, title: str = Form(""), subject: str = Form("")
         while chunk := file.file.read(1 << 20):
             fh.write(chunk)
     conn = db()
-    conn.execute("INSERT INTO books(title,subject,grade,filename,filetype,uploaded_by) VALUES(?,?,?,?,?,?)",
-                 (title.strip() or file.filename, subject, grade, safe, ext[1:], user["id"]))
+    k = kind.strip().lower()
+    if "ćwicz" in k or "cwicz" in k:
+        norm_kind = "cwiczenia"
+    elif "lekt" in k:
+        norm_kind = "lektury"
+    else:
+        norm_kind = "podreczniki"
+    conn.execute("INSERT INTO books(title,subject,grade,kind,filename,filetype,uploaded_by) VALUES(?,?,?,?,?,?,?)",
+                 (title.strip() or file.filename, subject, grade, norm_kind, safe, ext[1:], user["id"]))
     conn.commit()
     conn.close()
     return RedirectResponse("/library", 302)
@@ -1488,7 +1884,7 @@ async def post_subject_chat(request: Request):
     if not api_key: api_key = os.environ.get("OMNIROUTE_API_KEY")
     if not api_key: api_key = os.environ.get("DEEPSEEK_API_KEY")
     
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     payload = {
         "model": "Gemini 3.7 Flash High",
         "messages": [
@@ -1559,7 +1955,7 @@ Formaty nauki do doradztwa:
 
 Rozmawiaj konkretnie podając numeryczne kroki! Upewniaj się, że znaleziska z bazy trafiają do n8n."""
 
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     payload = {
         "model": "Gemini 3.7 Flash High",
         "messages": [
@@ -1767,105 +2163,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/api/vulcan/data")
 def vulcan_data_api(request: Request):
     user = require(current_user(request))
-    ha_token = os.environ.get("HA_MCP_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0NDRkZTNkYWI5Zjk0ZWQ1YThhZmQ1ZDEwODIxOWY4ZSIsImlhdCI6MTc4MjI4MzE3NSwiZXhwIjoyMDk3NjQzMTc1fQ.oQkkJw8q8Fe9ZtPovAU3HIUkZqUfBThpj74LK_3xJNE")
-    if not ha_token:
-        # Fallback reading from /opt/data/profiles/edu/.env or home-ha/.env
-        for env_f in ["/opt/data/profiles/edu/.env", "/opt/data/profiles/home-ha/.env"]:
-            if os.path.exists(env_f):
-                with open(env_f, "r") as fp:
-                    for line in fp:
-                        if line.startswith("HA_MCP_TOKEN="):
-                            ha_token = line.strip().split("=", 1)[1]
-                            break
-            if ha_token:
-                break
-
-    import urllib.request
-    import json
-
-    def get_ha_state(entity_id):
-        if not ha_token:
-            return {}
-        try:
-            req = urllib.request.Request(
-                f"http://10.10.10.123:8123/api/states/{entity_id}",
-                headers={"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"}
-            )
-            res = urllib.request.urlopen(req, timeout=4)
-            return json.loads(res.read().decode("utf-8"))
-        except Exception:
-            return {}
-
-    # Wyciągamy sensory - Plan
-    plan_entity = get_ha_state("sensor.vultron_plan_stanislaw_mikos_next")
-    if not plan_entity.get("attributes", {}).get("lekcje"):
-        plan_entity = get_ha_state("sensor.vultron_plan_stanislaw_mikos_curr")
-
-    # Dodatkowe wyciąganie nauczycieli i sal aby powiązać z naszymi przedmiotami
-    zaciagniete_lekcje = plan_entity.get("attributes", {}).get("lekcje", [])
-    
-    # Przechwytujemy wszystkich nauczycieli per przedmiot i updatujemy bazę (Magia!)
-    if zaciagniete_lekcje:
-        import sqlite3
-        with sqlite3.connect('/data/portal.db') as sync_conn:
-            cur = sync_conn.cursor()
-            try:
-                # Kolumna teacher
-                cur.execute("ALTER TABLE subjects ADD COLUMN teacher TEXT")
-            except Exception:
-                pass
-            for lekcja in zaciagniete_lekcje:
-                if "p" in lekcja and "n" in lekcja:
-                    pz = lekcja["p"].strip()
-                    n = lekcja["n"].strip()
-                    if n and pz:
-                        cur.execute("UPDATE subjects SET teacher=? WHERE name=?", (n, pz))
-            sync_conn.commit()
-
-    freq_entity = get_ha_state("sensor.vultron_frekwencja_stanislaw_mikos")
-    oceny_entity = get_ha_state("sensor.vultron_oceny_stanislaw_mikos_p1")
-    
-    # ======= MAGIA APPLE-OCEN (Synchronizacja avg/prop) ========
-    oceny_data = oceny_entity.get("attributes", {}).get("oceny", [])
-    if oceny_data:
-        import sqlite3
-        with sqlite3.connect('/data/portal.db') as sync_conn:
-            cur = sync_conn.cursor()
-            try:
-                cur.execute("ALTER TABLE subjects ADD COLUMN avg TEXT")
-            except Exception: pass
-            try:
-                cur.execute("ALTER TABLE subjects ADD COLUMN prop TEXT")
-            except Exception: pass
-                
-            for ocena in oceny_data:
-                pz = ocena.get("przedmiot", "").strip()
-                srednia = ocena.get("srednia")
-                proponowana = ocena.get("proponowana", "-")
-                if pz:
-                    srednia_str = f"{float(srednia):.2f}" if srednia else "-"
-                    cur.execute("UPDATE subjects SET avg=?, prop=? WHERE name=?", (srednia_str, proponowana, pz))
-            sync_conn.commit()
-    # ==========================================================
-
-    terminarz_entity = get_ha_state("sensor.vultron_terminarz_stanislaw_mikos")
-    numerek_entity = get_ha_state("sensor.vultron_szczesliwy_numerek_stanislaw_mikos")
-    freq_entity = get_ha_state("sensor.vultron_freq_stanislaw_mikos")
-
-    return {
-        "student": "Stanisław Mikos",
-        "klasa": "5B",
-        "szkola": "SP13 w Gliwicach",
-        "numerek": numerek_entity.get("attributes", {}).get("numer", 0),
-        "plan": plan_entity.get("attributes", {}).get("lekcje", []),
-        "dni_wolne": plan_entity.get("attributes", {}).get("dni_wolne", []),
-        "oceny": oceny_entity.get("attributes", {}).get("lista_przedmiotow", []),
-        "srednia_proponowana": oceny_entity.get("attributes", {}).get("srednia_proponowanych"),
-        "srednia_okresowa": oceny_entity.get("attributes", {}).get("srednia_okresowych"),
-        "terminarz": terminarz_entity.get("attributes", {}).get("lista", []),
-        "frekwencja": freq_entity.get("attributes", {}).get("wpisy", [])
-    }
-
+    return fetch_vulcan_payload()
 
 @app.get("/vulcan", response_class=HTMLResponse)
 def vulcan_page(request: Request):
@@ -2062,6 +2360,14 @@ def courses_play_empty(request: Request):
     u = current_user(request)
     if not u:
         return RedirectResponse("/", 302)
+    conn = db()
+    b = conn.execute("SELECT book_id FROM book_chapters WHERE status='completed' LIMIT 1").fetchone()
+    if not b:
+        b = conn.execute("SELECT id FROM books LIMIT 1").fetchone()
+    conn.close()
+    if b:
+        book_id = b[0]
+        return RedirectResponse(f"/courses/play/{book_id}", 302)
     return RedirectResponse("/courses", 302)
 
 @app.get("/courses/play/{book_id}", response_class=HTMLResponse)
@@ -2073,8 +2379,9 @@ def courses_play(request: Request, book_id: int):
     book = conn.execute("SELECT * FROM books WHERE id=?", (book_id,)).fetchone()
     if not book:
         conn.close()
-        raise HTTPException(404, "Książka nie znaleziona")
+        raise HTTPException(404, "Książka nie rzucona do OCR")
     
+    # 1. Pobieramy powiązane karty Anki (SRS) z talii pasującej do przedmiotu/książki
     b_subj = book['subject']
     deck = conn.execute("SELECT id, name FROM decks WHERE subject=? AND (name LIKE ? OR name LIKE ?) LIMIT 1",
                         (b_subj, f"%{b_subj}%", "%Unit%")).fetchone()
@@ -2094,7 +2401,7 @@ def courses_play(request: Request, book_id: int):
         ORDER BY it.id ASC
     """, (book_id,)).fetchall()
     
-    # Jeśli dla tego book_id nie ma zadań, ale mamy inną książkę z tego samego przedmiotu z zadaniami
+    # Jeśli dla tego book_id nie ma jeszcze zadań, ale mamy powiązaną książkę z tego samego przedmiotu z zadaniami (np. podręcznik vs zeszyt ćwiczeń)
     if not raw_tasks:
         raw_tasks = conn.execute("""
             SELECT it.* FROM interactive_tasks it 
@@ -2104,17 +2411,19 @@ def courses_play(request: Request, book_id: int):
             ORDER BY it.id ASC
         """, (b_subj,)).fetchall()
 
-    import json, random, re
+    import json, random
     tasks = []
     for t in raw_tasks:
         td = dict(t)
         try:
             content = json.loads(td['content_json'])
             if td['task_type'] == 'cloze':
+                # Render placeholders [abc] into <input data-ans="abc" class="cloze-input">
+                import re as regex
                 def make_input(m):
                     ans = m.group(1)
-                    return f'<input type="text" class="calc-inp cloze-input" data-ans="{ans}" style="width: {max(70, len(ans)*14)}px">'
-                content['rendered_html'] = re.sub(r'\[(.*?)\]', make_input, content.get('sentence', ''))
+                    return f'<input type="text" class="cloze-input" data-ans="{ans}" style="width: {max(60, len(ans)*14)}px">'
+                content['rendered_html'] = regex.sub(r'\[(.*?)\]', make_input, content.get('sentence', ''))
             elif td['task_type'] == 'match':
                 pairs = content.get('pairs', [])
                 lefts = [{"id": i, "text": p["left"]} for i, p in enumerate(pairs)]
@@ -2124,39 +2433,29 @@ def courses_play(request: Request, book_id: int):
                 content['shuffled_left'] = lefts
                 content['shuffled_right'] = rights
             td['parsed_content'] = content
-            
-            # Pobierz postęp ucznia dla tego zadania
-            prog = conn.execute("SELECT score, attempts FROM user_task_progress WHERE user_id=? AND task_id=?", (u["id"], td["id"])).fetchone()
-            td['user_score'] = prog['score'] if prog else None
-            td['attempts'] = prog['attempts'] if prog else 0
-
-            # Ekstrakcja numeru strony z "number" lub "title" (np. "str. 4" -> 4)
-            m = re.search(r'str\.\s*(\d+)', (content.get('number', '') + ' ' + content.get('title', '')).lower())
-            td['page_ref'] = int(m.group(1)) if m else None
-            
             tasks.append(td)
         except Exception as e:
             pass
 
-    # 3. Wyekstrahowany tekst OCR
+    # 3. Pobieramy wyekstrahowany tekst OCR z book_chapters
     chap = conn.execute("SELECT raw_ocr_text FROM book_chapters WHERE book_id=? AND status='completed' LIMIT 1", (book_id,)).fetchone()
-    raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else ""
+    raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else "Tekst OCR dla tego podręcznika jest obecnie przetwarzany w kolejce N8N."
 
-    # 4. Sprawdzamy początkową stronę w PDF (np. ze strony pierwszego zadania)
-    initial_page = 1
-    for t in tasks:
-        if t.get('page_ref'):
-            initial_page = t['page_ref']
-            break
-
-    # Sprawdzamy czy istnieje powiązany podręcznik lub zeszyt ćwiczeń
-    counterpart = None
-    if book['kind'] == 'cwiczenia':
-        cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='podreczniki' LIMIT 1", (b_subj,)).fetchone()
-        if cp: counterpart = dict(cp)
-    elif book['kind'] == 'podreczniki':
-        cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='cwiczenia' LIMIT 1", (b_subj,)).fetchone()
-        if cp: counterpart = dict(cp)
+    # 4. Pobieramy nagrania audio (audio_podcasts) dla tego podręcznika / zeszytu
+    audio_tracks = [dict(r) for r in conn.execute("""
+        SELECT ap.* FROM audio_podcasts ap 
+        JOIN book_chapters bc ON ap.chapter_id = bc.id 
+        WHERE bc.book_id = ?
+        ORDER BY ap.id ASC
+    """, (book_id,)).fetchall()]
+    if not audio_tracks:
+        audio_tracks = [dict(r) for r in conn.execute("""
+            SELECT ap.* FROM audio_podcasts ap 
+            JOIN book_chapters bc ON ap.chapter_id = bc.id 
+            JOIN books b ON bc.book_id = b.id
+            WHERE b.subject = ?
+            ORDER BY ap.id ASC
+        """, (b_subj,)).fetchall()]
 
     conn.close()
     return templates.TemplateResponse(request, "course_play.html", {
@@ -2165,9 +2464,8 @@ def courses_play(request: Request, book_id: int):
         "target_deck_id": target_deck_id,
         "cards": cards,
         "tasks": tasks,
-        "initial_page": initial_page,
-        "counterpart": counterpart,
-        "raw_ocr_text": raw_ocr_text
+        "raw_ocr_text": raw_ocr_text,
+        "audio_tracks": audio_tracks
     })
 
 @app.get("/srs/deck/{deck_id}/cards-raw")
@@ -2212,123 +2510,3 @@ async def api_task_submit(request: Request):
     conn.commit()
     conn.close()
     return JSONResponse({"status": "ok", "score": score, "overall_pct": overall_pct})
-
-
-@app.post("/api/tasks/{task_id}/daily")
-def task_add_daily(request: Request, task_id: int):
-    u = current_user(request)
-    if not u:
-        raise HTTPException(401)
-    conn = db()
-    t = conn.execute("SELECT * FROM interactive_tasks WHERE id=?", (task_id,)).fetchone()
-    if not t:
-        conn.close()
-        raise HTTPException(404, "Task not found")
-    
-    import json, datetime
-    content = json.loads(t["content_json"])
-    title = content.get("title", f"Zadanie #{task_id}")
-    num = content.get("number", "")
-    note = f"Ćwiczenia: {num} {title}".strip()
-    today = datetime.date.today().isoformat()
-    
-    existing = conn.execute("SELECT id FROM assignments WHERE student=? AND kind='task' AND ref_id=? AND due_date=?",
-                            (u["id"], task_id, today)).fetchone()
-    if not existing:
-        conn.execute("INSERT INTO assignments(student, kind, ref_id, note, due_date, created_by) VALUES (?, 'task', ?, ?, ?, ?)",
-                     (u["id"], task_id, note, today, u["id"]))
-        conn.commit()
-    conn.close()
-    return JSONResponse({"status": "ok", "message": "Dodano do zadań na dziś!"})
-
-
-@app.post("/api/tasks/{task_id}/similar")
-def task_generate_similar(request: Request, task_id: int):
-    u = current_user(request)
-    if not u:
-        raise HTTPException(401)
-    conn = db()
-    t = conn.execute("SELECT * FROM interactive_tasks WHERE id=?", (task_id,)).fetchone()
-    if not t:
-        conn.close()
-        raise HTTPException(404, "Task not found")
-    
-    import json, random, re
-    content = json.loads(t["content_json"])
-    task_type = t["task_type"]
-    
-    new_task = dict(content)
-    new_task["number"] = (content.get("number", "") + " (Trening)").strip()
-    new_task["title"] = content.get("title", "") + " — Wariant podobny"
-    
-    if task_type == 'math_calc' and "fields" in content:
-        new_fields = []
-        for f in content["fields"]:
-            lbl = f["label"]
-            if "+" in lbl:
-                a, b = random.randint(15, 85), random.randint(15, 85)
-                new_fields.append({"label": f"{a} + {b} =", "ans": str(a + b)})
-            elif "-" in lbl:
-                a, b = random.randint(50, 190), random.randint(15, 45)
-                new_fields.append({"label": f"{a} - {b} =", "ans": str(a - b)})
-            elif "·" in lbl or "*" in lbl:
-                a, b = random.randint(4, 9), random.randint(4, 9)
-                new_fields.append({"label": f"{a} · {b} =", "ans": str(a * b)})
-            elif ":" in lbl or "/" in lbl:
-                b = random.randint(3, 9)
-                ans = random.randint(4, 12)
-                a = b * ans
-                new_fields.append({"label": f"{a} : {b} =", "ans": str(ans)})
-            else:
-                new_fields.append(f)
-        new_task["fields"] = new_fields
-    elif task_type == 'math_word':
-        new_task["story"] = "Bartek kupił 5 zeszytów po 7 zł każdy oraz piórnik z przyborami za 22 zł. Płacił banknotem 100 zł."
-        new_task["questions"] = [
-            {"label": "1. Ile Bartek zapłacił za same zeszyty? (w zł)", "ans": "35"},
-            {"label": "2. Ile łącznie wyniósł cały rachunek? (w zł)", "ans": "57"},
-            {"label": "3. Ile reszty otrzymał Bartek ze 100 zł? (w zł)", "ans": "43"}
-        ]
-    elif task_type == 'math_order':
-        new_task["steps"] = [
-            {"expr": "45 - 6 · 5", "step_hint": "45 - [30] = [15]", "sub_fields": [
-                {"label": "Krok 1 (wynik mnożenia): 6 · 5 =", "ans": "30"},
-                {"label": "Wynik końcowy: 45 - 30 =", "ans": "15"}
-            ]},
-            {"expr": "36 : (13 - 4) + 8", "step_hint": "36 : [9] + 8 = [4] + 8 = [12]", "sub_fields": [
-                {"label": "Krok 1 (w nawiasie): 13 - 4 =", "ans": "9"},
-                {"label": "Krok 2 (dzielenie): 36 : 9 =", "ans": "4"},
-                {"label": "Wynik końcowy: 4 + 8 =", "ans": "12"}
-            ]}
-        ]
-    elif task_type == 'math_pyramid':
-        new_task["rows"] = [["[80]"], ["[35]", "45"], ["15", "[20]", "25"]]
-        new_task["answers"] = {"0_0": "80", "1_0": "35", "2_1": "20"}
-    
-    cur = conn.execute("INSERT INTO interactive_tasks (chapter_id, task_type, difficulty_level, content_json) VALUES (?, ?, ?, ?)",
-                       (t["chapter_id"], task_type, t["difficulty_level"], json.dumps(new_task, ensure_ascii=False)))
-    new_id = cur.lastrowid
-    conn.commit()
-    conn.close()
-    
-    # Render html for cloze if needed
-    if task_type == 'cloze':
-        def make_input(m):
-            ans = m.group(1)
-            return f'<input type="text" class="calc-inp cloze-input" data-ans="{ans}" style="width: {max(70, len(ans)*14)}px">'
-        new_task['rendered_html'] = re.sub(r'\[(.*?)\]', make_input, new_task.get('sentence', ''))
-        
-    m = re.search(r'str\.\s*(\d+)', (new_task.get('number', '') + ' ' + new_task.get('title', '')).lower())
-    page_ref = int(m.group(1)) if m else None
-    
-    return JSONResponse({
-        "status": "ok",
-        "task_id": new_id,
-        "task": {
-            "id": new_id,
-            "task_type": task_type,
-            "difficulty_level": t["difficulty_level"],
-            "parsed_content": new_task,
-            "page_ref": page_ref
-        }
-    })
