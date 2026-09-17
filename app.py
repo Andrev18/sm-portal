@@ -2591,23 +2591,27 @@ def courses_play(request: Request, book_id: int):
     if target_deck_id:
         cards = [dict(r) for r in conn.execute("SELECT id, front, back FROM cards WHERE deck_id=? LIMIT 12", (target_deck_id,)).fetchall()]
     
-    # 2. Pobieramy zadania interaktywne przypisane do chapterów tej książki
+    # 2. Pobieramy zadania interaktywne przypisane do chapterów tej książki wraz z zapisanym postępem ucznia
     raw_tasks = conn.execute("""
-        SELECT it.* FROM interactive_tasks it 
+        SELECT it.*, utp.score as user_score, utp.attempts as user_attempts
+        FROM interactive_tasks it 
         JOIN book_chapters bc ON it.chapter_id = bc.id 
+        LEFT JOIN user_task_progress utp ON it.id = utp.task_id AND utp.user_id = ?
         WHERE bc.book_id = ?
         ORDER BY it.id ASC
-    """, (book_id,)).fetchall()
+    """, (u['id'], book_id)).fetchall()
     
     # Jeśli dla tego book_id nie ma jeszcze zadań, ale mamy powiązaną książkę z tego samego przedmiotu z zadaniami (np. podręcznik vs zeszyt ćwiczeń)
     if not raw_tasks:
         raw_tasks = conn.execute("""
-            SELECT it.* FROM interactive_tasks it 
+            SELECT it.*, utp.score as user_score, utp.attempts as user_attempts
+            FROM interactive_tasks it 
             JOIN book_chapters bc ON it.chapter_id = bc.id 
             JOIN books b ON bc.book_id = b.id
+            LEFT JOIN user_task_progress utp ON it.id = utp.task_id AND utp.user_id = ?
             WHERE b.subject = ?
             ORDER BY it.id ASC
-        """, (b_subj,)).fetchall()
+        """, (u['id'], b_subj)).fetchall()
 
     import json, random
     tasks = []
@@ -2721,31 +2725,49 @@ async def api_task_submit(request: Request):
     if not u:
         raise HTTPException(401)
     data = await request.json()
-    task_id = data.get("task_id")
-    score = data.get("score", 0) # 0 - 100%
+    raw_task_id = str(data.get("task_id", ""))
+    score = int(data.get("score", 0)) # 0 - 100%
     
+    # Obsługa ID zadania wariantu (np. sim_27_1234)
+    import re
+    m_sim = re.match(r'sim_(\d+)_', raw_task_id)
+    numeric_task_id = int(m_sim.group(1)) if m_sim else None
+    if not numeric_task_id:
+        try:
+            numeric_task_id = int(raw_task_id)
+        except Exception:
+            numeric_task_id = None
+
     conn = db()
-    existing = conn.execute("SELECT id, attempts FROM user_task_progress WHERE user_id=? AND task_id=?", (u["id"], task_id)).fetchone()
-    if existing:
-        conn.execute("UPDATE user_task_progress SET score=MAX(score, ?), attempts=attempts+1, last_attempt=datetime('now') WHERE id=?", (score, existing["id"]))
-    else:
-        conn.execute("INSERT INTO user_task_progress (user_id, task_id, score, attempts) VALUES (?, ?, ?, 1)", (u["id"], task_id, score))
-    
-    # Oblicz globalny postęp dla tej książki/przedmiotu
-    # Pobierz chapter_id -> book_id
-    b_row = conn.execute("SELECT bc.book_id FROM interactive_tasks it JOIN book_chapters bc ON it.chapter_id=bc.id WHERE it.id=?", (task_id,)).fetchone()
-    book_id = b_row[0] if b_row else None
-    
     overall_pct = 0
-    if book_id:
-        total_tasks = conn.execute("SELECT COUNT(*) FROM interactive_tasks it JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=?", (book_id,)).fetchone()[0]
-        completed_tasks = conn.execute("SELECT COUNT(DISTINCT task_id) FROM user_task_progress utp JOIN interactive_tasks it ON utp.task_id=it.id JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=? AND utp.user_id=? AND utp.score>=70", (book_id, u["id"])).fetchone()[0]
-        if total_tasks > 0:
-            overall_pct = int((completed_tasks / total_tasks) * 100)
-            
+    if numeric_task_id:
+        existing = conn.execute("SELECT id, score, attempts FROM user_task_progress WHERE user_id=? AND task_id=?", (u["id"], numeric_task_id)).fetchone()
+        if existing:
+            conn.execute("UPDATE user_task_progress SET score=MAX(score, ?), attempts=attempts+1, last_attempt=datetime('now') WHERE id=?", (score, existing["id"]))
+        else:
+            conn.execute("INSERT INTO user_task_progress (user_id, task_id, score, attempts) VALUES (?, ?, ?, 1)", (u["id"], numeric_task_id, score))
+        
+        # Zapisz punkty w points_log jeśli zaliczone (>= 70%)
+        if score >= 70:
+            try:
+                conn.execute("INSERT INTO points_log (user_id, points, reason) VALUES (?, ?, ?)",
+                             (u["id"], 5, f"Rozwiązanie zadania #{numeric_task_id} ({score}%)"))
+            except Exception:
+                pass
+
+        # Oblicz globalny postęp dla tej książki/przedmiotu
+        b_row = conn.execute("SELECT bc.book_id FROM interactive_tasks it JOIN book_chapters bc ON it.chapter_id=bc.id WHERE it.id=?", (numeric_task_id,)).fetchone()
+        book_id = b_row[0] if b_row else None
+        
+        if book_id:
+            total_tasks = conn.execute("SELECT COUNT(*) FROM interactive_tasks it JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=?", (book_id,)).fetchone()[0]
+            completed_tasks = conn.execute("SELECT COUNT(DISTINCT task_id) FROM user_task_progress utp JOIN interactive_tasks it ON utp.task_id=it.id JOIN book_chapters bc ON it.chapter_id=bc.id WHERE bc.book_id=? AND utp.user_id=? AND utp.score>=70", (book_id, u["id"])).fetchone()[0]
+            if total_tasks > 0:
+                overall_pct = int((completed_tasks / total_tasks) * 100)
+                
     conn.commit()
     conn.close()
-    return JSONResponse({"status": "ok", "score": score, "overall_pct": overall_pct})
+    return JSONResponse({"status": "ok", "score": score, "task_id": numeric_task_id, "overall_pct": overall_pct})
 
 
 def generate_math_variant(content: dict, task_type: str, difficulty: str = "same") -> dict:
