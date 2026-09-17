@@ -845,11 +845,16 @@
         display: block !important;
     }
     
-    /* Podczas drukowania wszystkie zadania z panelu są widoczne na kolejnych stronach A4 */
-    body.print-mode-base #tasksListContainer .task-card {
+    /* W trybie druku absolutnie WSZYSTKIE zadania mają display: flex bez względu na filtr */
+    #tasksListContainer, .tasks-scroll-pane {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    #tasksListContainer .task-card {
         display: flex !important;
     }
-    body.print-mode-similar #similarTaskContent .task-card {
+    #similarTaskContent .task-card {
         display: flex !important;
     }
 
@@ -2948,12 +2953,12 @@
     // WYDRUK / EKSPORT DO PDF FORMAT A4 DLA POSZCZEGÓLNYCH PANELI (WSZYSTKIE ZADANIA)
     function printSpecificPanel(panel) {
         document.body.classList.remove('print-mode-base', 'print-mode-similar');
-        
-        // Przed wydrukiem upewnij się, że wszystkie karty zadań mają display: flex, aby wydruk objął CAŁY zestaw
+
+        // Przed wydrukiem upewnij się, że wszystkie karty zadań mają usunięte inline display: none, aby wydruk objął CAŁY zestaw
         const baseCards = document.querySelectorAll('#tasksListContainer .task-card');
-        const prevDisplays = [];
+        const prevInlineStyles = [];
         baseCards.forEach(c => {
-            prevDisplays.push(c.style.display);
+            prevInlineStyles.push(c.getAttribute('style') || '');
             c.style.display = 'flex';
         });
 
@@ -2962,16 +2967,23 @@
         } else if (panel === 'similar') {
             document.body.classList.add('print-mode-similar');
         }
-        
-        window.print();
 
+        // Daj przeglądarce 50ms na przeliczenie układu i reflow przed wywołaniem okna systemowego druku
         setTimeout(() => {
+            window.print();
+        }, 50);
+
+        window.addEventListener('afterprint', () => {
             document.body.classList.remove('print-mode-base', 'print-mode-similar');
-            // Przywróć stan filtrowania na ekranie
             baseCards.forEach((c, idx) => {
-                c.style.display = prevDisplays[idx];
+                if (prevInlineStyles[idx]) {
+                    c.setAttribute('style', prevInlineStyles[idx]);
+                } else {
+                    c.removeAttribute('style');
+                }
             });
-        }, 1200);
+            applyTaskFilters();
+        }, { once: true });
     }
 
     function printWorksheet() {
