@@ -2866,14 +2866,87 @@ def generate_math_variant(content: dict, task_type: str, difficulty: str = "same
         res["fields"] = new_fields
         return res
 
-    # 3. Proste obliczenia pamięciowe (a + b, a - b)
+    # 3. Proste obliczenia pamięciowe i zaawansowane formaty zadań
     if "fields" in res and res["fields"]:
         new_fields = []
         for idx, f in enumerate(res["fields"]):
             f_copy = copy.deepcopy(f)
-            m_add = re.search(r'(\d+)\s*\+\s*(\d+)', f.get("label", ""))
-            m_sub = re.search(r'(\d+)\s*-\s*(\d+)', f.get("label", ""))
-            if m_add:
+            lbl = f.get("label", "")
+            
+            # Pattern A: Wagon kolejki górskiej, np. "Wagon 3 (70 + 15):" lub "Wagon 4 (85 - 25):"
+            m_wagon = re.search(r'(Wagon\s*\d+)\s*\((?:(\d+)\s*([\+\-])\s*(\d+))\):?', lbl)
+            # Pattern B: Równanie z brakującą liczbą w okienku: "a) 56 + [ ? ] = 83 :" lub "b) [ ? ] - 43 = 51 :" lub "c) 78 - [ ? ] = 15 :"
+            m_hole_add = re.search(r'([a-z]\))\s*(\d+)\s*\+\s*\[\s*\?\s*\]\s*=\s*(\d+)', lbl)
+            m_hole_sub1 = re.search(r'([a-z]\))\s*\[\s*\?\s*\]\s*-\s*(\d+)\s*=\s*(\d+)', lbl)
+            m_hole_sub2 = re.search(r'([a-z]\))\s*(\d+)\s*-\s*\[\s*\?\s*\]\s*=\s*(\d+)', lbl)
+            # Pattern C: Sprytne liczenie trzech liczb: "34 + 58 + 16 ="
+            m_three = re.search(r'(\d+)\s*\+\s*(\d+)\s*\+\s*(\d+)\s*=', lbl)
+            # Pattern D: Ciągi liczbowe: "Ciąg +99: 125, 224, 323, [ ? ] :"
+            m_seq_add = re.search(r'Ciąg\s*\+(\d+):\s*(\d+),\s*(\d+),\s*(\d+),\s*\[\s*\?\s*\]', lbl)
+            m_seq_sub = re.search(r'Ciąg\s*\-(\d+):\s*(\d+),\s*(\d+),\s*(\d+),\s*\[\s*\?\s*\]', lbl)
+            # Pattern E: Standardowe dwa składniki: "a) 34 + 18 =" lub "34 - 18 ="
+            m_add = re.search(r'(\d+)\s*\+\s*(\d+)', lbl)
+            m_sub = re.search(r'(\d+)\s*-\s*(\d+)', lbl)
+
+            if m_wagon:
+                w_prefix, a_str, op, b_str = m_wagon.groups()
+                a_base, b_base = int(a_str), int(b_str)
+                delta = 10 if difficulty == "harder" else (-10 if difficulty == "easier" and a_base > 40 else 0)
+                a = max(20, a_base + delta + random.randint(-2, 2) * 5)
+                b = max(5, b_base + (5 if difficulty == "harder" else 0))
+                ans = a + b if op == '+' else a - b
+                f_copy["label"] = f"{w_prefix} ({a} {op} {b}):"
+                f_copy["ans"] = str(ans)
+            elif m_hole_add:
+                pref, a_str, c_str = m_hole_add.groups()
+                delta = 15 if difficulty == "harder" else (-10 if difficulty == "easier" else 0)
+                a = max(10, int(a_str) + delta + random.randint(-3, 3))
+                ans = max(5, int(c_str) - int(a_str) + random.randint(1, 4))
+                c = a + ans
+                f_copy["label"] = f"{pref} {a} + [ ? ] = {c} :"
+                f_copy["ans"] = str(ans)
+            elif m_hole_sub1:
+                pref, b_str, c_str = m_hole_sub1.groups()
+                delta = 15 if difficulty == "harder" else (-10 if difficulty == "easier" else 0)
+                b = max(10, int(b_str) + delta + random.randint(-3, 3))
+                c = max(10, int(c_str) + delta + random.randint(-3, 3))
+                ans = b + c
+                f_copy["label"] = f"{pref} [ ? ] - {b} = {c} :"
+                f_copy["ans"] = str(ans)
+            elif m_hole_sub2:
+                pref, a_str, c_str = m_hole_sub2.groups()
+                delta = 15 if difficulty == "harder" else (-10 if difficulty == "easier" else 0)
+                a = max(30, int(a_str) + delta + random.randint(-3, 3))
+                c = max(10, int(c_str) + (delta // 2) + random.randint(-2, 2))
+                if c >= a: c = a - 15
+                ans = a - c
+                f_copy["label"] = f"{pref} {a} - [ ? ] = {c} :"
+                f_copy["ans"] = str(ans)
+            elif m_three:
+                # Trzy liczby, z których dwie sumują się do pełnej dziesiątki
+                base_round = 50 if difficulty == "easier" else (100 if difficulty == "harder" else 70)
+                split1 = random.randint(2, 6) * 10 + random.choice([2, 4, 6, 8, 5])
+                last_d = split1 % 10
+                comp_d = (10 - last_d) % 10
+                split2 = random.randint(1, 4) * 10 + comp_d
+                split3 = random.randint(15, 65)
+                f_copy["label"] = f"{split1} + {split2} + {split3} ="
+                f_copy["ans"] = str(split1 + split2 + split3)
+            elif m_seq_add:
+                step = int(m_seq_add.group(1))
+                start = int(m_seq_add.group(2)) + random.randint(1, 5) * 10
+                t1, t2, t3 = start, start + step, start + 2 * step
+                ans = start + 3 * step
+                f_copy["label"] = f"Ciąg +{step}: {t1}, {t2}, {t3}, [ ? ] :"
+                f_copy["ans"] = str(ans)
+            elif m_seq_sub:
+                step = int(m_seq_sub.group(1))
+                start = int(m_seq_sub.group(2)) + random.randint(1, 5) * 10
+                t1, t2, t3 = start, start - step, start - 2 * step
+                ans = start - 3 * step
+                f_copy["label"] = f"Ciąg -{step}: {t1}, {t2}, {t3}, [ ? ] :"
+                f_copy["ans"] = str(ans)
+            elif m_add:
                 if difficulty == "easier":
                     a = random.randint(1, 4) * 10
                     b = random.randint(1, 9)
@@ -2884,7 +2957,9 @@ def generate_math_variant(content: dict, task_type: str, difficulty: str = "same
                     a = int(m_add.group(1)) + random.randint(1, 4) * 10
                     b = int(m_add.group(2)) + random.randint(1, 6)
 
-                prefix = f.get("label", "").split(')')[0] + ')' if ')' in f.get("label", "") else f"{idx+1})"
+                # Bezpieczne wyodrębnienie prefiksu (np. "a)")
+                pref_m = re.match(r'^([a-z]\)|\d+\))', lbl)
+                prefix = pref_m.group(1) if pref_m else f"{idx+1})"
                 f_copy["label"] = f"{prefix} {a} + {b} ="
                 f_copy["ans"] = str(a + b)
             elif m_sub:
@@ -2899,7 +2974,8 @@ def generate_math_variant(content: dict, task_type: str, difficulty: str = "same
                     b = int(m_sub.group(2)) + random.randint(1, 4)
                     if b >= a: b = a - 10
 
-                prefix = f.get("label", "").split(')')[0] + ')' if ')' in f.get("label", "") else f"{idx+1})"
+                pref_m = re.match(r'^([a-z]\)|\d+\))', lbl)
+                prefix = pref_m.group(1) if pref_m else f"{idx+1})"
                 f_copy["label"] = f"{prefix} {a} - {b} ="
                 f_copy["ans"] = str(a - b)
             new_fields.append(f_copy)

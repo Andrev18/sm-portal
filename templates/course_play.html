@@ -564,17 +564,23 @@
 
 /* Pływający pasek tworzenia zestawu (widoczny na stałe u góry panelu zadań) */
 .batch-tasks-bar {
-    background: rgba(15, 23, 42, 0.98);
-    border: 1px solid rgba(16, 185, 129, 0.5);
-    border-radius: 12px;
-    padding: 10px 18px;
-    margin: 10px 20px;
+    position: sticky !important;
+    top: 0 !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    border: 1px solid rgba(16, 185, 129, 0.6) !important;
+    border-radius: 12px !important;
+    padding: 10px 18px !important;
+    margin: 6px 20px !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 14px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    z-index: 25;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+    z-index: 50 !important;
+}
+.task-slot-spacer {
+    box-sizing: border-box !important;
+    pointer-events: none;
 }
 .btn-clear-batch {
     background: rgba(255, 255, 255, 0.08);
@@ -1657,10 +1663,10 @@
                                 </span>
                                 {% endif %}
                                 <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
-                                <button type="button" class="tc-select-btn" id="sel-btn-{{ t.id }}" onclick="toggleTaskSelection({{ t.id }})" title="Kliknij, aby zaznaczyć zadanie do zestawu treningowego">
-                                    <input type="checkbox" class="task-select-cb" id="cb-task-{{ t.id }}" value="{{ t.id }}" onclick="event.stopPropagation()" onchange="handleCbChange({{ t.id }})">
+                                <label class="tc-select-btn" id="sel-btn-{{ t.id }}" title="Zaznacz to zadanie do zestawu ćwiczeń">
+                                    <input type="checkbox" class="task-select-cb" id="cb-task-{{ t.id }}" value="{{ t.id }}" onchange="handleCbChange({{ t.id }})">
                                     <span>Do zestawu</span>
-                                </button>
+                                </label>
                             </div>
                         </div>
 
@@ -2459,10 +2465,12 @@
 
     async function generateBatchVariants(difficulty = 'same') {
         const cbs = document.querySelectorAll('.task-select-cb:checked');
-        const taskIds = Array.from(cbs).map(cb => parseInt(cb.value));
+        let taskIds = Array.from(cbs).map(cb => parseInt(cb.value));
+        if (taskIds.length === 0 && activeSimilarTaskId) {
+            taskIds = [activeSimilarTaskId];
+        }
         if (taskIds.length === 0) return;
 
-        // Z panelu bazowego uczeń może generować zestaw bez konieczności uprzedniego sprawdzania!
         try {
             const res = await fetch('/api/tasks/batch-similar', {
                 method: 'POST',
@@ -2472,7 +2480,6 @@
             const d = await res.json();
             if (d.status === 'ok' && d.tasks && d.tasks.length > 0) {
                 openBatchSimilarPanel(d.tasks, difficulty);
-                clearSelectedTasks();
             } else {
                 alert('Nie udało się wygenerować zestawu wariantów.');
             }
@@ -2517,6 +2524,7 @@
     let activeSimilarTaskId = null;
     let previousLeftTasks = null;
     let previousLeftTask = null;
+    let currentSimilarTasksStore = {}; // original_id -> simTask
 
     function resetTaskCardToRetry(taskId) {
         const card = document.getElementById('task-card-' + taskId);
@@ -2553,6 +2561,13 @@
         // Jeśli w lewym panelu wybrano "identical", to uczeń chce zresetować wyniki i wypełnić zadanie jeszcze raz!
         if (source === 'base' && difficulty === 'identical') {
             resetTaskCardToRetry(taskId);
+            return;
+        }
+
+        // Jeśli w lewym panelu zaznaczono więcej niż 1 zadanie (checkboxy), generujemy zestaw dla wszystkich zaznaczonych!
+        const cbs = document.querySelectorAll('.task-select-cb:checked');
+        if (source === 'base' && cbs.length > 1) {
+            generateBatchVariants(difficulty);
             return;
         }
 
@@ -2593,6 +2608,19 @@
             showGateWarning("W nowo powstałym panelu sprawdź wszystkie zadania przed wygenerowaniem kolejnego zestawu!");
             return;
         }
+        const activeIds = Object.keys(currentSimilarTasksStore).map(id => parseInt(id));
+        if (activeIds.length > 1) {
+            fetch('/api/tasks/batch-similar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ task_ids: activeIds, difficulty: difficulty })
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok' && d.tasks) {
+                    openBatchSimilarPanel(d.tasks, difficulty);
+                }
+            });
+            return;
+        }
         if (activeSimilarTaskId) {
             generateSimilarTask(activeSimilarTaskId, difficulty, null, 'similar');
         }
@@ -2610,12 +2638,16 @@
         if (leftList) {
             leftList.style.display = 'flex';
         }
-        // Wszystkie karty w lewym panelu bazowym pozostają w 100% widoczne
         document.querySelectorAll('#tasksListContainer .task-card').forEach(c => {
             c.style.display = 'flex';
         });
 
-        activeSimilarTasks = tasks;
+        // Zapisujemy wygenerowane zadania w magazynie sesji
+        tasks.forEach(t => {
+            currentSimilarTasksStore[t.original_id] = t;
+        });
+
+        activeSimilarTasks = Object.values(currentSimilarTasksStore);
         activeSimilarTask = tasks[0];
         activeSimilarTaskId = tasks[0].original_id;
 
@@ -2628,60 +2660,103 @@
         const headerBtnGroup = document.getElementById('similarHeaderBtnGroup');
         if (headerBtnGroup) headerBtnGroup.style.display = 'inline-flex';
 
-        // Jeśli wybrano opcję IDENTYCZNE ("identical"), automatycznie ukrywamy lewy panel,
-        // aby uczeń nie przepisywał z lewej części, lecz rozwiązywał z pamięci!
         if (difficulty === 'identical') {
             grid.classList.add('left-collapsed');
             const icon = document.getElementById('iconSimilarFullscreen');
             if (icon) icon.setAttribute('data-lucide', 'minimize-2');
         }
 
+        const totalSimCount = Object.keys(currentSimilarTasksStore).length;
         const panelTitle = document.getElementById('similarPanelTitle');
         if (panelTitle) {
-            panelTitle.innerText = tasks.length === 1 
-                ? (tasks[0].parsed_content.number || 'Wariant Treningowy')
-                : `Zestaw Treningowy (${tasks.length} zadań)`;
+            panelTitle.innerText = totalSimCount === 1 
+                ? (activeSimilarTask.parsed_content.number || 'Wariant Treningowy')
+                : `Zestaw Treningowy (${totalSimCount} zadań)`;
         }
 
         const panelSubtitle = document.getElementById('similarPanelSubtitle');
         if (panelSubtitle) {
-            panelSubtitle.innerText = tasks.length === 1 
-                ? `Poziom: ${tasks[0].difficulty_level}/5 • ${tasks[0].difficulty_tag || 'Standardowy'}`
-                : `Wygenerowano ${tasks.length} zadań ćwiczeniowych`;
+            panelSubtitle.innerText = totalSimCount === 1 
+                ? `Poziom: ${activeSimilarTask.difficulty_level}/5 • ${activeSimilarTask.difficulty_tag || 'Standardowy'}`
+                : `Wygenerowano ${totalSimCount} zadań ćwiczeniowych`;
         }
 
         const countBadge = document.getElementById('similarCountBadge');
         if (countBadge) {
-            countBadge.innerText = `${tasks.length} ${tasks.length === 1 ? 'zadanie' : 'zadania'}`;
+            countBadge.innerText = `${totalSimCount} ${totalSimCount === 1 ? 'zadanie' : 'zadania'}`;
         }
 
-        // Renderuj wszystkie zadania w prawym panelu
+        // Renderuj zadania w prawym panelu w układzie vis-à-vis (identyczny rozmiar i wysokość)
         const rightContainer = document.getElementById('similarTaskContent');
         rightContainer.innerHTML = '';
-        tasks.forEach(t => {
-            renderSimilarTaskHTML(t, 'similarTaskContent', false);
+
+        const leftPane = document.querySelector('#colTasks .tasks-scroll-pane');
+        const visibleLeftCards = leftPane ? Array.from(leftPane.querySelectorAll('.task-card')).filter(c => c.style.display !== 'none') : [];
+
+        visibleLeftCards.forEach(leftCard => {
+            const origId = parseInt(leftCard.id.replace('task-card-', ''));
+            const origHeight = leftCard.offsetHeight;
+
+            if (currentSimilarTasksStore[origId]) {
+                const simTask = currentSimilarTasksStore[origId];
+                renderSimilarTaskHTML(simTask, 'similarTaskContent', false);
+                const simCard = document.getElementById('similar-card-' + simTask.id);
+                if (simCard && origHeight > 0) {
+                    simCard.style.minHeight = origHeight + 'px';
+                    simCard.style.boxSizing = 'border-box';
+                }
+            } else {
+                // Niewidoczny dystans dopasowujący wysokość do lewego zadania,
+                // dzięki czemu kolejne zadania (np. Zadanie 2) wypadają DOKŁADNIE vis-à-vis!
+                const spacer = document.createElement('div');
+                spacer.className = 'task-slot-spacer';
+                spacer.id = 'slot-spacer-' + origId;
+                spacer.style.minHeight = (origHeight > 0 ? origHeight : 200) + 'px';
+                spacer.style.marginBottom = '20px';
+                spacer.style.boxSizing = 'border-box';
+                spacer.style.visibility = 'hidden';
+                rightContainer.appendChild(spacer);
+            }
         });
 
-        // Wyrównaj pozycję vis-a-vis:
-        // Prawy kontener i lewy kontener przewijamy tak, aby wybrane zadanie bazowe
-        // oraz nowo powstałe zadanie treningowe znajdowały się vis-a-vis na tej samej wysokości
-        rightContainer.scrollTop = 0;
-        const leftPane = document.querySelector('#colTasks .tasks-scroll-pane');
-        if (leftPane && tasks.length > 0) {
-            const origCard = document.getElementById('task-card-' + tasks[0].original_id);
-            if (origCard) {
-                // Oblicz względną pozycję karty względem okna przewijania
-                const targetScrollTop = origCard.offsetTop - leftPane.offsetTop;
-                leftPane.scrollTo({
-                    top: Math.max(0, targetScrollTop),
-                    behavior: 'smooth'
-                });
-                origCard.style.outline = '2px solid rgba(56, 189, 248, 0.4)';
-                setTimeout(() => { origCard.style.outline = 'none'; }, 2500);
+        // Wyrównaj przewijanie do pierwszego wygenerowanego zadania
+        if (tasks.length > 0) {
+            const firstOrigCard = document.getElementById('task-card-' + tasks[0].original_id);
+            if (firstOrigCard && leftPane) {
+                const targetScrollTop = firstOrigCard.offsetTop - leftPane.offsetTop;
+                leftPane.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+                rightContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+                firstOrigCard.style.outline = '2px solid rgba(56, 189, 248, 0.4)';
+                setTimeout(() => { firstOrigCard.style.outline = 'none'; }, 2500);
             }
         }
 
+        setupScrollSync();
         if (window.lucide) lucide.createIcons();
+    }
+
+    let isSyncingScroll = false;
+    function setupScrollSync() {
+        const leftPane = document.querySelector('#colTasks .tasks-scroll-pane');
+        const rightPane = document.getElementById('similarTaskContent');
+        if (!leftPane || !rightPane || leftPane.dataset.scrollSynced === 'true') return;
+        leftPane.dataset.scrollSynced = 'true';
+
+        leftPane.addEventListener('scroll', () => {
+            if (!isSyncingScroll) {
+                isSyncingScroll = true;
+                rightPane.scrollTop = leftPane.scrollTop;
+                requestAnimationFrame(() => { isSyncingScroll = false; });
+            }
+        }, { passive: true });
+
+        rightPane.addEventListener('scroll', () => {
+            if (!isSyncingScroll) {
+                isSyncingScroll = true;
+                leftPane.scrollTop = rightPane.scrollTop;
+                requestAnimationFrame(() => { isSyncingScroll = false; });
+            }
+        }, { passive: true });
     }
 
     function slideRightToLeft(tasksToMove) {
@@ -2753,6 +2828,9 @@
     function closeSimilarPanel() {
         activeSimilarTask = null;
         activeSimilarTaskId = null;
+        currentSimilarTasksStore = {};
+        const rightContainer = document.getElementById('similarTaskContent');
+        if (rightContainer) rightContainer.innerHTML = '';
         slideBack();
         const grid = document.getElementById('hybridGrid');
         grid.classList.remove('mode-similar-split', 'left-collapsed', 'right-collapsed');
