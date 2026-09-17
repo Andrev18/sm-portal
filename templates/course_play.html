@@ -523,51 +523,75 @@
 .var-chip-blue .var-chip-indicator { background: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.7); }
 .var-chip-blue:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
 
-/* Wybór wielu zadań (Multi-select do generowania zestawu) */
-.tc-select-label {
+/* Wybór wielu zadań (Wyraźny przycisk wyboru na karcie) */
+.tc-select-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 11px;
-    color: var(--text-muted);
+    font-weight: 700;
+    color: #cbd5e1;
     cursor: pointer;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border-subtle);
-    padding: 2px 8px;
-    border-radius: 6px;
-    transition: all 0.15s;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 4px 10px;
+    border-radius: 8px;
+    transition: all 0.18s ease;
     user-select: none;
 }
-.tc-select-label:hover {
-    background: rgba(56, 189, 248, 0.1);
-    border-color: var(--accent-cyan);
+.tc-select-btn:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
     color: #fff;
 }
+.task-card.task-selected {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.25) !important;
+    background: rgba(16, 185, 129, 0.04) !important;
+}
+.task-card.task-selected .tc-select-btn {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #fff !important;
+}
 .task-select-cb {
+    width: 14px;
+    height: 14px;
     cursor: pointer;
     accent-color: #10b981;
+    margin: 0;
 }
+
+/* Pływający pasek tworzenia zestawu (widoczny na stałe u góry panelu zadań) */
 .batch-tasks-bar {
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    background: rgba(15, 23, 42, 0.98);
+    border: 1px solid rgba(16, 185, 129, 0.5);
     border-radius: 12px;
-    padding: 8px 16px;
-    margin: 10px 20px 0;
+    padding: 10px 18px;
+    margin: 10px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    gap: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 25;
 }
 .btn-clear-batch {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
     font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
-    text-decoration: underline;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
 }
-.btn-clear-batch:hover { color: #fff; }
+.btn-clear-batch:hover { 
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #fff; 
+}
 
 /* Alert blokady przejścia do kolejnego zestawu (Gate) */
 .gate-warning-banner {
@@ -1623,10 +1647,10 @@
                                 </span>
                                 {% endif %}
                                 <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
-                                <label class="tc-select-label" onclick="event.stopPropagation()" title="Zaznacz do wygenerowania zestawu">
-                                    <input type="checkbox" class="task-select-cb" value="{{ t.id }}" onchange="updateSelectedTasksBar()">
-                                    <span>Wybierz</span>
-                                </label>
+                                <button type="button" class="tc-select-btn" id="sel-btn-{{ t.id }}" onclick="toggleTaskSelection({{ t.id }})" title="Kliknij, aby zaznaczyć zadanie do zestawu treningowego">
+                                    <input type="checkbox" class="task-select-cb" id="cb-task-{{ t.id }}" value="{{ t.id }}" onclick="event.stopPropagation()" onchange="handleCbChange({{ t.id }})">
+                                    <span>Do zestawu</span>
+                                </button>
                             </div>
                         </div>
 
@@ -2384,6 +2408,27 @@
     }
 
     // MULTI-SELECT ZADAŃ I GENEROWANIE ZESTAWU (BATCH)
+    function toggleTaskSelection(taskId) {
+        const cb = document.getElementById('cb-task-' + taskId);
+        if (cb) {
+            cb.checked = !cb.checked;
+            handleCbChange(taskId);
+        }
+    }
+
+    function handleCbChange(taskId) {
+        const cb = document.getElementById('cb-task-' + taskId);
+        const card = document.getElementById('task-card-' + taskId);
+        if (card && cb) {
+            if (cb.checked) {
+                card.classList.add('task-selected');
+            } else {
+                card.classList.remove('task-selected');
+            }
+        }
+        updateSelectedTasksBar();
+    }
+
     function updateSelectedTasksBar() {
         const cbs = document.querySelectorAll('.task-select-cb:checked');
         const bar = document.getElementById('batchTasksBar');
@@ -2398,6 +2443,7 @@
 
     function clearSelectedTasks() {
         document.querySelectorAll('.task-select-cb').forEach(cb => { cb.checked = false; });
+        document.querySelectorAll('.task-card').forEach(c => { c.classList.remove('task-selected'); });
         updateSelectedTasksBar();
     }
 
