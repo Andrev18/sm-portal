@@ -720,8 +720,8 @@
                     </button>
                     <div class="pdf-page-box">
                         <span>Str.</span>
-                        <input type="number" id="pdfPageInput" value="{{ initial_page|default(1) }}" min="1" max="1" onchange="jumpPdfPage(this.value)">
-                        <span>/ <span id="pdfTotalPagesSpan">-</span></span>
+                        <input type="number" id="pdfPageInput" value="{{ initial_book_page|default(1) }}" min="1" max="1" onchange="jumpBookPage(this.value)">
+                        <span style="font-size: 11px; opacity: 0.7;">(plik: <span id="pdfPageNumSpan">{{ initial_page|default(1) }}</span>/<span id="pdfTotalPagesSpan">-</span>)</span>
                     </div>
                     <button class="pdf-nav-btn" onclick="stepPdfPage(1)" title="Następna strona (Prawo)">
                         <i data-lucide="chevron-right" style="width: 16px;"></i>
@@ -754,7 +754,7 @@
                 {% for t in tasks %}
                     {% if t.page_ref and t.page_ref not in pages_seen %}
                         {% set _ = pages_seen.append(t.page_ref) %}
-                        <div class="page-chip {% if t.page_ref == (initial_page|default(1)) %}active{% endif %}" onclick="jumpPdfPage({{ t.page_ref }})">
+                        <div class="page-chip {% if t.page_ref == (initial_book_page|default(1)) %}active{% endif %}" data-book-page="{{ t.page_ref }}" onclick="jumpBookPage({{ t.page_ref }})">
                             Str. {{ t.page_ref }}
                         </div>
                     {% endif %}
@@ -792,7 +792,7 @@
                             <div class="tc-num-badge">
                                 <span>{{ c.number if c.number else 'Zadanie ' ~ loop.index }}</span>
                                 {% if t.page_ref %}
-                                <button class="tc-page-jump" onclick="jumpPdfPage({{ t.page_ref }})" title="Pokaż stronę {{ t.page_ref }} w lewym oknie skanu">
+                                <button class="tc-page-jump" onclick="jumpBookPage({{ t.page_ref }})" title="Pokaż stronę {{ t.page_ref }} w lewym oknie skanu">
                                     📍 Skan str. {{ t.page_ref }}
                                 </button>
                                 {% endif %}
@@ -991,6 +991,7 @@
 <script>
     const BOOK_ID = {{ book['id'] }};
     const PDF_URL = "/books/{{ book['filename']|urlencode }}?inline=1&v={{ v }}";
+    const PAGE_OFFSET = {{ page_offset|default(0) }};
     
     let pdfDoc = null;
     let currentPdfPage = {{ initial_page|default(1) }};
@@ -1004,6 +1005,7 @@
     const ctx = canvas.getContext('2d');
     const pageInput = document.getElementById('pdfPageInput');
     const totalPagesSpan = document.getElementById('pdfTotalPagesSpan');
+    const pageNumSpan = document.getElementById('pdfPageNumSpan');
     const loader = document.getElementById('pdfLoader');
 
     // Inicjalizacja podglądu PDF po lewej stronie
@@ -1018,7 +1020,6 @@
             pdfDoc = pdf;
             totalPdfPages = pdf.numPages;
             totalPagesSpan.innerText = totalPdfPages;
-            pageInput.max = totalPdfPages;
             
             if (currentPdfPage > totalPdfPages) currentPdfPage = 1;
             
@@ -1068,15 +1069,23 @@
             ctx.scale(dpr, dpr);
 
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-            pageInput.value = num;
+            
+            const currentBookPage = num - PAGE_OFFSET;
+            if (pageInput) {
+                pageInput.value = currentBookPage > 0 ? currentBookPage : num;
+            }
+            if (pageNumSpan) {
+                pageNumSpan.innerText = num;
+            }
 
             // Aktualizacja aktywnego chipa strony
             document.querySelectorAll('.page-chip').forEach(c => {
-                c.classList.toggle('active', c.innerText.trim() === 'Str. ' + num);
+                const bp = parseInt(c.getAttribute('data-book-page'), 10);
+                c.classList.toggle('active', bp === currentBookPage);
             });
 
-            // Filtruj zadania po prawej stronie, aby pokazać tylko te z bieżącej strony
-            filterTasksByPage(num);
+            // Filtruj zadania po prawej stronie według drukowanej strony książki
+            filterTasksByPage(currentBookPage);
         } catch(e) {
             console.warn('Render error:', e);
         }
@@ -1087,6 +1096,13 @@
             renderPending = false;
             renderPdfPage(next);
         }
+    }
+
+    function jumpBookPage(bookPage) {
+        let bp = parseInt(bookPage, 10);
+        if (isNaN(bp)) return;
+        let targetPdf = bp + PAGE_OFFSET;
+        jumpPdfPage(targetPdf);
     }
 
     function stepPdfPage(delta) {

@@ -2446,14 +2446,27 @@ def courses_play(request: Request, book_id: int):
     chap = conn.execute("SELECT raw_ocr_text FROM book_chapters WHERE book_id=? AND status='completed' LIMIT 1", (book_id,)).fetchone()
     raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else "Tekst OCR dla tego podręcznika jest obecnie przetwarzany w kolejce N8N."
 
-    # 4. Sprawdzamy początkową stronę w PDF (np. ze strony pierwszego zadania)
-    initial_page = 1
+    # 4. Ustalamy offset stron między indeksem pliku PDF a drukowaną stroną książki
+    b_dict = dict(book)
+    page_offset = b_dict.get('page_offset') or 0
+    fn = b_dict.get('filename', '').lower()
+    if not page_offset:
+        if 'matematyka_cwiczenia' in fn or book_id == 108:
+            page_offset = 2
+        elif 'angielski_cwiczenia' in fn or book_id == 107:
+            page_offset = 1
+        elif 'matematyka_podrecznik' in fn or book_id == 103:
+            page_offset = 2
+
+    # 5. Sprawdzamy początkową stronę w PDF (np. ze strony pierwszego zadania)
+    initial_book_page = 1
     for t in tasks:
         if t.get('page_ref'):
-            initial_page = t['page_ref']
+            initial_book_page = t['page_ref']
             break
+    initial_pdf_page = max(1, initial_book_page + page_offset)
 
-    # 5. Sprawdzamy czy istnieje powiązany podręcznik lub zeszyt ćwiczeń
+    # 6. Sprawdzamy czy istnieje powiązany podręcznik lub zeszyt ćwiczeń
     counterpart = None
     if book['kind'] == 'cwiczenia':
         cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='podreczniki' LIMIT 1", (b_subj,)).fetchone()
@@ -2462,7 +2475,7 @@ def courses_play(request: Request, book_id: int):
         cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='cwiczenia' LIMIT 1", (b_subj,)).fetchone()
         if cp: counterpart = dict(cp)
 
-    # 6. Pobieramy nagrania audio (audio_podcasts) dla tego podręcznika / zeszytu
+    # 7. Pobieramy nagrania audio (audio_podcasts) dla tego podręcznika / zeszytu
     audio_tracks = [dict(r) for r in conn.execute("""
         SELECT ap.* FROM audio_podcasts ap 
         JOIN book_chapters bc ON ap.chapter_id = bc.id 
@@ -2485,7 +2498,9 @@ def courses_play(request: Request, book_id: int):
         "target_deck_id": target_deck_id,
         "cards": cards,
         "tasks": tasks,
-        "initial_page": initial_page,
+        "initial_page": initial_pdf_page,
+        "initial_book_page": initial_book_page,
+        "page_offset": page_offset,
         "counterpart": counterpart,
         "raw_ocr_text": raw_ocr_text,
         "audio_tracks": audio_tracks
