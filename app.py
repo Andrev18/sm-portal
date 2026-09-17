@@ -2774,6 +2774,12 @@ def generate_math_variant(content: dict, task_type: str, difficulty: str = "same
     import copy, random, re
     res = copy.deepcopy(content)
     orig_num = content.get("number", "Zadanie")
+    
+    if difficulty == "identical":
+        res["number"] = "Powtórka: " + orig_num
+        res["title"] = "Trening z pamięci: " + content.get("title", "Zadanie")
+        return res
+    
     res["number"] = "Wariant do: " + orig_num
     
     if difficulty == "easier":
@@ -2932,6 +2938,9 @@ async def api_task_similar(task_id: int, request: Request):
     elif diff_choice == "harder":
         diff_level = min(5, orig_level + 1)
         diff_tag = "Trudniejszy (+1)"
+    elif diff_choice == "identical":
+        diff_level = orig_level
+        diff_tag = "Identyczne (z pamięci)"
     else:
         diff_level = orig_level
         diff_tag = "Ten sam poziom"
@@ -2948,4 +2957,54 @@ async def api_task_similar(task_id: int, request: Request):
     }
     conn.close()
     return JSONResponse({"status": "ok", "task": similar_task})
+
+
+@app.post("/api/tasks/batch-similar")
+async def api_tasks_batch_similar(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    data = await request.json()
+    task_ids = data.get("task_ids", [])
+    diff_choice = data.get("difficulty", "same")
+    if not task_ids:
+        raise HTTPException(400, "Brak wybranych zadań")
+    
+    conn = db()
+    tasks_out = []
+    import json, random
+    for tid in task_ids:
+        t_row = conn.execute("SELECT * FROM interactive_tasks WHERE id=?", (tid,)).fetchone()
+        if not t_row:
+            continue
+        content = json.loads(t_row["content_json"])
+        task_type = t_row["task_type"]
+        orig_level = t_row["difficulty_level"] or 2
+        
+        if diff_choice == "easier":
+            diff_level = max(1, orig_level - 1)
+            diff_tag = "Łatwiejszy (-1)"
+        elif diff_choice == "harder":
+            diff_level = min(5, orig_level + 1)
+            diff_tag = "Trudniejszy (+1)"
+        elif diff_choice == "identical":
+            diff_level = orig_level
+            diff_tag = "Identyczne (z pamięci)"
+        else:
+            diff_level = orig_level
+            diff_tag = "Ten sam poziom"
+            
+        sim_content = generate_math_variant(content, task_type, diff_choice)
+        tasks_out.append({
+            "id": f"sim_{tid}_{random.randint(1000, 9999)}",
+            "original_id": tid,
+            "task_type": task_type,
+            "difficulty_level": diff_level,
+            "difficulty_tag": diff_tag,
+            "difficulty_mode": diff_choice,
+            "parsed_content": sim_content
+        })
+    
+    conn.close()
+    return JSONResponse({"status": "ok", "tasks": tasks_out})
 

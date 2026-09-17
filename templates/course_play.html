@@ -362,6 +362,171 @@
     background: #ef4444;
     box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
 }
+.sdc-dot.dot-blue {
+    background: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+}
+
+/* Wyrównanie nagłówków i pod-pasków, aby karty zaczynały się idealnie w tej samej linii */
+.tasks-header {
+    height: 56px !important;
+    min-height: 56px !important;
+    box-sizing: border-box !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+.task-page-filter-bar, .similar-subbar {
+    height: 42px !important;
+    min-height: 42px !important;
+    box-sizing: border-box !important;
+    padding: 0 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+.tasks-scroll-pane {
+    padding: 20px !important;
+}
+.tasks-scroll-pane > .task-card:first-child {
+    margin-top: 0 !important;
+}
+
+/* Wybór wielu zadań (Multi-select do generowania zestawu) */
+.tc-select-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    user-select: none;
+}
+.tc-select-label:hover {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: var(--accent-cyan);
+    color: #fff;
+}
+.task-select-cb {
+    cursor: pointer;
+    accent-color: #10b981;
+}
+.batch-tasks-bar {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 12px;
+    padding: 8px 16px;
+    margin: 10px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.btn-clear-batch {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.btn-clear-batch:hover { color: #fff; }
+
+/* Alert blokady przejścia do kolejnego zestawu (Gate) */
+.gate-warning-banner {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    animation: shake 0.3s ease;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+/* Format A4 do druku / generowania PDF */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 15mm 15mm 20mm 15mm;
+    }
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+    }
+    .hybrid-top-bar, .scan-toolbar, .col-scan, .mode-switcher, 
+    .btn-pill-action, .btn-ghost-panel, .btn-restore-left, .btn-restore-right,
+    .slide-history-bar, .task-page-filter-bar, .similar-subbar,
+    .similar-dots-control, .btn-submit-task, .btn-hint, .btn-tool-secondary,
+    .batch-tasks-bar, .scratchpad-drawer, #noTasksOnPageNotice, .tc-actions-bar,
+    .tc-select-label, .gate-warning-banner, .tc-num-badge button {
+        display: none !important;
+    }
+    .hybrid-page-wrapper {
+        padding: 0 !important;
+    }
+    .hybrid-grid {
+        display: block !important;
+    }
+    .col-tasks, .col-similar {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+    .tasks-scroll-pane {
+        padding: 0 !important;
+        display: block !important;
+    }
+    .task-card {
+        background: #fff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        margin-bottom: 20px !important;
+        page-break-inside: avoid;
+        padding: 16px !important;
+        border-radius: 6px !important;
+    }
+    .tc-title { color: #0f172a !important; font-size: 15px !important; }
+    .tc-inst { color: #475569 !important; font-size: 12px !important; }
+    .calc-item {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    .calc-label { color: #1e293b !important; }
+    .calc-inp {
+        background: #fff !important;
+        border: 1px solid #94a3b8 !important;
+        color: #000 !important;
+    }
+    .print-sheet-header {
+        display: block !important;
+        margin-bottom: 24px;
+        padding-bottom: 14px;
+        border-bottom: 2px solid #0f172a;
+    }
+}
+.print-sheet-header { display: none; }
 
 /* Zwijanie prawego panelu */
 .hybrid-grid.mode-similar-split.right-collapsed {
@@ -1137,6 +1302,10 @@
                 <strong id="kpi-mastered">0 / {{ tasks|length }}</strong>
             </div>
 
+            <button class="btn-pill-action" onclick="printWorksheet()" title="Drukuj arkusz zadań A4 lub pobierz jako PDF">
+                <i data-lucide="printer" style="width: 14px;"></i> Drukuj A4
+            </button>
+
             <button class="btn-pill-action" onclick="toggleScratchpad()" title="Otwórz brudnopis do szybkich obliczeń">
                 <i data-lucide="edit-2" style="width: 14px;"></i> Brudnopis
             </button>
@@ -1231,6 +1400,20 @@
 
             <!-- Główna lista zadań bazowych -->
             <div id="tasksListContainer" style="display: flex; flex-direction: column; height: 100%;">
+                
+                <!-- NAGŁÓWEK DO DRUKU A4 -->
+                <div class="print-sheet-header">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h2 style="margin:0; font-size:18px;">{{ book['title'] }} • Arkusz Zadań</h2>
+                        <span style="font-size:13px; font-weight:600;">Klasa {{ book['grade'] }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#333;">
+                        <span>Imię i nazwisko: ....................................................</span>
+                        <span>Data: ....................</span>
+                        <span>Wynik: ...... / ......</span>
+                    </div>
+                </div>
+
                 <div class="tasks-header">
                     <div class="tasks-header-title">
                         <i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i>
@@ -1246,22 +1429,40 @@
                     </div>
                 </div>
 
-            <!-- PASEK FILTRU STRON DLA ZADAŃ PC -->
-            <div class="task-page-filter-bar" id="taskPageFilterBar">
-                <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-right: 4px;">Filtruj zadania:</span>
-                <button type="button" class="tp-filter-chip active" id="tp-chip-all" onclick="filterTasksMode('all')">
-                    Wszystkie ({{ tasks|length }})
-                </button>
-                {% set pages_seen = [] %}
-                {% for t in tasks %}
-                    {% if t.page_ref and t.page_ref not in pages_seen %}
-                        {% set _ = pages_seen.append(t.page_ref) %}
-                        <button type="button" class="tp-filter-chip" id="tp-chip-{{ t.page_ref }}" onclick="filterTasksMode({{ t.page_ref }})">
-                            Str. {{ t.page_ref }}
-                        </button>
-                    {% endif %}
-                {% endfor %}
-            </div>
+                <!-- PASEK FILTRU STRON DLA ZADAŃ PC -->
+                <div class="task-page-filter-bar" id="taskPageFilterBar">
+                    <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-right: 4px;">Filtruj zadania:</span>
+                    <button type="button" class="tp-filter-chip active" id="tp-chip-all" onclick="filterTasksMode('all')">
+                        Wszystkie ({{ tasks|length }})
+                    </button>
+                    {% set pages_seen = [] %}
+                    {% for t in tasks %}
+                        {% if t.page_ref and t.page_ref not in pages_seen %}
+                            {% set _ = pages_seen.append(t.page_ref) %}
+                            <button type="button" class="tp-filter-chip" id="tp-chip-{{ t.page_ref }}" onclick="filterTasksMode({{ t.page_ref }})">
+                                Str. {{ t.page_ref }}
+                            </button>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- PASEK WYBORU WIELU ZADAŃ (BATCH GENERATION) -->
+                <div class="batch-tasks-bar" id="batchTasksBar" style="display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="layers" style="width: 15px; color: #10b981;"></i>
+                        <span style="font-size: 12px; color: #fff;">Zaznaczono <strong id="batchSelectedCount">0</strong> zadań:</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="similar-dots-control">
+                            <span class="sdc-label"><i data-lucide="sparkles" style="width:11px;"></i> Zestaw:</span>
+                            <button type="button" class="sdc-dot dot-green" onclick="generateBatchVariants('easier')" title="Generuj łatwiejszy zestaw (-1)"></button>
+                            <button type="button" class="sdc-dot dot-yellow" onclick="generateBatchVariants('same')" title="Generuj zestaw na tym samym poziomie"></button>
+                            <button type="button" class="sdc-dot dot-red" onclick="generateBatchVariants('harder')" title="Generuj trudniejszy zestaw (+1)"></button>
+                            <button type="button" class="sdc-dot dot-blue" onclick="generateBatchVariants('identical')" title="Generuj identyczny zestaw (z pamięci)"></button>
+                        </div>
+                        <button type="button" class="btn-clear-batch" onclick="clearSelectedTasks()">Odznacz</button>
+                    </div>
+                </div>
 
             <div class="tasks-scroll-pane">
                 {% if tasks %}
@@ -1285,6 +1486,10 @@
                                 </span>
                                 {% endif %}
                                 <span style="font-size: 11px; color: var(--text-muted);">Poziom: {{ t.difficulty_level }}/5</span>
+                                <label class="tc-select-label" onclick="event.stopPropagation()" title="Zaznacz do wygenerowania zestawu">
+                                    <input type="checkbox" class="task-select-cb" value="{{ t.id }}" onchange="updateSelectedTasksBar()">
+                                    <span>Wybierz</span>
+                                </label>
                             </div>
                         </div>
 
@@ -1474,6 +1679,7 @@
                                     <button type="button" class="sdc-dot dot-green" onclick="generateSimilarTask({{ t.id }}, 'easier', this)" title="Łatwiejsze (-1 poziom)"></button>
                                     <button type="button" class="sdc-dot dot-yellow" onclick="generateSimilarTask({{ t.id }}, 'same', this)" title="Na tym samym poziomie"></button>
                                     <button type="button" class="sdc-dot dot-red" onclick="generateSimilarTask({{ t.id }}, 'harder', this)" title="Trudniejsze (+1 poziom)"></button>
+                                    <button type="button" class="sdc-dot dot-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this)" title="Identyczne (z pamięci - ukrywa oryginał)"></button>
                                 </div>
                                 {% if c.hint or c.story %}
                                 <button type="button" class="btn-hint" onclick="toggleHint({{ t.id }})">
@@ -1524,6 +1730,7 @@
                         <button type="button" class="sdc-dot dot-green" onclick="generateAnotherSimilar('easier')" title="Łatwiejsze (-1 poziom)"></button>
                         <button type="button" class="sdc-dot dot-yellow" onclick="generateAnotherSimilar('same')" title="Na tym samym poziomie"></button>
                         <button type="button" class="sdc-dot dot-red" onclick="generateAnotherSimilar('harder')" title="Trudniejsze (+1 poziom)"></button>
+                        <button type="button" class="sdc-dot dot-blue" onclick="generateAnotherSimilar('identical')" title="Identyczne (z pamięci)"></button>
                     </div>
                     <button type="button" class="btn-ghost-panel" id="btnCollapseSimilar" onclick="toggleRightPanel()" title="Zwiń ten panel">
                         <i data-lucide="panel-right-close" style="width: 15px;"></i>
@@ -1535,6 +1742,18 @@
                         <i data-lucide="x" style="width: 15px;"></i>
                     </button>
                 </div>
+            </div>
+
+            <!-- POD-PASEK STATUSU TRENINGU (WYRÓWNUJE WYSOKOŚĆ Z LEWĄ STRONĄ) -->
+            <div class="similar-subbar" id="similarSubBar">
+                <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan);">ZESTAW TRENINGOWY:</span>
+                <span style="font-size: 11px; color: #cbd5e1;" id="similarCountBadge">1 zadanie</span>
+                <span style="margin-left: auto; font-size: 11px; color: #10b981;" id="similarGateNotice">✓ Sprawdź zadania, aby przejść do kolejnego zestawu</span>
+            </div>
+
+            <div class="gate-warning-banner" id="gateWarningBanner" style="margin: 10px 20px 0;">
+                <i data-lucide="alert-triangle" style="width: 15px; color: #ef4444;"></i>
+                <span id="gateWarningText">Musisz najpierw sprawdzić wszystkie zadania w tym oknie!</span>
             </div>
 
             <div class="tasks-scroll-pane" id="similarTaskContent" style="padding: 20px;">
@@ -1989,12 +2208,103 @@
         }
     }
 
+    // WYDRUK / EKSPORT DO PDF FORMAT A4
+    function printWorksheet() {
+        window.print();
+    }
+
+    // MULTI-SELECT ZADAŃ I GENEROWANIE ZESTAWU (BATCH)
+    function updateSelectedTasksBar() {
+        const cbs = document.querySelectorAll('.task-select-cb:checked');
+        const bar = document.getElementById('batchTasksBar');
+        const countSpan = document.getElementById('batchSelectedCount');
+        if (cbs.length > 0) {
+            bar.style.display = 'flex';
+            countSpan.innerText = cbs.length;
+        } else {
+            bar.style.display = 'none';
+        }
+    }
+
+    function clearSelectedTasks() {
+        document.querySelectorAll('.task-select-cb').forEach(cb => { cb.checked = false; });
+        updateSelectedTasksBar();
+    }
+
+    async function generateBatchVariants(difficulty = 'same') {
+        const cbs = document.querySelectorAll('.task-select-cb:checked');
+        const taskIds = Array.from(cbs).map(cb => parseInt(cb.value));
+        if (taskIds.length === 0) return;
+
+        // Jeśli w prawym panelu są zadania i nie wszystkie zostały sprawdzone - blokujemy przejście
+        if (!canAdvanceToNextPanel()) {
+            showGateWarning("Wszystkie zadania w bieżącym panelu muszą zostać sprawdzone przed utworzeniem kolejnego zestawu!");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/tasks/batch-similar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ task_ids: taskIds, difficulty: difficulty })
+            });
+            const d = await res.json();
+            if (d.status === 'ok' && d.tasks && d.tasks.length > 0) {
+                openBatchSimilarPanel(d.tasks, difficulty);
+                clearSelectedTasks();
+            } else {
+                alert('Nie udało się wygenerować zestawu wariantów.');
+            }
+        } catch(e) {
+            alert('Błąd podczas generowania zestawu: ' + e);
+        }
+    }
+
+    // SPRAWDZANIE BRAMKI (GATE): Czy wszystkie wygenerowane zadania w prawym panelu zostały sprawdzone?
+    function canAdvanceToNextPanel() {
+        const rightContainer = document.getElementById('similarTaskContent');
+        if (!rightContainer) return true;
+        const rightCards = rightContainer.querySelectorAll('.task-card');
+        if (rightCards.length === 0) return true; // pusto, można tworzyć
+
+        // Każda karta musi mieć klasę checked-attempt
+        for (let card of rightCards) {
+            if (!card.classList.contains('checked-attempt')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function showGateWarning(msg) {
+        const banner = document.getElementById('gateWarningBanner');
+        const text = document.getElementById('gateWarningText');
+        if (banner && text) {
+            text.innerText = msg;
+            banner.style.display = 'flex';
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 5000);
+        } else {
+            alert(msg);
+        }
+    }
+
     // OBSŁUGA GENEROWANIA ZADANIA PODOBNEGO I WIDOKU SPLIT-PRACTICE
+    let activeSimilarTasks = [];
     let activeSimilarTask = null;
     let activeSimilarTaskId = null;
+    let previousLeftTasks = null;
     let previousLeftTask = null;
 
     async function generateSimilarTask(taskId, difficulty = 'same', btn) {
+        // Przed wygenerowaniem kolejnego zadania sprawdzamy czy bieżące zostały sprawdzone!
+        if (!canAdvanceToNextPanel()) {
+            showGateWarning("Sprawdź najpierw zadania w bieżącym panelu przed utworzeniem kolejnego!");
+            return;
+        }
+
         activeSimilarTaskId = taskId;
         const origText = btn ? btn.innerHTML : '';
         if (btn) {
@@ -2009,7 +2319,7 @@
             const d = await res.json();
             if (btn) btn.innerHTML = origText;
             if (d.status === 'ok' && d.task) {
-                openSimilarPanel(d.task);
+                openSimilarPanel(d.task, difficulty);
             } else {
                 alert('Nie udało się wygenerować wariantu.');
             }
@@ -2020,22 +2330,30 @@
     }
 
     function generateAnotherSimilar(difficulty) {
+        if (!canAdvanceToNextPanel()) {
+            showGateWarning("Sprawdź wszystkie zadania w bieżącym panelu przed wygenerowaniem kolejnego zestawu!");
+            return;
+        }
         if (activeSimilarTaskId) {
             generateSimilarTask(activeSimilarTaskId, difficulty);
         }
     }
 
-    function openSimilarPanel(task) {
+    function openSimilarPanel(task, difficulty = 'same') {
+        openBatchSimilarPanel([task], difficulty);
+    }
+
+    function openBatchSimilarPanel(tasks, difficulty = 'same') {
         const grid = document.getElementById('hybridGrid');
 
-        // Jeśli panel podobnego zadania jest już otwarty (tworzymy 3. ekran),
-        // przesuwamy dotychczasowe zadanie z prawej do lewego slotu!
-        if (grid.classList.contains('mode-similar-split') && activeSimilarTask) {
-            slideRightToLeft(activeSimilarTask);
+        // Jeśli w prawym panelu były już zadania, przesuwamy je na lewo (3. ekran)!
+        if (grid.classList.contains('mode-similar-split') && activeSimilarTasks.length > 0) {
+            slideRightToLeft(activeSimilarTasks);
         }
 
-        activeSimilarTask = task;
-        activeSimilarTaskId = task.original_id;
+        activeSimilarTasks = tasks;
+        activeSimilarTask = tasks[0];
+        activeSimilarTaskId = tasks[0].original_id;
 
         grid.classList.remove('mode-scan-only', 'mode-tasks-only', 'left-collapsed', 'right-collapsed');
         grid.classList.add('mode-similar-split');
@@ -2046,33 +2364,59 @@
         const headerBtnGroup = document.getElementById('similarHeaderBtnGroup');
         if (headerBtnGroup) headerBtnGroup.style.display = 'inline-flex';
 
-        // Jeśli nie przesunięto wariantu do lewego slotu, podświetl oryginał na liście
-        if (!previousLeftTask) {
-            const origCard = document.getElementById('task-card-' + task.original_id);
-            if (origCard) {
+        // Jeśli wybrano opcję IDENTYCZNE ("identical"), automatycznie ukrywamy lewy panel,
+        // aby uczeń nie przepisywał z lewej części, lecz rozwiązywał z pamięci!
+        if (difficulty === 'identical') {
+            grid.classList.add('left-collapsed');
+            const icon = document.getElementById('iconSimilarFullscreen');
+            if (icon) icon.setAttribute('data-lucide', 'minimize-2');
+        }
+
+        const panelTitle = document.getElementById('similarPanelTitle');
+        if (panelTitle) {
+            panelTitle.innerText = tasks.length === 1 
+                ? (tasks[0].parsed_content.number || 'Wariant Treningowy')
+                : `Zestaw Treningowy (${tasks.length} zadań)`;
+        }
+
+        const panelSubtitle = document.getElementById('similarPanelSubtitle');
+        if (panelSubtitle) {
+            panelSubtitle.innerText = tasks.length === 1 
+                ? `Poziom: ${tasks[0].difficulty_level}/5 • ${tasks[0].difficulty_tag || 'Standardowy'}`
+                : `Wygenerowano ${tasks.length} zadań ćwiczeniowych`;
+        }
+
+        const countBadge = document.getElementById('similarCountBadge');
+        if (countBadge) {
+            countBadge.innerText = `${tasks.length} ${tasks.length === 1 ? 'zadanie' : 'zadania'}`;
+        }
+
+        // Renderuj wszystkie zadania w prawym panelu
+        const rightContainer = document.getElementById('similarTaskContent');
+        rightContainer.innerHTML = '';
+        tasks.forEach(t => {
+            renderSimilarTaskHTML(t, 'similarTaskContent', false);
+        });
+
+        // Wyrównaj przewijanie do samej góry, aby pierwsze zadanie było idealnie w tej samej linii co lewe
+        rightContainer.scrollTop = 0;
+        const leftPane = document.querySelector('#colTasks .tasks-scroll-pane');
+        if (leftPane) {
+            // Jeśli nie jest ukryty lewy panel i to jedno zadanie, zrównaj z oryginałem
+            const origCard = document.getElementById('task-card-' + tasks[0].original_id);
+            if (origCard && !previousLeftTasks) {
                 origCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 origCard.style.outline = '2px solid rgba(56, 189, 248, 0.4)';
                 setTimeout(() => { origCard.style.outline = 'none'; }, 2500);
             }
         }
 
-        const panelTitle = document.getElementById('similarPanelTitle');
-        if (panelTitle) {
-            panelTitle.innerText = task.parsed_content.number || 'Wariant Treningowy';
-        }
-
-        const panelSubtitle = document.getElementById('similarPanelSubtitle');
-        if (panelSubtitle) {
-            panelSubtitle.innerText = `Poziom: ${task.difficulty_level}/5 • ${task.difficulty_tag || 'Standardowy'}`;
-        }
-
-        renderSimilarTaskHTML(task, 'similarTaskContent');
-
         if (window.lucide) lucide.createIcons();
     }
 
-    function slideRightToLeft(taskToMove) {
-        previousLeftTask = taskToMove;
+    function slideRightToLeft(tasksToMove) {
+        previousLeftTasks = tasksToMove;
+        previousLeftTask = tasksToMove[0];
         const leftList = document.getElementById('tasksListContainer');
         const leftContainer = document.getElementById('leftVariantContainer');
         const historyBar = document.getElementById('slideHistoryBar');
@@ -2080,16 +2424,25 @@
         if (leftList) leftList.style.display = 'none';
         if (leftContainer) {
             leftContainer.style.display = 'block';
-            renderSimilarTaskHTML(taskToMove, 'leftVariantContainer');
+            leftContainer.innerHTML = '';
+            tasksToMove.forEach(t => {
+                renderSimilarTaskHTML(t, 'leftVariantContainer', false);
+            });
+            leftContainer.scrollTop = 0;
         }
         if (historyBar) {
             historyBar.style.display = 'flex';
             const info = document.getElementById('slideHistoryInfo');
-            if (info) info.innerText = taskToMove.parsed_content.number || 'Poprzedni wariant';
+            if (info) {
+                info.innerText = tasksToMove.length === 1 
+                    ? (tasksToMove[0].parsed_content.number || 'Poprzedni wariant')
+                    : `Poprzedni zestaw (${tasksToMove.length} zadań)`;
+            }
         }
     }
 
     function slideBack() {
+        previousLeftTasks = null;
         previousLeftTask = null;
         const leftList = document.getElementById('tasksListContainer');
         const leftContainer = document.getElementById('leftVariantContainer');
@@ -2267,6 +2620,7 @@
                         <button type="button" class="sdc-dot dot-green" onclick="generateSimilarTask(${task.original_id}, 'easier', this)" title="Łatwiejsze (-1 poziom)"></button>
                         <button type="button" class="sdc-dot dot-yellow" onclick="generateSimilarTask(${task.original_id}, 'same', this)" title="Na tym samym poziomie"></button>
                         <button type="button" class="sdc-dot dot-red" onclick="generateSimilarTask(${task.original_id}, 'harder', this)" title="Trudniejsze (+1 poziom)"></button>
+                        <button type="button" class="sdc-dot dot-blue" onclick="generateSimilarTask(${task.original_id}, 'identical', this)" title="Identyczne (z pamięci - ukrywa oryginał)"></button>
                     </div>
                 </div>
                 <div style="font-size: 11px; color: var(--text-muted);">
@@ -2276,7 +2630,13 @@
             <div class="task-fb" id="fb-similar-${task.id}"></div>
         </div>`;
 
-        container.innerHTML = html;
+        if (containerId === 'similarTaskContent' && !task.is_append) {
+            container.innerHTML += html;
+        } else if (containerId === 'leftVariantContainer') {
+            container.innerHTML += html;
+        } else {
+            container.innerHTML += html;
+        }
     }
 
     function handleSimilarInputEnter(e, taskId) {
@@ -2320,6 +2680,9 @@
         });
 
         fb.style.display = 'block';
+        card.classList.add('checked-attempt'); // Oznacza zadanie jako sprawdzone w ramach bramki
+
+        const pctScore = Math.round((correct / inputs.length) * 100);
         if (correct === inputs.length) {
             fb.style.color = '#10b981';
             fb.style.background = 'rgba(16, 185, 129, 0.15)';
@@ -2331,7 +2694,16 @@
         } else {
             fb.style.color = '#ef4444';
             fb.style.background = 'rgba(239, 68, 68, 0.15)';
-            fb.innerHTML = `Poprawnie: ${correct} z ${inputs.length}. Popraw błędne pola i spróbuj ponownie!`;
+            fb.innerHTML = `Poprawnie: ${correct} z ${inputs.length} (${pctScore}%). Popraw błędne pola i spróbuj ponownie!`;
+            if (activeSimilarTask && activeSimilarTask.original_id) {
+                recordProgress(activeSimilarTask.original_id, pctScore);
+            }
+        }
+        
+        // Ukryj ewentualne ostrzeżenie bramki, jeśli wszystkie zadania w panelu są już sprawdzone
+        if (canAdvanceToNextPanel()) {
+            const banner = document.getElementById('gateWarningBanner');
+            if (banner) banner.style.display = 'none';
         }
     }
 
