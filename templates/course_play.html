@@ -2121,12 +2121,14 @@
 
     // Dynamiczna zmiana zadań po zmianie strony
     function filterTasksByPage(pageNum) {
-        if (currentGridMode === 'tasks') {
-            // W trybie Zadania PC nie ograniczamy widoku do pojedynczej strony skanu
+        // W trybie Zadania PC lub w widoku dzielonym z wariantami (mode-similar-split)
+        // NIE ukrywamy zadań bazowych! Zestaw bazowy zostaje nienaruszony!
+        const grid = document.getElementById('hybridGrid');
+        if (currentGridMode === 'tasks' || (grid && grid.classList.contains('mode-similar-split'))) {
             return;
         }
 
-        const cards = document.querySelectorAll('.task-card');
+        const cards = document.querySelectorAll('#tasksListContainer .task-card');
         let visibleCount = 0;
         
         cards.forEach(card => {
@@ -2189,7 +2191,7 @@
     function filterTasksMode(page) {
         updateFilterChips(page);
 
-        const cards = document.querySelectorAll('.task-card');
+        const cards = document.querySelectorAll('#tasksListContainer .task-card');
         let visibleCount = 0;
         cards.forEach(card => {
             const p = card.getAttribute('data-page');
@@ -2510,10 +2512,15 @@
     function openBatchSimilarPanel(tasks, difficulty = 'same') {
         const grid = document.getElementById('hybridGrid');
 
-        // Jeśli w prawym panelu były już zadania, przesuwamy je na lewo (3. ekran)!
-        if (grid.classList.contains('mode-similar-split') && activeSimilarTasks.length > 0) {
-            slideRightToLeft(activeSimilarTasks);
+        // Upewnij się, że lewa lista bazowa jest zawsze w 100% widoczna i nienaruszona!
+        const leftList = document.getElementById('tasksListContainer');
+        if (leftList) {
+            leftList.style.display = 'flex';
         }
+        // Wszystkie karty w lewym panelu bazowym pozostają w 100% widoczne
+        document.querySelectorAll('#tasksListContainer .task-card').forEach(c => {
+            c.style.display = 'flex';
+        });
 
         activeSimilarTasks = tasks;
         activeSimilarTask = tasks[0];
@@ -2562,12 +2569,15 @@
             renderSimilarTaskHTML(t, 'similarTaskContent', false);
         });
 
-        // Wyrównaj przewijanie do samej góry, aby pierwsze zadanie było idealnie w tej samej linii co lewe
+        // Wyrównaj pozycję vis-a-vis:
+        // Prawy kontener i lewy kontener przewijamy tak, aby wybrane zadanie bazowe
+        // oraz nowo powstałe zadanie treningowe znajdowały się vis-a-vis na tej samej wysokości
         rightContainer.scrollTop = 0;
         const leftPane = document.querySelector('#colTasks .tasks-scroll-pane');
-        if (leftPane && tasks.length > 0 && !previousLeftTasks) {
+        if (leftPane && tasks.length > 0) {
             const origCard = document.getElementById('task-card-' + tasks[0].original_id);
             if (origCard) {
+                // Oblicz względną pozycję karty względem okna przewijania
                 const targetScrollTop = origCard.offsetTop - leftPane.offsetTop;
                 leftPane.scrollTo({
                     top: Math.max(0, targetScrollTop),
