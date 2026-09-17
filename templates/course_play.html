@@ -437,93 +437,87 @@
     transform: translateY(-1px) !important;
 }
 
-/* JEDEN ZUNIFIKOWANY SEGMENTOWANY PRZYCISK WARIANTÓW (CAPSULE) */
+/* JEDEN ZUNIFIKOWANY SEGMENTOWANY PRZYCISK WARIANTÓW (STYL LINEAR / VERCEL) */
 .variant-segmented-control {
     display: inline-flex !important;
     align-items: center !important;
-    background: #090d16 !important;
-    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 8px !important;
     padding: 2px !important;
     gap: 2px !important;
     height: 32px !important;
     box-sizing: border-box !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 .vsc-label {
     font-size: 11px !important;
-    font-weight: 800 !important;
-    color: var(--accent-cyan) !important;
-    padding: 0 8px 0 8px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.4px !important;
+    font-weight: 700 !important;
+    color: #94a3b8 !important;
+    padding: 0 8px 0 6px !important;
     display: flex !important;
     align-items: center !important;
     gap: 5px !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     height: 100% !important;
+    user-select: none !important;
 }
 
 .vsc-seg {
     height: 26px !important;
-    padding: 0 9px !important;
+    padding: 0 8px !important;
     border-radius: 6px !important;
     border: 1px solid transparent !important;
     background: transparent !important;
     color: #cbd5e1 !important;
     font-size: 11px !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 5px !important;
     transition: all 0.15s ease !important;
     user-select: none !important;
+    line-height: 1 !important;
 }
 
-.seg-dot {
-    width: 7px !important;
-    height: 7px !important;
-    border-radius: 50% !important;
-    display: inline-block !important;
+.vsc-seg i {
+    width: 13px !important;
+    height: 13px !important;
+    transition: transform 0.15s ease !important;
 }
 
-/* Wybrzuszenie / zmiana koloru po najechaniu i kliknięciu */
-.vsc-seg.seg-green .seg-dot { background: #10b981 !important; box-shadow: 0 0 6px rgba(16, 185, 129, 0.8) !important; }
-.vsc-seg.seg-green:hover {
-    background: rgba(16, 185, 129, 0.22) !important;
-    border-color: rgba(16, 185, 129, 0.6) !important;
-    color: #34d399 !important;
+/* Subtelny hover z podświetleniem piktogramu w kolorze akcentu */
+.vsc-seg.seg-down i { color: #34d399 !important; }
+.vsc-seg.seg-down:hover {
+    background: rgba(16, 185, 129, 0.14) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    color: #ffffff !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
 }
 
-.vsc-seg.seg-yellow .seg-dot { background: #eab308 !important; box-shadow: 0 0 6px rgba(234, 179, 8, 0.8) !important; }
-.vsc-seg.seg-yellow:hover {
-    background: rgba(234, 179, 8, 0.22) !important;
-    border-color: rgba(234, 179, 8, 0.6) !important;
-    color: #fde047 !important;
+.vsc-seg.seg-same i { color: #fde047 !important; }
+.vsc-seg.seg-same:hover {
+    background: rgba(234, 179, 8, 0.14) !important;
+    border-color: rgba(234, 179, 8, 0.4) !important;
+    color: #ffffff !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3) !important;
 }
 
-.vsc-seg.seg-red .seg-dot { background: #ef4444 !important; box-shadow: 0 0 6px rgba(239, 68, 68, 0.8) !important; }
-.vsc-seg.seg-red:hover {
-    background: rgba(239, 68, 68, 0.22) !important;
-    border-color: rgba(239, 68, 68, 0.6) !important;
-    color: #fca5a5 !important;
+.vsc-seg.seg-up i { color: #f87171 !important; }
+.vsc-seg.seg-up:hover {
+    background: rgba(239, 68, 68, 0.14) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #ffffff !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
 }
 
-.vsc-seg.seg-blue .seg-dot { background: #3b82f6 !important; box-shadow: 0 0 6px rgba(59, 130, 246, 0.8) !important; }
-.vsc-seg.seg-blue:hover {
-    background: rgba(59, 130, 246, 0.22) !important;
-    border-color: rgba(59, 130, 246, 0.6) !important;
-    color: #93c5fd !important;
+.vsc-seg.seg-copy i { color: #60a5fa !important; }
+.vsc-seg.seg-copy:hover {
+    background: rgba(59, 130, 246, 0.14) !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    color: #ffffff !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
 }
 
 .vsc-seg:active {
@@ -1827,18 +1821,18 @@
                         <span style="font-size: 12px; color: #fff;">Zaznaczono <strong id="batchSelectedCount">0</strong> zadań:</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <div class="variant-btn-group">
-                            <button type="button" class="var-chip var-chip-green" onclick="generateBatchVariants('easier')" title="Generuj łatwiejszy zestaw (-1)">
-                                <span class="var-chip-indicator"></span> <span>Łatwiejszy</span>
+                        <div class="variant-segmented-control">
+                            <button type="button" class="vsc-seg seg-copy" onclick="generateBatchVariants('identical')" title="Generuj identyczny zestaw (z pamięci)">
+                                <i data-lucide="copy"></i> <span>Kopia</span>
                             </button>
-                            <button type="button" class="var-chip var-chip-yellow" onclick="generateBatchVariants('same')" title="Generuj zestaw na tym samym poziomie">
-                                <span class="var-chip-indicator"></span> <span>Podobny</span>
+                            <button type="button" class="vsc-seg seg-down" onclick="generateBatchVariants('easier')" title="Generuj łatwiejszy zestaw (-1)">
+                                <i data-lucide="trending-down"></i> <span>Łatwe</span>
                             </button>
-                            <button type="button" class="var-chip var-chip-red" onclick="generateBatchVariants('harder')" title="Generuj trudniejszy zestaw (+1)">
-                                <span class="var-chip-indicator"></span> <span>Trudniejszy</span>
+                            <button type="button" class="vsc-seg seg-same" onclick="generateBatchVariants('same')" title="Generuj zestaw na tym samym poziomie">
+                                <i data-lucide="shuffle"></i> <span>Podobne</span>
                             </button>
-                            <button type="button" class="var-chip var-chip-blue" onclick="generateBatchVariants('identical')" title="Generuj identyczny zestaw (z pamięci)">
-                                <span class="var-chip-indicator"></span> <span>Z pamięci</span>
+                            <button type="button" class="vsc-seg seg-up" onclick="generateBatchVariants('harder')" title="Generuj trudniejszy zestaw (+1)">
+                                <i data-lucide="flame"></i> <span>Trudne</span>
                             </button>
                         </div>
                         <button type="button" class="btn-clear-batch" onclick="clearSelectedTasks()">Odznacz</button>
@@ -2086,20 +2080,20 @@
                                 {% endif %}
                             </div>
 
-                            <!-- ZINTEGROWANY PRZYCISK SEGMENTOWANY WARIANTÓW -->
+                            <!-- ZINTEGROWANY PRZYCISK SEGMENTOWANY WARIANTÓW (IKONY + ZWIĘZŁY OPIS) -->
                             <div class="variant-segmented-control">
-                                <span class="vsc-label"><i data-lucide="sparkles" style="width: 11px; color: var(--accent-cyan);"></i> Wariant:</span>
-                                <button type="button" class="vsc-seg seg-green" onclick="generateSimilarTask({{ t.id }}, 'easier', this, 'base')" title="Łatwiejszy (-1)">
-                                    <span class="seg-dot"></span> Łatwy
+                                <span class="vsc-label"><i data-lucide="sparkles"></i> Nowe:</span>
+                                <button type="button" class="vsc-seg seg-copy" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Identyczny typ i liczby (trening z pamięci)">
+                                    <i data-lucide="copy"></i> <span>Kopia</span>
                                 </button>
-                                <button type="button" class="vsc-seg seg-yellow" onclick="generateSimilarTask({{ t.id }}, 'same', this, 'base')" title="Na tym samym poziomie">
-                                    <span class="seg-dot"></span> Podobny
+                                <button type="button" class="vsc-seg seg-down" onclick="generateSimilarTask({{ t.id }}, 'easier', this, 'base')" title="Wariant łatwiejszy (-1 poziom)">
+                                    <i data-lucide="trending-down"></i> <span>Łatwe</span>
                                 </button>
-                                <button type="button" class="vsc-seg seg-red" onclick="generateSimilarTask({{ t.id }}, 'harder', this, 'base')" title="Trudniejszy (+1)">
-                                    <span class="seg-dot"></span> Trudny
+                                <button type="button" class="vsc-seg seg-same" onclick="generateSimilarTask({{ t.id }}, 'same', this, 'base')" title="Wariant podobny (ten sam poziom)">
+                                    <i data-lucide="shuffle"></i> <span>Podobne</span>
                                 </button>
-                                <button type="button" class="vsc-seg seg-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Identyczny (do prawego panelu)">
-                                    <span class="seg-dot"></span> Identyczny
+                                <button type="button" class="vsc-seg seg-up" onclick="generateSimilarTask({{ t.id }}, 'harder', this, 'base')" title="Wariant trudniejszy (+1 poziom)">
+                                    <i data-lucide="flame"></i> <span>Trudne</span>
                                 </button>
                             </div>
 
@@ -2157,18 +2151,18 @@
                     <button type="button" class="print-panel-btn" onclick="printSpecificPanel('similar')" title="Drukuj tylko ten zestaw wariantów treningowych A4">
                         <i data-lucide="printer" style="width: 13px;"></i> <span>Drukuj A4</span>
                     </button>
-                    <div class="variant-btn-group" id="similarHeaderBtnGroup" style="display: none;">
-                        <button type="button" class="var-chip var-chip-green" onclick="generateAnotherSimilar('easier')" title="Łatwiejszy">
-                            <span class="var-chip-indicator"></span> <span>Łatw.</span>
+                    <div class="variant-segmented-control" id="similarHeaderBtnGroup" style="display: none;">
+                        <button type="button" class="vsc-seg seg-copy" onclick="generateAnotherSimilar('identical')" title="Kopia z pamięci">
+                            <i data-lucide="copy"></i> <span>Kopia</span>
                         </button>
-                        <button type="button" class="var-chip var-chip-yellow" onclick="generateAnotherSimilar('same')" title="Podobny">
-                            <span class="var-chip-indicator"></span> <span>Podobny</span>
+                        <button type="button" class="vsc-seg seg-down" onclick="generateAnotherSimilar('easier')" title="Łatwiejszy wariant">
+                            <i data-lucide="trending-down"></i> <span>Łatwe</span>
                         </button>
-                        <button type="button" class="var-chip var-chip-red" onclick="generateAnotherSimilar('harder')" title="Trudniejszy">
-                            <span class="var-chip-indicator"></span> <span>Trudn.</span>
+                        <button type="button" class="vsc-seg seg-same" onclick="generateAnotherSimilar('same')" title="Podobny wariant">
+                            <i data-lucide="shuffle"></i> <span>Podobne</span>
                         </button>
-                        <button type="button" class="var-chip var-chip-blue" onclick="generateAnotherSimilar('identical')" title="Z pamięci">
-                            <span class="var-chip-indicator"></span> <span>Z pamięci</span>
+                        <button type="button" class="vsc-seg seg-up" onclick="generateAnotherSimilar('harder')" title="Trudniejszy wariant">
+                            <i data-lucide="flame"></i> <span>Trudne</span>
                         </button>
                     </div>
                     <button type="button" class="btn-ghost-panel" id="btnCollapseSimilar" onclick="toggleRightPanel()" title="Zwiń ten panel">
@@ -3271,18 +3265,18 @@
                 </div>
 
                 <div class="variant-segmented-control">
-                    <span class="vsc-label"><i data-lucide="sparkles" style="width: 11px; color: var(--accent-cyan);"></i> Wariant:</span>
-                    <button type="button" class="vsc-seg seg-green" onclick="generateSimilarTask(${task.original_id}, 'easier', this, 'similar')" title="Łatwiejszy (-1)">
-                        <span class="seg-dot"></span> Łatwy
+                    <span class="vsc-label"><i data-lucide="sparkles"></i> Nowe:</span>
+                    <button type="button" class="vsc-seg seg-copy" onclick="generateSimilarTask(${task.original_id}, 'identical', this, 'similar')" title="Identyczny typ i liczby (trening z pamięci)">
+                        <i data-lucide="copy"></i> <span>Kopia</span>
                     </button>
-                    <button type="button" class="vsc-seg seg-yellow" onclick="generateSimilarTask(${task.original_id}, 'same', this, 'similar')" title="Na tym samym poziomie">
-                        <span class="seg-dot"></span> Podobny
+                    <button type="button" class="vsc-seg seg-down" onclick="generateSimilarTask(${task.original_id}, 'easier', this, 'similar')" title="Wariant łatwiejszy (-1 poziom)">
+                        <i data-lucide="trending-down"></i> <span>Łatwe</span>
                     </button>
-                    <button type="button" class="vsc-seg seg-red" onclick="generateSimilarTask(${task.original_id}, 'harder', this, 'similar')" title="Trudniejszy (+1)">
-                        <span class="seg-dot"></span> Trudny
+                    <button type="button" class="vsc-seg seg-same" onclick="generateSimilarTask(${task.original_id}, 'same', this, 'similar')" title="Wariant podobny (ten sam poziom)">
+                        <i data-lucide="shuffle"></i> <span>Podobne</span>
                     </button>
-                    <button type="button" class="vsc-seg seg-blue" onclick="generateSimilarTask(${task.original_id}, 'identical', this, 'similar')" title="Identyczny (do prawego panelu)">
-                        <span class="seg-dot"></span> Identyczny
+                    <button type="button" class="vsc-seg seg-up" onclick="generateSimilarTask(${task.original_id}, 'harder', this, 'similar')" title="Wariant trudniejszy (+1 poziom)">
+                        <i data-lucide="flame"></i> <span>Trudne</span>
                     </button>
                 </div>
 
