@@ -2748,12 +2748,20 @@ async def api_task_submit(request: Request):
     return JSONResponse({"status": "ok", "score": score, "overall_pct": overall_pct})
 
 
-def generate_math_variant(content: dict, task_type: str) -> dict:
+def generate_math_variant(content: dict, task_type: str, difficulty: str = "same") -> dict:
     import copy, random, re
     res = copy.deepcopy(content)
     orig_num = content.get("number", "Zadanie")
     res["number"] = "Wariant do: " + orig_num
-    res["title"] = "Trening: " + content.get("title", "Podobne zadanie")
+    
+    if difficulty == "easier":
+        diff_label = "Łatwiejszy"
+    elif difficulty == "harder":
+        diff_label = "Trudniejszy"
+    else:
+        diff_label = "Podobny poziom"
+        
+    res["title"] = f"Trening ({diff_label}): " + content.get("title", "Podobne zadanie")
 
     # 1. Oś liczbowa (sliders)
     if "sliders" in res and res["sliders"]:
@@ -2762,8 +2770,16 @@ def generate_math_variant(content: dict, task_type: str) -> dict:
             sl_copy = copy.deepcopy(sl)
             tot = sl.get("total_ticks", 13)
             labeled = [int(k) for k in sl.get("labeled_ticks", {}).keys()]
-            avail_ticks = [i for i in range(1, tot) if i not in labeled]
-            target = random.choice(avail_ticks) if avail_ticks else tot // 2
+            
+            if difficulty == "easier":
+                avail = [i for i in range(2, min(6, tot)) if i not in labeled]
+                target = random.choice(avail) if avail else 2
+            elif difficulty == "harder":
+                avail = [i for i in range(max(6, tot // 2), tot) if i not in labeled]
+                target = random.choice(avail) if avail else tot - 2
+            else:
+                avail = [i for i in range(1, tot) if i not in labeled]
+                target = random.choice(avail) if avail else tot // 2
 
             label_txt = sl.get("label", "")
             lt = sl.get("labeled_ticks", {})
@@ -2793,21 +2809,26 @@ def generate_math_variant(content: dict, task_type: str) -> dict:
     # 2. Liczby w figurach (chips)
     if "fields" in res and res["fields"] and any("chips" in f for f in res["fields"]):
         new_fields = []
+        cached_chips = {}
         for f in res["fields"]:
             f_copy = copy.deepcopy(f)
             old_chips = f.get("chips", [])
             if old_chips:
                 digits = len(str(old_chips[0]))
-                if digits == 3:
-                    base = random.sample([3, 4, 5, 7, 8], 2)
-                    nums = list(set(random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(12)))[:6]
-                elif digits == 4:
-                    base = random.sample([2, 4, 6, 8, 9], 3) + [0]
-                    nums = list(set(random.choice([d for d in base if d != 0])*1000 + random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(15)))[:7]
-                else:
-                    base = random.sample([1, 3, 5, 7, 9], 3)
-                    nums = list(set(random.choice(base)*10000 + random.choice(base)*1000 + random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(18)))[:8]
-                nums.sort()
+                if digits not in cached_chips:
+                    cnt = 5 if difficulty == "easier" else (8 if difficulty == "harder" else 6)
+                    if digits == 3:
+                        base = random.sample([2, 3, 4, 5, 6, 7], 2)
+                        nums = sorted(list(set(random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(16))))[:cnt]
+                    elif digits == 4:
+                        base = random.sample([1, 2, 4, 6, 8], 3) + [0]
+                        nums = sorted(list(set(random.choice([d for d in base if d != 0])*1000 + random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(18))))[:cnt]
+                    else:
+                        base = random.sample([1, 3, 5, 7, 9], 3)
+                        nums = sorted(list(set(random.choice(base)*10000 + random.choice(base)*1000 + random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(20))))[:cnt]
+                    cached_chips[digits] = nums
+                
+                nums = cached_chips[digits]
                 f_copy["chips"] = [str(n) for n in nums]
                 if "najmniejsza" in f["label"].lower():
                     f_copy["ans"] = str(min(nums))
@@ -2820,20 +2841,38 @@ def generate_math_variant(content: dict, task_type: str) -> dict:
     # 3. Proste obliczenia pamięciowe (a + b, a - b)
     if "fields" in res and res["fields"]:
         new_fields = []
-        for f in res["fields"]:
+        for idx, f in enumerate(res["fields"]):
             f_copy = copy.deepcopy(f)
             m_add = re.search(r'(\d+)\s*\+\s*(\d+)', f.get("label", ""))
             m_sub = re.search(r'(\d+)\s*-\s*(\d+)', f.get("label", ""))
             if m_add:
-                a = int(m_add.group(1)) + random.randint(1, 4) * 10
-                b = int(m_add.group(2)) + random.randint(1, 6)
-                f_copy["label"] = re.sub(r'\d+\s*\+\s*\d+', f"{a} + {b}", f["label"], count=1)
+                if difficulty == "easier":
+                    a = random.randint(1, 4) * 10
+                    b = random.randint(1, 9)
+                elif difficulty == "harder":
+                    a = random.randint(45, 95)
+                    b = random.randint(35, 85)
+                else:
+                    a = int(m_add.group(1)) + random.randint(1, 4) * 10
+                    b = int(m_add.group(2)) + random.randint(1, 6)
+
+                prefix = f.get("label", "").split(')')[0] + ')' if ')' in f.get("label", "") else f"{idx+1})"
+                f_copy["label"] = f"{prefix} {a} + {b} ="
                 f_copy["ans"] = str(a + b)
             elif m_sub:
-                a = int(m_sub.group(1)) + random.randint(1, 4) * 10
-                b = int(m_sub.group(2)) + random.randint(1, 4)
-                if b >= a: b = a - 10
-                f_copy["label"] = re.sub(r'\d+\s*-\s*\d+', f"{a} - {b}", f["label"], count=1)
+                if difficulty == "easier":
+                    a = random.randint(5, 9) * 10
+                    b = random.randint(1, 4) * 10
+                elif difficulty == "harder":
+                    a = random.randint(120, 250)
+                    b = random.randint(35, 95)
+                else:
+                    a = int(m_sub.group(1)) + random.randint(1, 4) * 10
+                    b = int(m_sub.group(2)) + random.randint(1, 4)
+                    if b >= a: b = a - 10
+
+                prefix = f.get("label", "").split(')')[0] + ')' if ')' in f.get("label", "") else f"{idx+1})"
+                f_copy["label"] = f"{prefix} {a} - {b} ="
                 f_copy["ans"] = str(a - b)
             new_fields.append(f_copy)
         res["fields"] = new_fields
@@ -2857,12 +2896,32 @@ async def api_task_similar(task_id: int, request: Request):
     content = json.loads(t_row["content_json"])
     task_type = t_row["task_type"]
     
-    similar_content = generate_math_variant(content, task_type)
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    diff_choice = body.get("difficulty") or request.query_params.get("difficulty") or "same"
+    
+    orig_level = t_row["difficulty_level"] or 2
+    if diff_choice == "easier":
+        diff_level = max(1, orig_level - 1)
+        diff_tag = "Łatwiejszy (-1)"
+    elif diff_choice == "harder":
+        diff_level = min(5, orig_level + 1)
+        diff_tag = "Trudniejszy (+1)"
+    else:
+        diff_level = orig_level
+        diff_tag = "Ten sam poziom"
+
+    similar_content = generate_math_variant(content, task_type, diff_choice)
     similar_task = {
         "id": f"sim_{task_id}_{random.randint(1000, 9999)}",
         "original_id": task_id,
         "task_type": task_type,
-        "difficulty_level": t_row["difficulty_level"],
+        "difficulty_level": diff_level,
+        "difficulty_tag": diff_tag,
+        "difficulty_mode": diff_choice,
         "parsed_content": similar_content
     }
     conn.close()
