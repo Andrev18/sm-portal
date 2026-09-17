@@ -368,160 +368,172 @@
     margin-top: 0 !important;
 }
 
-/* SPÓJNY, DWULINIOWY PASEK AKCJI ZADANIA */
-.task-action-box {
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Linia 1: Główne akcje (Sprawdź, Do zadań, Wskazówka, Enter) */
-.action-row-primary {
+/* Zintegrowany, jednolity pasek akcji zadania (Sleek Toolbar) */
+.task-action-bar {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.action-buttons-left {
-    display: flex;
-    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
-.action-meta-right {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-.enter-shortcut kbd {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-family: inherit;
-    color: #cbd5e1;
+
+.act-group-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
-/* Przyciski linii 1 */
-.act-btn {
-    height: 34px;
-    padding: 0 13px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
+/* Przyciski o równej, smukłej wysokości 30px w spójnej estetyce */
+.act-btn-primary {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 6px;
+    background: #10b981;
+    border: 1px solid #10b981;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.18s ease;
+    gap: 5px;
+    transition: all 0.15s ease;
     user-select: none;
     line-height: 1;
 }
-.act-btn-submit {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: 1px solid rgba(16, 185, 129, 0.6);
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
-}
-.act-btn-submit:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-    transform: translateY(-1px);
-}
-.act-btn-submit:active { transform: translateY(0); }
-
-.act-btn-secondary {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border-subtle);
-    color: #cbd5e1;
-}
-.act-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+.act-btn-primary:hover {
+    background: #059669;
+    border-color: #059669;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .act-btn-ghost {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-muted);
-}
-.act-btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fbbf24;
-}
-
-/* Linia 2: Pasek wariantów */
-.action-row-variants {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 9px;
-    padding: 6px 12px;
-}
-.variant-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-.variant-btn-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-/* Spójne micro-chipy wariantów o identycznej wysokości i budowie */
-.var-chip {
-    height: 27px;
-    padding: 0 9px;
+    height: 30px;
+    padding: 0 10px;
     border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
     font-size: 11px;
     font-weight: 600;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-subtle);
-    color: #cbd5e1;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    transition: all 0.16s ease;
+    transition: all 0.15s ease;
+    user-select: none;
+    line-height: 1;
+}
+.act-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* JEDEN ZUNIFIKOWANY SEGMENTOWANY PRZYCISK WARIANTÓW (CAPSULE) */
+.variant-segmented-control {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    padding: 2px;
+    gap: 1px;
+    height: 30px;
+    box-sizing: border-box;
+}
+
+.vsc-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    padding: 0 8px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+    height: 100%;
+}
+
+.vsc-seg {
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
     user-select: none;
 }
-.var-chip:hover {
-    transform: translateY(-1px);
-}
-.var-chip:active { transform: translateY(0); }
 
-.var-chip-indicator {
+.seg-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     display: inline-block;
 }
-.var-chip-green .var-chip-indicator { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.7); }
-.var-chip-green:hover { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.12); color: #34d399; }
 
-.var-chip-yellow .var-chip-indicator { background: #eab308; box-shadow: 0 0 6px rgba(234, 179, 8, 0.7); }
-.var-chip-yellow:hover { border-color: rgba(234, 179, 8, 0.5); background: rgba(234, 179, 8, 0.12); color: #fde047; }
+/* Wybrzuszenie / zmiana koloru po najechaniu i kliknięciu */
+.vsc-seg.seg-green .seg-dot { background: #10b981; }
+.vsc-seg.seg-green:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
 
-.var-chip-red .var-chip-indicator { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.7); }
-.var-chip-red:hover { border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+.vsc-seg.seg-yellow .seg-dot { background: #eab308; }
+.vsc-seg.seg-yellow:hover {
+    background: rgba(234, 179, 8, 0.15);
+    border-color: rgba(234, 179, 8, 0.4);
+    color: #fde047;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.2);
+}
 
-.var-chip-blue .var-chip-indicator { background: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.7); }
-.var-chip-blue:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
+.vsc-seg.seg-red .seg-dot { background: #ef4444; }
+.vsc-seg.seg-red:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.vsc-seg.seg-blue .seg-dot { background: #3b82f6; }
+.vsc-seg.seg-blue:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.vsc-seg:active {
+    transform: translateY(0);
+}
+
+.act-shortcut kbd {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #94a3b8;
+}
 
 /* Wybór wielu zadań (Wyraźny przycisk wyboru na karcie) */
 .tc-select-btn {
@@ -581,6 +593,10 @@
 .task-slot-spacer {
     box-sizing: border-box !important;
     pointer-events: none;
+}
+.hybrid-grid.left-collapsed .task-slot-spacer,
+.hybrid-grid.mode-tasks-only .task-slot-spacer {
+    display: none !important;
 }
 .btn-clear-batch {
     background: rgba(255, 255, 255, 0.08);
@@ -1825,6 +1841,9 @@
                                     <input type="checkbox" class="task-select-cb" id="cb-task-{{ t.id }}" value="{{ t.id }}" onchange="handleCbChange({{ t.id }})">
                                     <span>Do zestawu</span>
                                 </label>
+                                <button type="button" class="card-close-btn" onclick="hideBaseTask({{ t.id }})" title="Ukryj to zadanie z widoku">
+                                    <i data-lucide="x" style="width: 14px;"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -2006,55 +2025,44 @@
                         </div>
                         {% endif %}
 
-                        <!-- DWULINIOWY, SPÓJNY PASEK AKCJI ZADANIA -->
-                        <div class="task-action-box">
-                            <!-- LINIA 1: GŁÓWNE AKCJE -->
-                            <div class="action-row-primary">
-                                <div class="action-buttons-left">
-                                    <button type="button" class="act-btn act-btn-submit" onclick="checkTask({{ t.id }})">
-                                        <i data-lucide="check-circle-2" style="width: 15px;"></i>
-                                        <span>Sprawdź zadanie</span>
-                                    </button>
-                                    <button type="button" class="act-btn act-btn-secondary" onclick="addDailyTask({{ t.id }}, this)" title="Dodaj do Twojej listy Zadań na dziś">
-                                        <i data-lucide="calendar-plus" style="width: 14px;"></i>
-                                        <span>Do Zadań na dziś</span>
-                                    </button>
-                                    {% if c.hint or c.story %}
-                                    <button type="button" class="act-btn act-btn-ghost" onclick="toggleHint({{ t.id }})" title="Pokaż wskazówkę">
-                                        <i data-lucide="lightbulb" style="width: 14px;"></i>
-                                        <span>Wskazówka</span>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                                <div class="action-meta-right">
-                                    <span class="enter-shortcut"><kbd>Enter ↵</kbd> sprawdza</span>
-                                </div>
+                        <!-- JEDNOLITY, SMUKŁY PASEK AKCJI ZADANIA -->
+                        <div class="task-action-bar">
+                            <div class="act-group-left">
+                                <button type="button" class="act-btn-primary" onclick="checkTask({{ t.id }})">
+                                    <i data-lucide="check" style="width: 14px;"></i>
+                                    <span>Sprawdź</span>
+                                </button>
+                                <button type="button" class="act-btn-ghost" onclick="addDailyTask({{ t.id }}, this)" title="Dodaj do Twojej listy Zadań na dziś">
+                                    <i data-lucide="calendar-plus" style="width: 14px;"></i>
+                                    <span>Do zadań</span>
+                                </button>
+                                {% if c.hint or c.story %}
+                                <button type="button" class="act-btn-ghost" onclick="toggleHint({{ t.id }})" title="Pokaż wskazówkę">
+                                    <i data-lucide="lightbulb" style="width: 14px;"></i>
+                                    <span>Wskazówka</span>
+                                </button>
+                                {% endif %}
                             </div>
 
-                            <!-- LINIA 2: TRENING I GENEROWANIE WARIANTÓW -->
-                            <div class="action-row-variants">
-                                <div class="variant-label">
-                                    <i data-lucide="sparkles" style="width: 13px; color: var(--accent-cyan);"></i>
-                                    <span>Ćwicz wariant:</span>
-                                </div>
-                                <div class="variant-btn-group">
-                                    <button type="button" class="var-chip var-chip-green" onclick="generateSimilarTask({{ t.id }}, 'easier', this, 'base')" title="Wygeneruj łatwiejszy wariant (-1 poziom)">
-                                        <span class="var-chip-indicator"></span>
-                                        <span>Łatwiejszy</span>
-                                    </button>
-                                    <button type="button" class="var-chip var-chip-yellow" onclick="generateSimilarTask({{ t.id }}, 'same', this, 'base')" title="Wygeneruj wariant na tym samym poziomie">
-                                        <span class="var-chip-indicator"></span>
-                                        <span>Podobny</span>
-                                    </button>
-                                    <button type="button" class="var-chip var-chip-red" onclick="generateSimilarTask({{ t.id }}, 'harder', this, 'base')" title="Wygeneruj trudniejszy wariant (+1 poziom)">
-                                        <span class="var-chip-indicator"></span>
-                                        <span>Trudniejszy</span>
-                                    </button>
-                                    <button type="button" class="var-chip var-chip-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Identyczny (resetuje pola i pozwala rozwiązać jeszcze raz)">
-                                        <span class="var-chip-indicator"></span>
-                                        <span>Identyczny</span>
-                                    </button>
-                                </div>
+                            <!-- ZINTEGROWANY PRZYCISK SEGMENTOWANY WARIANTÓW -->
+                            <div class="variant-segmented-control">
+                                <span class="vsc-label"><i data-lucide="sparkles" style="width: 11px; color: var(--accent-cyan);"></i> Wariant:</span>
+                                <button type="button" class="vsc-seg seg-green" onclick="generateSimilarTask({{ t.id }}, 'easier', this, 'base')" title="Łatwiejszy (-1)">
+                                    <span class="seg-dot"></span> Łatwy
+                                </button>
+                                <button type="button" class="vsc-seg seg-yellow" onclick="generateSimilarTask({{ t.id }}, 'same', this, 'base')" title="Na tym samym poziomie">
+                                    <span class="seg-dot"></span> Podobny
+                                </button>
+                                <button type="button" class="vsc-seg seg-red" onclick="generateSimilarTask({{ t.id }}, 'harder', this, 'base')" title="Trudniejszy (+1)">
+                                    <span class="seg-dot"></span> Trudny
+                                </button>
+                                <button type="button" class="vsc-seg seg-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Identyczny (do prawego panelu)">
+                                    <span class="seg-dot"></span> Identyczny
+                                </button>
+                            </div>
+
+                            <div class="act-shortcut">
+                                <kbd>Enter ↵</kbd>
                             </div>
                         </div>
 
@@ -2751,12 +2759,15 @@
         setTimeout(() => { card.style.outline = 'none'; }, 1500);
     }
 
-    async function generateSimilarTask(taskId, difficulty = 'same', btn, source = 'base') {
-        // Jeśli w lewym panelu wybrano "identical", to uczeń chce zresetować wyniki i wypełnić zadanie jeszcze raz!
-        if (source === 'base' && difficulty === 'identical') {
-            resetTaskCardToRetry(taskId);
-            return;
+    function hideBaseTask(taskId) {
+        const card = document.getElementById('task-card-' + taskId);
+        if (card) {
+            card.style.display = 'none';
         }
+    }
+
+    async function generateSimilarTask(taskId, difficulty = 'same', btn, source = 'base') {
+        // Użycie "identical" dodaje zadanie identyczne do prawego panelu!
 
         // Jeśli w lewym panelu zaznaczono więcej niż 1 zadanie (checkboxy), generujemy zestaw dla wszystkich zaznaczonych!
         const cbs = document.querySelectorAll('.task-select-cb:checked');
@@ -3196,42 +3207,34 @@
             </div>`;
         }
 
-        // DWULINIOWY, SPÓJNY PASEK AKCJI DLA WARIANTU
+        // JEDNOLITY, SMUKŁY PASEK AKCJI DLA WARIANTU
         html += `
-            <div class="task-action-box">
-                <!-- LINIA 1: GŁÓWNA AKCJA SPRAWDZENIA -->
-                <div class="action-row-primary">
-                    <div class="action-buttons-left">
-                        <button type="button" class="act-btn act-btn-submit" onclick="checkSimilarTask('${task.id}')">
-                            <i data-lucide="check-circle-2" style="width: 15px;"></i>
-                            <span>Sprawdź wariant</span>
-                        </button>
-                    </div>
-                    <div class="action-meta-right">
-                        <span class="enter-shortcut"><kbd>Enter ↵</kbd> sprawdza</span>
-                    </div>
+            <div class="task-action-bar">
+                <div class="act-group-left">
+                    <button type="button" class="act-btn-primary" onclick="checkSimilarTask('${task.id}')">
+                        <i data-lucide="check" style="width: 14px;"></i>
+                        <span>Sprawdź</span>
+                    </button>
                 </div>
 
-                <!-- LINIA 2: KOLEJNY WARIANT (Z BRAMKĄ: WYMAGA SPRAWDZENIA BIEŻĄCYCH) -->
-                <div class="action-row-variants">
-                    <div class="variant-label">
-                        <i data-lucide="sparkles" style="width: 13px; color: var(--accent-cyan);"></i>
-                        <span>Kolejny wariant:</span>
-                    </div>
-                    <div class="variant-btn-group">
-                        <button type="button" class="var-chip var-chip-green" onclick="generateSimilarTask(${task.original_id}, 'easier', this, 'similar')" title="Wygeneruj łatwiejszy wariant (-1)">
-                            <span class="var-chip-indicator"></span> <span>Łatwiejszy</span>
-                        </button>
-                        <button type="button" class="var-chip var-chip-yellow" onclick="generateSimilarTask(${task.original_id}, 'same', this, 'similar')" title="Wygeneruj podobny wariant">
-                            <span class="var-chip-indicator"></span> <span>Podobny</span>
-                        </button>
-                        <button type="button" class="var-chip var-chip-red" onclick="generateSimilarTask(${task.original_id}, 'harder', this, 'similar')" title="Wygeneruj trudniejszy wariant (+1)">
-                            <span class="var-chip-indicator"></span> <span>Trudniejszy</span>
-                        </button>
-                        <button type="button" class="var-chip var-chip-blue" onclick="generateSimilarTask(${task.original_id}, 'identical', this, 'similar')" title="Wygeneruj identyczne zadanie (z pamięci)">
-                            <span class="var-chip-indicator"></span> <span>Z pamięci</span>
-                        </button>
-                    </div>
+                <div class="variant-segmented-control">
+                    <span class="vsc-label"><i data-lucide="sparkles" style="width: 11px; color: var(--accent-cyan);"></i> Wariant:</span>
+                    <button type="button" class="vsc-seg seg-green" onclick="generateSimilarTask(${task.original_id}, 'easier', this, 'similar')" title="Łatwiejszy (-1)">
+                        <span class="seg-dot"></span> Łatwy
+                    </button>
+                    <button type="button" class="vsc-seg seg-yellow" onclick="generateSimilarTask(${task.original_id}, 'same', this, 'similar')" title="Na tym samym poziomie">
+                        <span class="seg-dot"></span> Podobny
+                    </button>
+                    <button type="button" class="vsc-seg seg-red" onclick="generateSimilarTask(${task.original_id}, 'harder', this, 'similar')" title="Trudniejszy (+1)">
+                        <span class="seg-dot"></span> Trudny
+                    </button>
+                    <button type="button" class="vsc-seg seg-blue" onclick="generateSimilarTask(${task.original_id}, 'identical', this, 'similar')" title="Identyczny (do prawego panelu)">
+                        <span class="seg-dot"></span> Identyczny
+                    </button>
+                </div>
+
+                <div class="act-shortcut">
+                    <kbd>Enter ↵</kbd>
                 </div>
             </div>
             <div class="task-fb" id="fb-similar-${task.id}"></div>
