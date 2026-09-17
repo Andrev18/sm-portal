@@ -170,17 +170,64 @@
 
 /* Warianty widoków */
 .hybrid-grid.mode-scan-only {
-    grid-template-columns: 1fr 0fr;
+    grid-template-columns: 1fr !important;
 }
 .hybrid-grid.mode-scan-only .col-tasks {
-    display: none;
+    display: none !important;
+}
+.hybrid-grid.mode-scan-only .col-scan {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .hybrid-grid.mode-tasks-only {
-    grid-template-columns: 0fr 1fr;
+    grid-template-columns: 1fr !important;
 }
 .hybrid-grid.mode-tasks-only .col-scan {
-    display: none;
+    display: none !important;
+}
+.hybrid-grid.mode-tasks-only .col-tasks {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.task-page-filter-bar {
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.tp-filter-chip {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.tp-filter-chip:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tp-filter-chip.active {
+    background: #10b981;
+    color: #09090b;
+    border-color: #10b981;
+    font-weight: 700;
 }
 
 /* Lewa Kolumna: Skan PDF z podręcznika */
@@ -906,6 +953,23 @@
                 </span>
             </div>
 
+            <!-- PASEK FILTRU STRON DLA ZADAŃ PC -->
+            <div class="task-page-filter-bar" id="taskPageFilterBar">
+                <span style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-right: 4px;">Filtruj zadania:</span>
+                <button type="button" class="tp-filter-chip active" id="tp-chip-all" onclick="filterTasksMode('all')">
+                    Wszystkie ({{ tasks|length }})
+                </button>
+                {% set pages_seen = [] %}
+                {% for t in tasks %}
+                    {% if t.page_ref and t.page_ref not in pages_seen %}
+                        {% set _ = pages_seen.append(t.page_ref) %}
+                        <button type="button" class="tp-filter-chip" id="tp-chip-{{ t.page_ref }}" onclick="filterTasksMode({{ t.page_ref }})">
+                            Str. {{ t.page_ref }}
+                        </button>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
             <div class="tasks-scroll-pane">
                 {% if tasks %}
                     {% for t in tasks %}
@@ -1290,6 +1354,9 @@
     function jumpBookPage(bookPage) {
         let bp = parseInt(bookPage, 10);
         if (isNaN(bp)) return;
+        if (currentGridMode === 'tasks') {
+            setGridMode('split');
+        }
         let targetPdf = bp + PAGE_OFFSET;
         jumpPdfPage(targetPdf);
     }
@@ -1326,6 +1393,11 @@
 
     // Dynamiczna zmiana zadań po zmianie strony
     function filterTasksByPage(pageNum) {
+        if (currentGridMode === 'tasks') {
+            // W trybie Zadania PC nie ograniczamy widoku do pojedynczej strony skanu
+            return;
+        }
+
         const cards = document.querySelectorAll('.task-card');
         let visibleCount = 0;
         
@@ -1345,7 +1417,11 @@
         if (emptyNotice) {
             emptyNotice.style.display = (visibleCount === 0) ? 'block' : 'none';
         }
+
+        updateFilterChips(pageNum);
     }
+
+    let currentGridMode = 'split';
 
     // Przełączanie układu siatki (Split / Skan / Zadania)
     function setGridMode(mode) {
@@ -1359,19 +1435,63 @@
         btnSplit.classList.remove('active');
         btnTasks.classList.remove('active');
 
+        currentGridMode = mode;
+        try { localStorage.setItem('sm_course_play_mode', mode); } catch(e) {}
+
         if (mode === 'scan') {
             grid.classList.add('mode-scan-only');
             btnScan.classList.add('active');
         } else if (mode === 'tasks') {
             grid.classList.add('mode-tasks-only');
             btnTasks.classList.add('active');
+            // W trybie Zadania PC pokazujemy wszystkie zadania bez skanu!
+            filterTasksMode('all');
         } else {
             btnSplit.classList.add('active');
+            // W trybie Split filtrujemy według aktualnej strony skanu PDF
+            const currentBookPage = currentPdfPage - PAGE_OFFSET;
+            filterTasksByPage(currentBookPage);
         }
 
         setTimeout(() => {
             if (mode !== 'tasks') resetZoom();
         }, 300);
+    }
+
+    function filterTasksMode(page) {
+        updateFilterChips(page);
+
+        const cards = document.querySelectorAll('.task-card');
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const p = card.getAttribute('data-page');
+            if (page === 'all' || !p || p === "" || parseInt(p, 10) === parseInt(page, 10)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        const emptyNotice = document.getElementById('noTasksOnPageNotice');
+        if (emptyNotice) {
+            emptyNotice.style.display = (visibleCount === 0) ? 'block' : 'none';
+        }
+
+        if (currentGridMode === 'split' && page !== 'all') {
+            jumpBookPage(page);
+        }
+    }
+
+    function updateFilterChips(page) {
+        document.querySelectorAll('.tp-filter-chip').forEach(c => {
+            c.classList.remove('active');
+            if (page === 'all' && c.id === 'tp-chip-all') {
+                c.classList.add('active');
+            } else if (c.id === 'tp-chip-' + page) {
+                c.classList.add('active');
+            }
+        });
     }
 
     // Ergonomiczne kontrolki (Chips, Pills, Sliders, Multi-Select)
@@ -1580,6 +1700,13 @@
         if (window.lucide) lucide.createIcons();
         initPDF();
         updateMasteredCount();
+
+        // Sprawdź czy użytkownik wybrał tryb Zadania PC (np. z URL ?mode=tasks lub localStorage)
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialMode = urlParams.get('mode') || localStorage.getItem('sm_course_play_mode') || 'split';
+        if (initialMode && initialMode !== 'split') {
+            setGridMode(initialMode);
+        }
     });
 
     window.addEventListener('resize', () => {
