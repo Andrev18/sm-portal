@@ -2212,3 +2212,123 @@ async def api_task_submit(request: Request):
     conn.commit()
     conn.close()
     return JSONResponse({"status": "ok", "score": score, "overall_pct": overall_pct})
+
+
+@app.post("/api/tasks/{task_id}/daily")
+def task_add_daily(request: Request, task_id: int):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    conn = db()
+    t = conn.execute("SELECT * FROM interactive_tasks WHERE id=?", (task_id,)).fetchone()
+    if not t:
+        conn.close()
+        raise HTTPException(404, "Task not found")
+    
+    import json, datetime
+    content = json.loads(t["content_json"])
+    title = content.get("title", f"Zadanie #{task_id}")
+    num = content.get("number", "")
+    note = f"Ćwiczenia: {num} {title}".strip()
+    today = datetime.date.today().isoformat()
+    
+    existing = conn.execute("SELECT id FROM assignments WHERE student=? AND kind='task' AND ref_id=? AND due_date=?",
+                            (u["id"], task_id, today)).fetchone()
+    if not existing:
+        conn.execute("INSERT INTO assignments(student, kind, ref_id, note, due_date, created_by) VALUES (?, 'task', ?, ?, ?, ?)",
+                     (u["id"], task_id, note, today, u["id"]))
+        conn.commit()
+    conn.close()
+    return JSONResponse({"status": "ok", "message": "Dodano do zadań na dziś!"})
+
+
+@app.post("/api/tasks/{task_id}/similar")
+def task_generate_similar(request: Request, task_id: int):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    conn = db()
+    t = conn.execute("SELECT * FROM interactive_tasks WHERE id=?", (task_id,)).fetchone()
+    if not t:
+        conn.close()
+        raise HTTPException(404, "Task not found")
+    
+    import json, random, re
+    content = json.loads(t["content_json"])
+    task_type = t["task_type"]
+    
+    new_task = dict(content)
+    new_task["number"] = (content.get("number", "") + " (Trening)").strip()
+    new_task["title"] = content.get("title", "") + " — Wariant podobny"
+    
+    if task_type == 'math_calc' and "fields" in content:
+        new_fields = []
+        for f in content["fields"]:
+            lbl = f["label"]
+            if "+" in lbl:
+                a, b = random.randint(15, 85), random.randint(15, 85)
+                new_fields.append({"label": f"{a} + {b} =", "ans": str(a + b)})
+            elif "-" in lbl:
+                a, b = random.randint(50, 190), random.randint(15, 45)
+                new_fields.append({"label": f"{a} - {b} =", "ans": str(a - b)})
+            elif "·" in lbl or "*" in lbl:
+                a, b = random.randint(4, 9), random.randint(4, 9)
+                new_fields.append({"label": f"{a} · {b} =", "ans": str(a * b)})
+            elif ":" in lbl or "/" in lbl:
+                b = random.randint(3, 9)
+                ans = random.randint(4, 12)
+                a = b * ans
+                new_fields.append({"label": f"{a} : {b} =", "ans": str(ans)})
+            else:
+                new_fields.append(f)
+        new_task["fields"] = new_fields
+    elif task_type == 'math_word':
+        new_task["story"] = "Bartek kupił 5 zeszytów po 7 zł każdy oraz piórnik z przyborami za 22 zł. Płacił banknotem 100 zł."
+        new_task["questions"] = [
+            {"label": "1. Ile Bartek zapłacił za same zeszyty? (w zł)", "ans": "35"},
+            {"label": "2. Ile łącznie wyniósł cały rachunek? (w zł)", "ans": "57"},
+            {"label": "3. Ile reszty otrzymał Bartek ze 100 zł? (w zł)", "ans": "43"}
+        ]
+    elif task_type == 'math_order':
+        new_task["steps"] = [
+            {"expr": "45 - 6 · 5", "step_hint": "45 - [30] = [15]", "sub_fields": [
+                {"label": "Krok 1 (wynik mnożenia): 6 · 5 =", "ans": "30"},
+                {"label": "Wynik końcowy: 45 - 30 =", "ans": "15"}
+            ]},
+            {"expr": "36 : (13 - 4) + 8", "step_hint": "36 : [9] + 8 = [4] + 8 = [12]", "sub_fields": [
+                {"label": "Krok 1 (w nawiasie): 13 - 4 =", "ans": "9"},
+                {"label": "Krok 2 (dzielenie): 36 : 9 =", "ans": "4"},
+                {"label": "Wynik końcowy: 4 + 8 =", "ans": "12"}
+            ]}
+        ]
+    elif task_type == 'math_pyramid':
+        new_task["rows"] = [["[80]"], ["[35]", "45"], ["15", "[20]", "25"]]
+        new_task["answers"] = {"0_0": "80", "1_0": "35", "2_1": "20"}
+    
+    cur = conn.execute("INSERT INTO interactive_tasks (chapter_id, task_type, difficulty_level, content_json) VALUES (?, ?, ?, ?)",
+                       (t["chapter_id"], task_type, t["difficulty_level"], json.dumps(new_task, ensure_ascii=False)))
+    new_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    
+    # Render html for cloze if needed
+    if task_type == 'cloze':
+        def make_input(m):
+            ans = m.group(1)
+            return f'<input type="text" class="calc-inp cloze-input" data-ans="{ans}" style="width: {max(70, len(ans)*14)}px">'
+        new_task['rendered_html'] = re.sub(r'\[(.*?)\]', make_input, new_task.get('sentence', ''))
+        
+    m = re.search(r'str\.\s*(\d+)', (new_task.get('number', '') + ' ' + new_task.get('title', '')).lower())
+    page_ref = int(m.group(1)) if m else None
+    
+    return JSONResponse({
+        "status": "ok",
+        "task_id": new_id,
+        "task": {
+            "id": new_id,
+            "task_type": task_type,
+            "difficulty_level": t["difficulty_level"],
+            "parsed_content": new_task,
+            "page_ref": page_ref
+        }
+    })

@@ -729,6 +729,12 @@
                 </div>
 
                 <div class="scan-toolbar-group">
+                    <button class="pdf-nav-btn" onclick="rotatePdf(-90)" title="Obróć w lewo (90°)">
+                        <i data-lucide="rotate-ccw" style="width: 14px;"></i>
+                    </button>
+                    <button class="pdf-nav-btn" onclick="rotatePdf(90)" title="Obróć w prawo (90°)">
+                        <i data-lucide="rotate-cw" style="width: 14px;"></i>
+                    </button>
                     <button class="pdf-nav-btn" onclick="changeZoom(-0.2)" title="Pomniejsz (-)">
                         <i data-lucide="zoom-out" style="width: 14px;"></i>
                     </button>
@@ -906,9 +912,15 @@
 
                         <!-- PASEK WERYFIKACJI ZADANIA -->
                         <div class="tc-actions-bar">
-                            <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                 <button type="button" class="btn-submit-task" onclick="checkTask({{ t.id }})">
                                     <i data-lucide="check" style="width: 15px;"></i> Sprawdź zadanie
+                                </button>
+                                <button type="button" class="btn-hint" onclick="addDailyTask({{ t.id }}, this)" title="Dodaj to ćwiczenie do Twojej listy Zadań na dziś">
+                                    <i data-lucide="calendar-plus" style="width: 13px; color:#10b981;"></i> Do Zadań na dziś
+                                </button>
+                                <button type="button" class="btn-hint" onclick="generateSimilarTask({{ t.id }}, this)" title="Stwórz dodatkowe podobne zadanie do treningu">
+                                    <i data-lucide="sparkles" style="width: 13px; color:#38bdf8;"></i> Dodaj podobne
                                 </button>
                                 {% if c.hint or c.story %}
                                 <button type="button" class="btn-hint" onclick="toggleHint({{ t.id }})">
@@ -925,6 +937,9 @@
                         <div class="task-fb" id="fb-task-{{ t.id }}"></div>
                     </div>
                     {% endfor %}
+                    <div id="noTasksOnPageNotice" style="display:none; background: rgba(0,0,0,0.3); padding: 32px; border-radius: 16px; text-align: center; color: var(--text-muted);">
+                        Brak wyodrębnionych zadań interaktywnych dla tej konkretnej strony zeszytu. Przejdź do innej strony lub kliknij chip u góry.
+                    </div>
                 {% else %}
                     <div style="background: rgba(0,0,0,0.3); padding: 36px; border-radius: 16px; text-align: center; color: var(--text-muted);">
                         Brak wygenerowanych zadań dla tego podręcznika. Użyj opcji Dostrój AI w panelu administratora.
@@ -981,6 +996,7 @@
     let currentPdfPage = {{ initial_page }};
     let totalPdfPages = 1;
     let pdfZoom = 'fit';
+    let pdfRotation = 0;
     let isRendering = false;
     let renderPending = false;
 
@@ -1030,7 +1046,9 @@
             const availWidth = Math.max(300, container.clientWidth - padding);
             const availHeight = Math.max(400, container.clientHeight - padding);
 
-            const unscaled = page.getViewport({ scale: 1.0 });
+            // Uwzględnij obrót użytkownika i naturalny obrót strony
+            const totalRotation = (page.rotate + pdfRotation) % 360;
+            const unscaled = page.getViewport({ scale: 1.0, rotation: totalRotation });
             let scale = 1.0;
             if (pdfZoom === 'fit') {
                 scale = Math.min(availWidth / unscaled.width, availHeight / unscaled.height);
@@ -1039,7 +1057,7 @@
             }
 
             const dpr = window.devicePixelRatio || 1;
-            const viewport = page.getViewport({ scale: scale });
+            const viewport = page.getViewport({ scale: scale, rotation: totalRotation });
 
             canvas.width = Math.floor(viewport.width * dpr);
             canvas.height = Math.floor(viewport.height * dpr);
@@ -1056,6 +1074,9 @@
             document.querySelectorAll('.page-chip').forEach(c => {
                 c.classList.toggle('active', c.innerText.trim() === 'Str. ' + num);
             });
+
+            // Filtruj zadania po prawej stronie, aby pokazać tylko te z bieżącej strony
+            filterTasksByPage(num);
         } catch(e) {
             console.warn('Render error:', e);
         }
@@ -1091,6 +1112,34 @@
     function resetZoom() {
         pdfZoom = 'fit';
         renderPdfPage(currentPdfPage);
+    }
+
+    function rotatePdf(deg) {
+        pdfRotation = (pdfRotation + deg + 360) % 360;
+        renderPdfPage(currentPdfPage);
+    }
+
+    // Dynamiczna zmiana zadań po zmianie strony
+    function filterTasksByPage(pageNum) {
+        const cards = document.querySelectorAll('.task-card');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const p = card.getAttribute('data-page');
+            // Jeśli zadanie ma przypisany numer strony, pokazujemy tylko na tej stronie.
+            // Jeśli nie ma (jest uniwersalne), wyświetlamy zawsze.
+            if (!p || p === "" || parseInt(p, 10) === pageNum) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        const emptyNotice = document.getElementById('noTasksOnPageNotice');
+        if (emptyNotice) {
+            emptyNotice.style.display = (visibleCount === 0) ? 'block' : 'none';
+        }
     }
 
     // Przełączanie układu siatki (Split / Skan / Zadania)
@@ -1201,6 +1250,39 @@
             const d = await res.json();
             updateMasteredCount();
         } catch(e) {}
+    }
+
+    async function addDailyTask(taskId, btn) {
+        try {
+            const res = await fetch('/api/tasks/' + taskId + '/daily', { method: 'POST' });
+            const d = await res.json();
+            if (d.status === 'ok') {
+                btn.innerHTML = '<i data-lucide="check" style="width: 13px; color:#10b981;"></i> W zadaniach na dziś';
+                btn.style.color = '#10b981';
+                btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                if (window.lucide) lucide.createIcons();
+            }
+        } catch(e) {
+            alert('Błąd dodawania do zadań');
+        }
+    }
+
+    async function generateSimilarTask(taskId, btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;display:inline-block;border:2px solid rgba(255,255,255,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;"></span> Tworzenie...';
+        try {
+            const res = await fetch('/api/tasks/' + taskId + '/similar', { method: 'POST' });
+            const d = await res.json();
+            if (d.status === 'ok') {
+                btn.innerHTML = '✨ Dodano wariant!';
+                setTimeout(() => location.reload(), 800);
+            } else {
+                btn.innerHTML = origText;
+            }
+        } catch(e) {
+            btn.innerHTML = origText;
+            alert('Błąd generowania wariantu');
+        }
     }
 
     function updateMasteredCount() {
