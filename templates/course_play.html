@@ -845,6 +845,14 @@
         display: block !important;
     }
     
+    /* Podczas drukowania wszystkie zadania z panelu są widoczne na kolejnych stronach A4 */
+    body.print-mode-base #tasksListContainer .task-card {
+        display: flex !important;
+    }
+    body.print-mode-similar #similarTaskContent .task-card {
+        display: flex !important;
+    }
+
     /* Domyślnie lub w trybie 'print-base': ukryj panel wariantów */
     body.print-mode-base .col-similar {
         display: none !important;
@@ -2937,18 +2945,33 @@
         }
     }
 
-    // WYDRUK / EKSPORT DO PDF FORMAT A4 DLA POSZCZEGÓLNYCH PANELI
+    // WYDRUK / EKSPORT DO PDF FORMAT A4 DLA POSZCZEGÓLNYCH PANELI (WSZYSTKIE ZADANIA)
     function printSpecificPanel(panel) {
         document.body.classList.remove('print-mode-base', 'print-mode-similar');
+        
+        // Przed wydrukiem upewnij się, że wszystkie karty zadań mają display: flex, aby wydruk objął CAŁY zestaw
+        const baseCards = document.querySelectorAll('#tasksListContainer .task-card');
+        const prevDisplays = [];
+        baseCards.forEach(c => {
+            prevDisplays.push(c.style.display);
+            c.style.display = 'flex';
+        });
+
         if (panel === 'base') {
             document.body.classList.add('print-mode-base');
         } else if (panel === 'similar') {
             document.body.classList.add('print-mode-similar');
         }
+        
         window.print();
+
         setTimeout(() => {
             document.body.classList.remove('print-mode-base', 'print-mode-similar');
-        }, 1000);
+            // Przywróć stan filtrowania na ekranie
+            baseCards.forEach((c, idx) => {
+                c.style.display = prevDisplays[idx];
+            });
+        }, 1200);
     }
 
     function printWorksheet() {
