@@ -230,6 +230,87 @@
     font-weight: 700;
 }
 
+/* Panel Zadania Podobnego (Side-by-Side Split & Zwijanie) */
+.col-similar {
+    background: var(--bg-surface);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 18px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    position: relative;
+    transition: all 0.22s ease;
+}
+
+.hybrid-grid.mode-similar-split {
+    grid-template-columns: 1fr 1fr !important;
+}
+.hybrid-grid.mode-similar-split .col-scan {
+    display: none !important;
+}
+.hybrid-grid.mode-similar-split .col-tasks {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+.hybrid-grid.mode-similar-split .col-similar {
+    display: flex !important;
+    width: 100% !important;
+}
+
+.hybrid-grid.mode-similar-split.left-collapsed {
+    grid-template-columns: 1fr !important;
+}
+.hybrid-grid.mode-similar-split.left-collapsed .col-tasks {
+    display: none !important;
+}
+.hybrid-grid.mode-similar-split.left-collapsed .col-similar {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.btn-restore-left {
+    background: rgba(18, 18, 22, 0.95);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: var(--accent-cyan);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+}
+.btn-restore-left:hover {
+    background: rgba(56, 189, 248, 0.15);
+    color: #fff;
+}
+.hybrid-grid.mode-similar-split.left-collapsed .btn-restore-left {
+    display: inline-flex !important;
+}
+
+.btn-ghost-panel {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-ghost-panel:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border-color: var(--border-subtle);
+}
+
 /* Lewa Kolumna: Skan PDF z podręcznika */
 .col-scan {
     background: var(--bg-surface);
@@ -1002,9 +1083,14 @@
                     <i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i>
                     Warsztat Zadań (Ćwiczenia na PC)
                 </div>
-                <span style="font-size: 12px; color: var(--text-muted);">
-                    {{ tasks|length }} zadań gotowych do rozwiązywania
-                </span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 12px; color: var(--text-muted);">
+                        {{ tasks|length }} zadań gotowych do rozwiązywania
+                    </span>
+                    <button type="button" class="btn-ghost-panel" id="btnCollapseTasks" onclick="toggleLeftPanel()" title="Zwiń ten panel i pokaż wariant na pełnym ekranie" style="display: none;">
+                        <i data-lucide="panel-left-close" style="width: 15px;"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- PASEK FILTRU STRON DLA ZADAŃ PC -->
@@ -1256,6 +1342,31 @@
                         Brak wygenerowanych zadań dla tego podręcznika. Użyj opcji Dostrój AI w panelu administratora.
                     </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- PANEL ZADANIA PODOBNEGO (AI VARIANT) -->
+        <div class="col-similar" id="colSimilar">
+            <button type="button" class="btn-restore-left" id="btnRestoreLeft" onclick="toggleLeftPanel()" title="Pokaż oryginalne zadanie po lewej stronie">
+                <i data-lucide="panel-left-open" style="width:14px;"></i> Pokaż oryginał
+            </button>
+            <div class="tasks-header" style="background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.25);">
+                <div class="tasks-header-title" style="color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="sparkles" style="width: 18px; color: #38bdf8;"></i>
+                    <span id="similarPanelTitle">Podobne Zadanie (Trening AI)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn-ghost-panel" id="btnToggleSimilarFullscreen" onclick="toggleSimilarFullscreen()" title="Rozwiń na cały ekran (ukryj oryginał)">
+                        <i data-lucide="maximize-2" id="iconSimilarFullscreen" style="width: 15px;"></i>
+                    </button>
+                    <button type="button" class="btn-ghost-panel" onclick="closeSimilarPanel()" title="Zamknij panel wariantu">
+                        <i data-lucide="x" style="width: 15px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="tasks-scroll-pane" id="similarTaskContent" style="padding: 20px;">
+                <!-- Tu wstrzykiwane jest zadanie podobne -->
             </div>
         </div>
 
@@ -1706,21 +1817,264 @@
         }
     }
 
+    // OBSŁUGA GENEROWANIA ZADANIA PODOBNEGO I WIDOKU SPLIT-PRACTICE
+    let activeSimilarTask = null;
+
     async function generateSimilarTask(taskId, btn) {
-        const origText = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;display:inline-block;border:2px solid rgba(255,255,255,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;"></span> Tworzenie...';
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;display:inline-block;border:2px solid rgba(255,255,255,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;"></span> Generowanie wariantu...';
+        }
         try {
             const res = await fetch('/api/tasks/' + taskId + '/similar', { method: 'POST' });
             const d = await res.json();
-            if (d.status === 'ok') {
-                btn.innerHTML = '✨ Dodano wariant!';
-                setTimeout(() => location.reload(), 800);
+            if (btn) btn.innerHTML = origText;
+            if (d.status === 'ok' && d.task) {
+                openSimilarPanel(d.task);
             } else {
-                btn.innerHTML = origText;
+                alert('Nie udało się wygenerować wariantu.');
             }
         } catch(e) {
-            btn.innerHTML = origText;
-            alert('Błąd generowania wariantu');
+            if (btn) btn.innerHTML = origText;
+            alert('Błąd podczas generowania wariantu: ' + e);
+        }
+    }
+
+    function openSimilarPanel(task) {
+        activeSimilarTask = task;
+        const grid = document.getElementById('hybridGrid');
+        grid.classList.remove('mode-scan-only', 'mode-tasks-only', 'left-collapsed');
+        grid.classList.add('mode-similar-split');
+
+        const btnCollapse = document.getElementById('btnCollapseTasks');
+        if (btnCollapse) btnCollapse.style.display = 'inline-flex';
+
+        // Przewiń oryginalne zadanie do góry w lewym panelu
+        const origCard = document.getElementById('task-card-' + task.original_id);
+        if (origCard) {
+            origCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            origCard.style.outline = '2px solid var(--accent-cyan)';
+            setTimeout(() => { origCard.style.outline = 'none'; }, 2500);
+        }
+
+        const panelTitle = document.getElementById('similarPanelTitle');
+        if (panelTitle) {
+            panelTitle.innerText = task.parsed_content.number || 'Wariant treningowy';
+        }
+
+        renderSimilarTaskHTML(task);
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function toggleLeftPanel() {
+        const grid = document.getElementById('hybridGrid');
+        grid.classList.toggle('left-collapsed');
+        const isCollapsed = grid.classList.contains('left-collapsed');
+        const icon = document.getElementById('iconSimilarFullscreen');
+        if (icon) {
+            icon.setAttribute('data-lucide', isCollapsed ? 'minimize-2' : 'maximize-2');
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    function toggleSimilarFullscreen() {
+        toggleLeftPanel();
+    }
+
+    function closeSimilarPanel() {
+        activeSimilarTask = null;
+        const grid = document.getElementById('hybridGrid');
+        grid.classList.remove('mode-similar-split', 'left-collapsed');
+        
+        const btnCollapse = document.getElementById('btnCollapseTasks');
+        if (btnCollapse) btnCollapse.style.display = 'none';
+
+        // Przywróć poprzedni tryb
+        setGridMode(currentGridMode);
+    }
+
+    function renderSimilarTaskHTML(task) {
+        const container = document.getElementById('similarTaskContent');
+        if (!container) return;
+        const c = task.parsed_content;
+
+        let html = `
+        <div class="task-card" id="similar-card-${task.id}" style="margin-bottom: 0; border-color: rgba(56, 189, 248, 0.4); background: rgba(15, 23, 42, 0.65); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div class="tc-top">
+                <div class="tc-num-badge">
+                    <span style="color: #38bdf8; font-weight: 700;">${c.number || 'Wariant Treningowy'}</span>
+                    <span style="background: rgba(56, 189, 248, 0.15); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); border-radius:6px; padding:2px 8px; font-size:10px; font-weight:700;">
+                        ✨ Nowe Dane
+                    </span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size: 11px; color: var(--text-muted);">Poziom: ${task.difficulty_level}/5</span>
+                </div>
+            </div>
+
+            <h3 class="tc-title" style="color: #fff;">${c.title || 'Zadanie podobne'}</h3>
+            <p class="tc-inst" style="color: #94a3b8;">${c.instruction || ''}</p>
+        `;
+
+        // Renderowanie pól fields (z chipami lub pills)
+        if (c.fields && c.fields.length > 0) {
+            html += `<div class="calc-grid">`;
+            c.fields.forEach((f, idx) => {
+                const hasChipsOrOptions = (f.chips && f.chips.length > 0) || (f.options && f.options.length > 0);
+                html += `<div class="calc-item" style="${hasChipsOrOptions ? 'flex-direction: column; align-items: stretch; gap: 6px;' : ''}">`;
+                html += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%;">`;
+                html += `<span class="calc-label">${f.label}</span>`;
+                
+                if (f.options && f.options.length > 0) {
+                    html += `<div class="pill-group">`;
+                    f.options.forEach(opt => {
+                        html += `<button type="button" class="pill-btn" onclick="setPillValue(this, '${opt}')">${opt}</button>`;
+                    });
+                    html += `<input type="hidden" class="calc-inp" data-ans="${f.ans}" autocomplete="off"></div>`;
+                } else {
+                    html += `<input type="text" class="calc-inp" data-ans="${f.ans}" placeholder="wynik..." autocomplete="off" onkeydown="handleSimilarInputEnter(event, '${task.id}')">`;
+                }
+                html += `</div>`;
+
+                if (f.chips && f.chips.length > 0) {
+                    html += `<div class="calc-chips-wrap">`;
+                    html += `<span style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-right: 4px; align-self: center;">Wybierz:</span>`;
+                    f.chips.forEach(ch => {
+                        html += `<button type="button" class="num-chip" onclick="setFieldValueFromChip(this, '${ch}')">${ch}</button>`;
+                    });
+                    html += `</div>`;
+                }
+                html += `</div>`;
+            });
+            html += `</div>`;
+        }
+
+        // Renderowanie osi liczbowej (sliders)
+        if (c.sliders && c.sliders.length > 0) {
+            html += `<div style="display: flex; flex-direction: column; gap: 14px;">`;
+            c.sliders.forEach((sl, idx) => {
+                const totTicks = sl.total_ticks || 13;
+                html += `
+                <div class="axis-task-card">
+                    <div class="axis-header">
+                        <span class="calc-label" style="font-size: 13px; color: #fff;">${sl.label}</span>
+                        <span class="axis-marker-hint">Przesuń wskaźnik na właściwą kreskę</span>
+                    </div>
+                    <div class="axis-container">
+                        <div class="axis-line"></div>
+                        <div class="axis-ticks-row">`;
+                for (let t_idx = 0; t_idx < totTicks; t_idx++) {
+                    const leftPct = (t_idx / (totTicks - 1)) * 100;
+                    const isMajor = sl.labeled_ticks && (String(t_idx) in sl.labeled_ticks);
+                    const labelText = isMajor ? sl.labeled_ticks[String(t_idx)] : '';
+                    html += `
+                        <div class="axis-tick-wrap" style="left: ${leftPct}%;">
+                            <div class="axis-tick ${isMajor ? 'major' : ''}"></div>
+                            ${isMajor ? `<span class="axis-tick-label">${labelText}</span>` : ''}
+                        </div>`;
+                }
+                html += `
+                        </div>
+                        <input type="range" 
+                               class="axis-slider"
+                               min="0" 
+                               max="${totTicks - 1}" 
+                               step="1" 
+                               value="${sl.initial_tick || 0}"
+                               oninput="updateAxisSlider(this, 'sim-axis-inp-${task.id}-${idx}')">
+                    </div>
+                    <input type="hidden" id="sim-axis-inp-${task.id}-${idx}" class="calc-inp" data-ans="${sl.target_tick}" value="${sl.initial_tick || 0}">
+                </div>`;
+            });
+            html += `</div>`;
+        }
+
+        // Renderowanie multi_chips (wybór kwot)
+        if (c.multi_chips && c.multi_chips.length > 0) {
+            html += `
+            <div style="background: rgba(0,0,0,0.3); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-subtle);">
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Kliknij kwoty, aby je zaznaczyć:</div>
+                <div class="multi-chips-grid">`;
+            c.multi_chips.forEach(mc => {
+                html += `<button type="button" class="multi-chip" data-val="${mc.val}" onclick="toggleMultiChip(this, 'sim-mc-inp-${task.id}')">${mc.label}</button>`;
+            });
+            html += `</div>
+                <input type="hidden" id="sim-mc-inp-${task.id}" class="calc-inp" data-ans="${c.ans}" value="">
+            </div>`;
+        }
+
+        // Pasek akcji dolnych
+        html += `
+            <div class="tc-actions-bar" style="margin-top: 16px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn-submit-task" onclick="checkSimilarTask('${task.id}')">
+                        <i data-lucide="check" style="width: 14px;"></i> Sprawdź wariant
+                    </button>
+                    <button type="button" class="btn-tool-secondary" onclick="generateSimilarTask(${task.original_id}, this)">
+                        <i data-lucide="refresh-cw" style="width: 13px;"></i> Inny wariant
+                    </button>
+                </div>
+            </div>
+            <div class="task-fb" id="fb-similar-${task.id}"></div>
+        </div>`;
+
+        container.innerHTML = html;
+    }
+
+    function handleSimilarInputEnter(e, taskId) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            checkSimilarTask(taskId);
+        }
+    }
+
+    function checkSimilarTask(taskId) {
+        const card = document.getElementById('similar-card-' + taskId);
+        if (!card) return;
+        const inputs = card.querySelectorAll('input[data-ans]');
+        const fb = document.getElementById('fb-similar-' + taskId);
+        if (inputs.length === 0) return;
+
+        let correct = 0;
+        inputs.forEach(inp => {
+            const rawAns = inp.getAttribute('data-ans') || '';
+            const validOptions = rawAns.split('|').map(s => s.trim().toLowerCase().replace(',', '.'));
+            const userVal = inp.value.trim().toLowerCase().replace(',', '.');
+
+            const isMatch = validOptions.some(opt => opt === userVal);
+            const container = inp.closest('.calc-item') || inp.closest('.axis-task-card') || inp.closest('.pill-group') || inp;
+            if (isMatch && userVal !== '') {
+                inp.style.borderColor = '#10b981';
+                inp.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                inp.style.color = '#10b981';
+                if (container && container !== inp) {
+                    container.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                }
+                correct++;
+            } else {
+                inp.style.borderColor = '#ef4444';
+                inp.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                inp.style.color = '#ef4444';
+                if (container && container !== inp) {
+                    container.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                }
+            }
+        });
+
+        fb.style.display = 'block';
+        if (correct === inputs.length) {
+            fb.style.color = '#10b981';
+            fb.style.background = 'rgba(16, 185, 129, 0.15)';
+            fb.innerHTML = `🎉 Brawo! Wszystkie ${correct}/${inputs.length} odpowiedzi poprawne w nowym wariancie! (+5 XP)`;
+            card.classList.add('completed-card');
+            if (activeSimilarTask && activeSimilarTask.original_id) {
+                recordProgress(activeSimilarTask.original_id, 100);
+            }
+        } else {
+            fb.style.color = '#ef4444';
+            fb.style.background = 'rgba(239, 68, 68, 0.15)';
+            fb.innerHTML = `Poprawnie: ${correct} z ${inputs.length}. Popraw błędne pola i spróbuj ponownie!`;
         }
     }
 

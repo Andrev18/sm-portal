@@ -2746,3 +2746,125 @@ async def api_task_submit(request: Request):
     conn.commit()
     conn.close()
     return JSONResponse({"status": "ok", "score": score, "overall_pct": overall_pct})
+
+
+def generate_math_variant(content: dict, task_type: str) -> dict:
+    import copy, random, re
+    res = copy.deepcopy(content)
+    orig_num = content.get("number", "Zadanie")
+    res["number"] = "Wariant do: " + orig_num
+    res["title"] = "Trening: " + content.get("title", "Podobne zadanie")
+
+    # 1. Oś liczbowa (sliders)
+    if "sliders" in res and res["sliders"]:
+        new_sliders = []
+        for sl in res["sliders"]:
+            sl_copy = copy.deepcopy(sl)
+            tot = sl.get("total_ticks", 13)
+            labeled = [int(k) for k in sl.get("labeled_ticks", {}).keys()]
+            avail_ticks = [i for i in range(1, tot) if i not in labeled]
+            target = random.choice(avail_ticks) if avail_ticks else tot // 2
+
+            label_txt = sl.get("label", "")
+            lt = sl.get("labeled_ticks", {})
+            if "0" in lt and "1" in lt:
+                step_val = int(lt["1"]) - int(lt["0"])
+                num_val = target * step_val
+                sl_copy["label"] = re.sub(r'\d+', str(num_val), label_txt, count=1) if re.search(r'\d+', label_txt) else f"Zaznacz liczbę {num_val}:"
+            elif "3" in lt and "6" in lt:
+                step_val = (int(lt["6"]) - int(lt["3"])) // 3
+                num_val = target * step_val
+                sl_copy["label"] = re.sub(r'\d+', str(num_val), label_txt, count=1) if re.search(r'\d+', label_txt) else f"Zaznacz liczbę {num_val}:"
+            elif "0" in lt and "8" in lt:
+                step_val = int(lt["8"]) // 8
+                num_val = target * step_val
+                sl_copy["label"] = re.sub(r'\d+', str(num_val), label_txt, count=1) if re.search(r'\d+', label_txt) else f"Zaznacz liczbę {num_val}:"
+            elif "5" in lt and "10" in lt:
+                step_val = (int(lt["10"]) - int(lt["5"])) // 5
+                num_val = 2000 + target * step_val
+                sl_copy["label"] = re.sub(r'\d+', str(num_val), label_txt, count=1) if re.search(r'\d+', label_txt) else f"Zaznacz liczbę {num_val}:"
+
+            sl_copy["target_tick"] = str(target)
+            sl_copy["initial_tick"] = 0
+            new_sliders.append(sl_copy)
+        res["sliders"] = new_sliders
+        return res
+
+    # 2. Liczby w figurach (chips)
+    if "fields" in res and res["fields"] and any("chips" in f for f in res["fields"]):
+        new_fields = []
+        for f in res["fields"]:
+            f_copy = copy.deepcopy(f)
+            old_chips = f.get("chips", [])
+            if old_chips:
+                digits = len(str(old_chips[0]))
+                if digits == 3:
+                    base = random.sample([3, 4, 5, 7, 8], 2)
+                    nums = list(set(random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(12)))[:6]
+                elif digits == 4:
+                    base = random.sample([2, 4, 6, 8, 9], 3) + [0]
+                    nums = list(set(random.choice([d for d in base if d != 0])*1000 + random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(15)))[:7]
+                else:
+                    base = random.sample([1, 3, 5, 7, 9], 3)
+                    nums = list(set(random.choice(base)*10000 + random.choice(base)*1000 + random.choice(base)*100 + random.choice(base)*10 + random.choice(base) for _ in range(18)))[:8]
+                nums.sort()
+                f_copy["chips"] = [str(n) for n in nums]
+                if "najmniejsza" in f["label"].lower():
+                    f_copy["ans"] = str(min(nums))
+                elif "największa" in f["label"].lower():
+                    f_copy["ans"] = str(max(nums))
+            new_fields.append(f_copy)
+        res["fields"] = new_fields
+        return res
+
+    # 3. Proste obliczenia pamięciowe (a + b, a - b)
+    if "fields" in res and res["fields"]:
+        new_fields = []
+        for f in res["fields"]:
+            f_copy = copy.deepcopy(f)
+            m_add = re.search(r'(\d+)\s*\+\s*(\d+)', f.get("label", ""))
+            m_sub = re.search(r'(\d+)\s*-\s*(\d+)', f.get("label", ""))
+            if m_add:
+                a = int(m_add.group(1)) + random.randint(1, 4) * 10
+                b = int(m_add.group(2)) + random.randint(1, 6)
+                f_copy["label"] = re.sub(r'\d+\s*\+\s*\d+', f"{a} + {b}", f["label"], count=1)
+                f_copy["ans"] = str(a + b)
+            elif m_sub:
+                a = int(m_sub.group(1)) + random.randint(1, 4) * 10
+                b = int(m_sub.group(2)) + random.randint(1, 4)
+                if b >= a: b = a - 10
+                f_copy["label"] = re.sub(r'\d+\s*-\s*\d+', f"{a} - {b}", f["label"], count=1)
+                f_copy["ans"] = str(a - b)
+            new_fields.append(f_copy)
+        res["fields"] = new_fields
+        return res
+
+    return res
+
+
+@app.post("/api/tasks/{task_id}/similar")
+async def api_task_similar(task_id: int, request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    conn = db()
+    t_row = conn.execute("SELECT * FROM interactive_tasks WHERE id=?", (task_id,)).fetchone()
+    if not t_row:
+        conn.close()
+        raise HTTPException(404, "Task not found")
+    
+    import json, random
+    content = json.loads(t_row["content_json"])
+    task_type = t_row["task_type"]
+    
+    similar_content = generate_math_variant(content, task_type)
+    similar_task = {
+        "id": f"sim_{task_id}_{random.randint(1000, 9999)}",
+        "original_id": task_id,
+        "task_type": task_type,
+        "difficulty_level": t_row["difficulty_level"],
+        "parsed_content": similar_content
+    }
+    conn.close()
+    return JSONResponse({"status": "ok", "task": similar_task})
+
