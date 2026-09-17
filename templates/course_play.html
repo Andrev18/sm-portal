@@ -823,7 +823,9 @@
         size: A4 portrait;
         margin: 12mm 15mm 15mm 15mm;
     }
-    body {
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
         background: #fff !important;
         color: #000 !important;
         font-family: 'Inter', -apple-system, sans-serif !important;
@@ -840,9 +842,17 @@
     }
     .hybrid-page-wrapper {
         padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
     }
     .hybrid-grid {
         display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
     }
     
     /* W trybie druku absolutnie WSZYSTKIE zadania mają display: flex bez względu na filtr */
@@ -1956,7 +1966,7 @@
                         Warsztat Zadań (Ćwiczenia na PC)
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="print-panel-btn" onclick="printSpecificPanel('base')" title="Drukuj tylko zadania bazowe A4">
+                        <button type="button" class="print-panel-btn" onclick="printWorksheet()" title="Drukuj pełny arkusz wszystkich zadań A4">
                             <i data-lucide="printer" style="width: 13px;"></i> <span>Drukuj A4</span>
                         </button>
                         <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
@@ -2987,7 +2997,7 @@
     }
 
     function printWorksheet() {
-        printSpecificPanel('base');
+        window.open('/courses/print/{{ book["id"] }}?auto=1', '_blank');
     }
 
     // MULTI-SELECT ZADAŃ I GENEROWANIE ZESTAWU (BATCH)

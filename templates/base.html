@@ -462,7 +462,7 @@
     .grid-card-interactive:hover { transform: translateY(-3px); }
     /* Media Print Global Rules */
     @media print {
-      body {
+      html, body {
         height: auto !important;
         overflow: visible !important;
         background: #fff !important;
@@ -471,11 +471,12 @@
       .sidebar, .ambient-glow-1, .ambient-glow-2, header, .top-header, .hermes-widget-btn, #petdexContainer, #mainSidebar, .brand-header, .nav-tabs, .header-right {
         display: none !important;
       }
-      .main-layout {
+      .main-wrapper {
         display: block !important;
         width: 100% !important;
         height: auto !important;
         overflow: visible !important;
+        background: transparent !important;
       }
       .content-scroll {
         padding: 0 !important;
@@ -488,6 +489,8 @@
         margin: 0 !important;
         gap: 0 !important;
         display: block !important;
+        height: auto !important;
+        overflow: visible !important;
       }
     }
   </style>

@@ -2730,6 +2730,79 @@ def courses_play(request: Request, book_id: int):
         "audio_tracks": audio_tracks
     })
 
+@app.get("/courses/print/{book_id}", response_class=HTMLResponse)
+def courses_print_worksheet(request: Request, book_id: int):
+    u = current_user(request)
+    if not u:
+        return RedirectResponse("/", 302)
+    conn = db()
+    book = conn.execute("SELECT * FROM books WHERE id=?", (book_id,)).fetchone()
+    if not book:
+        conn.close()
+        raise HTTPException(404, "Książka nie znaleziona")
+    
+    b_subj = book['subject']
+    raw_tasks = conn.execute("""
+        SELECT it.*, utp.score as user_score, utp.attempts as user_attempts, utp.last_attempt as user_last_attempt
+        FROM interactive_tasks it 
+        JOIN book_chapters bc ON it.chapter_id = bc.id 
+        LEFT JOIN user_task_progress utp ON it.id = utp.task_id AND utp.user_id = ?
+        WHERE bc.book_id = ?
+        ORDER BY it.id ASC
+    """, (u['id'], book_id)).fetchall()
+
+    if not raw_tasks:
+        raw_tasks = conn.execute("""
+            SELECT it.*, utp.score as user_score, utp.attempts as user_attempts, utp.last_attempt as user_last_attempt
+            FROM interactive_tasks it 
+            JOIN book_chapters bc ON it.chapter_id = bc.id 
+            JOIN books b ON bc.book_id = b.id
+            LEFT JOIN user_task_progress utp ON it.id = utp.task_id AND utp.user_id = ?
+            WHERE b.subject = ?
+            ORDER BY it.id ASC
+        """, (u['id'], b_subj)).fetchall()
+
+    import json
+    tasks = []
+    for t in raw_tasks:
+        td = dict(t)
+        try:
+            content = json.loads(td['content_json'])
+            td['parsed_content'] = content
+            import re as _re
+            num_str = content.get('number', '')
+            title_str = content.get('title', '')
+            full_text = (num_str + ' ' + title_str).lower()
+            m = _re.search(r'str\.\s*(\d+)', full_text)
+            page_num = int(m.group(1)) if m else None
+            td['page_ref'] = page_num
+
+            m_ex = _re.search(r'zadanie\s*(\d+)', num_str.lower())
+            td['exercise_num'] = int(m_ex.group(1)) if m_ex else None
+
+            if page_num in (3, 4):
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Zapis i porównywanie liczb"
+            elif page_num in (5, 6):
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Działania pamięciowe i sprytne liczenie"
+            else:
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Ćwiczenia z podręcznika"
+
+            tasks.append(td)
+        except Exception:
+            pass
+
+    tasks.sort(key=lambda x: (x.get('page_ref') or 999, x.get('exercise_num') or 999, x.get('id') or 0))
+    conn.close()
+
+    return templates.TemplateResponse(request, "course_print.html", {
+        "user": u,
+        "book": dict(book),
+        "tasks": tasks
+    })
+
 @app.get("/srs/deck/{deck_id}/cards-raw")
 def srs_deck_cards_raw(request: Request, deck_id: int):
     u = current_user(request)
