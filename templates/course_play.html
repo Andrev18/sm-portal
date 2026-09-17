@@ -952,7 +952,17 @@
     flex-direction: column;
     gap: 16px;
     position: relative;
+    box-sizing: border-box !important;
     transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* W widoku podziału karty zadań bazowych i treningowych mają identyczny styl i padding */
+.col-similar .task-card {
+    background: rgba(0, 0, 0, 0.35) !important;
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    border-radius: 16px !important;
+    padding: 22px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
 }
 
 .task-card:hover {
@@ -1870,9 +1880,9 @@
                                         <span class="var-chip-indicator"></span>
                                         <span>Trudniejszy</span>
                                     </button>
-                                    <button type="button" class="var-chip var-chip-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Wygeneruj identyczne zadanie (z pamięci - ukrywa lewe okno)">
+                                    <button type="button" class="var-chip var-chip-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Identyczny (resetuje pola i pozwala rozwiązać jeszcze raz)">
                                         <span class="var-chip-indicator"></span>
-                                        <span>Z pamięci</span>
+                                        <span>Identyczny</span>
                                     </button>
                                 </div>
                             </div>
@@ -2508,7 +2518,44 @@
     let previousLeftTasks = null;
     let previousLeftTask = null;
 
+    function resetTaskCardToRetry(taskId) {
+        const card = document.getElementById('task-card-' + taskId);
+        if (!card) return;
+        // Wyczyść pola tekstowe, przywróć kolory i ukryj feedback
+        card.querySelectorAll('input[type="text"]').forEach(inp => {
+            inp.value = '';
+            inp.style.borderColor = '';
+            inp.style.backgroundColor = '';
+            inp.style.color = '';
+        });
+        card.querySelectorAll('input[type="hidden"]').forEach(inp => {
+            inp.value = '';
+        });
+        card.querySelectorAll('.num-chip, .pill-btn, .multi-chip').forEach(el => {
+            el.classList.remove('active', 'selected', 'selected-correct', 'selected-wrong');
+        });
+        card.querySelectorAll('.calc-item, .axis-task-card').forEach(el => {
+            el.style.borderColor = '';
+        });
+        const fb = document.getElementById('fb-task-' + taskId);
+        if (fb) {
+            fb.style.display = 'none';
+            fb.innerHTML = '';
+        }
+        card.classList.remove('completed-card', 'checked-attempt');
+        
+        // Płynne podświetlenie karty na znak gotowości do ponownego rozwiązania
+        card.style.outline = '2px solid rgba(59, 130, 246, 0.6)';
+        setTimeout(() => { card.style.outline = 'none'; }, 1500);
+    }
+
     async function generateSimilarTask(taskId, difficulty = 'same', btn, source = 'base') {
+        // Jeśli w lewym panelu wybrano "identical", to uczeń chce zresetować wyniki i wypełnić zadanie jeszcze raz!
+        if (source === 'base' && difficulty === 'identical') {
+            resetTaskCardToRetry(taskId);
+            return;
+        }
+
         // Blokada bramki obowiązuje TYLKO przy próbie generowania z poziomu nowo powstałego panelu (source === 'similar')!
         if (source === 'similar') {
             if (!canAdvanceToNextPanel()) {
@@ -2726,7 +2773,7 @@
         const c = task.parsed_content;
 
         let html = `
-        <div class="task-card" id="similar-card-${task.id}" style="margin-bottom: 0; border-color: rgba(56, 189, 248, 0.4); background: rgba(15, 23, 42, 0.65); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div class="task-card" id="similar-card-${task.id}">
             <div class="tc-top">
                 <div class="tc-num-badge">
                     <span style="color: #38bdf8; font-weight: 800;">${c.number || 'Wariant Treningowy'}</span>
