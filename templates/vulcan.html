@@ -1,705 +1,998 @@
-{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · Pulpit Ucznia{% endblock %}
+{% extends "base.html" %}{% block title %}VULCAN e-Dziennik · Stanisław Mikos (5B){% endblock %}
 {% block content %}
 <style>
   :root {
-    --v-bg-subtle: rgba(255, 255, 255, 0.02);
     --v-border: var(--border-subtle, rgba(255, 255, 255, 0.08));
-    --v-accent: var(--accent-indigo, #6366f1);
-    --v-cyan: #38bdf8;
-    --v-emerald: #10b981;
-    --v-amber: #f59e0b;
-    --v-rose: #f43f5e;
+    --v-cyan: #26c6da;
+    --v-cyan-glow: rgba(38, 198, 218, 0.2);
+    --v-yellow: #ffff00;
+    --v-amber-row: rgba(255, 152, 0, 0.16);
+    --v-card-bg: rgba(22, 26, 32, 0.85);
   }
 
-  /* TOP PILLS / BADGES */
+  .vulcan-dashboard-container {
+    max-width: 1720px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+  }
+
+  /* TOP PILLS KPI BAR */
   .vulcan-topbar-pills {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   .v-pill {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(24, 24, 27, 0.8);
+    background: rgba(18, 22, 28, 0.9);
     border: 1px solid var(--v-border);
-    padding: 6px 14px;
+    padding: 7px 16px;
     border-radius: 9999px;
     font-size: 13px;
     font-weight: 500;
-    color: #e4e4e7;
-    backdrop-filter: blur(8px);
+    color: #e2e8f0;
+    backdrop-filter: blur(10px);
+    transition: transform 0.15s ease;
   }
+  .v-pill:hover { transform: translateY(-1px); }
   .v-pill .pill-val {
     font-weight: 700;
-    padding-left: 4px;
-    border-left: 1px solid rgba(255,255,255,0.12);
+    padding-left: 6px;
+    border-left: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
   }
-  .v-pill-purple { border-color: rgba(168, 85, 247, 0.35); }
+  .v-pill-purple { border-color: rgba(168, 85, 247, 0.4); }
   .v-pill-purple .pill-val { color: #c084fc; }
-  .v-pill-rose { border-color: rgba(244, 63, 94, 0.35); }
+  .v-pill-rose { border-color: rgba(244, 63, 94, 0.4); }
   .v-pill-rose .pill-val { color: #fb7185; }
-  .v-pill-blue { border-color: rgba(56, 189, 248, 0.35); }
-  .v-pill-blue .pill-val { color: #38bdf8; }
-  .v-pill-amber { border-color: rgba(245, 158, 11, 0.35); }
+  .v-pill-blue { border-color: rgba(38, 198, 218, 0.4); }
+  .v-pill-blue .pill-val { color: #26c6da; }
+  .v-pill-amber { border-color: rgba(245, 158, 11, 0.4); }
   .v-pill-amber .pill-val { color: #fbbf24; }
 
-  /* 4-COLUMN BENTO GRID */
-  .vulcan-grid {
+  /* 3-COLUMN UPPER BENTO HUB */
+  .vulcan-upper-bento {
     display: grid;
-    grid-template-columns: 280px 240px 320px 1fr;
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: 320px 1.2fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
   }
-  @media (max-width: 1400px) {
-    .vulcan-grid { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 1200px) {
+    .vulcan-upper-bento { grid-template-columns: 1fr 1fr; }
   }
-  @media (max-width: 800px) {
-    .vulcan-grid { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    .vulcan-upper-bento { grid-template-columns: 1fr; }
   }
 
-  /* COLUMN CARD CONTAINER */
-  .v-col-card {
-    background: rgba(18, 18, 22, 0.75);
+  .v-card {
+    background: var(--v-card-bg);
     border: 1px solid var(--v-border);
-    border-radius: 16px;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28);
   }
-  .v-col-header {
+  .v-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--v-border);
+    margin-bottom: 12px;
   }
-  .v-col-title {
-    font-size: 15px;
+  .v-card-title {
+    font-size: 14px;
     font-weight: 700;
-    color: #fff;
+    color: #f1f5f9;
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
-  /* COL 1: PRZEDMIOTY I WYNIKI */
+  /* Kafelki metryk ucznia */
+  .metric-large-box {
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .bento-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .bento-tile {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--v-border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .bento-tile-lbl {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .bento-tile-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 2px;
+  }
+
+  /* Wyniki per przedmiot */
+  .subject-results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  @media (max-width: 600px) {
+    .subject-results-grid { grid-template-columns: 1fr; }
+  }
   .subject-result-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.02);
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid transparent;
-    transition: all 0.15s;
-    font-size: 13px;
+    font-size: 12px;
   }
   .subject-result-row:hover {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.1);
-  }
-  .subj-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #e4e4e7;
-    font-weight: 500;
-  }
-  .subj-percent {
-    font-weight: 700;
-    font-family: monospace;
-    font-size: 13px;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
-  /* TERMINARZ W COL 1 */
-  .event-item {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--v-border);
-    border-left: 3px solid var(--v-rose);
-    border-radius: 10px;
-    padding: 10px 12px;
+  /* Wiadomości lista */
+  .messages-scroll-wrap {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
   }
-  .event-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .event-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
-  }
-  .event-desc {
-    font-size: 12px;
-    color: #a1a1aa;
-    line-height: 1.4;
-  }
-
-  /* COL 2: KAFELKI BENTO METRYK */
-  .bento-metrics {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .bento-metric-tile {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--v-border);
-    border-radius: 12px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 82px;
-  }
-  .bento-metric-tile.span-2 {
-    grid-column: span 2;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(255,255,255,0.02));
-    border-color: rgba(168, 85, 247, 0.25);
-  }
-  .tile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    color: #a1a1aa;
-    font-weight: 500;
-  }
-  .tile-val {
-    font-size: 20px;
-    font-weight: 800;
-    color: #fff;
-    margin-top: 4px;
-  }
-  .tile-val.large { font-size: 26px; color: #c084fc; }
-  .tile-progress {
-    width: 100%;
-    height: 6px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 99px;
-    margin-top: 8px;
-    overflow: hidden;
-  }
-  .tile-progress-fill {
-    height: 100%;
-    background: #a855f7;
-    border-radius: 99px;
-  }
-
-  /* COL 3: SKRZYNKA WIADOMOŚCI */
   .msg-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.02);
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--v-border);
-    transition: all 0.15s;
+    transition: all 0.15s ease;
     cursor: pointer;
   }
   .msg-item:hover {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(56, 189, 248, 0.3);
+    background: rgba(38, 198, 218, 0.06);
+    border-color: rgba(38, 198, 218, 0.3);
+    transform: translateX(2px);
   }
   .msg-author {
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    color: #f1f5f9;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .msg-topic {
-    font-size: 12px;
-    color: #cbd5e1;
+    font-size: 11px;
+    color: #94a3b8;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .msg-date-badge {
-    align-self: flex-start;
+
+  /* FULL-WIDTH TIMETABLE CARD */
+  .timetable-full-card {
+    background: var(--v-card-bg);
+    border: 1px solid var(--v-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+  .timetable-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .student-week-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(38, 198, 218, 0.25);
+    border-radius: 10px;
+    padding: 6px 14px;
+  }
+  .student-week-nav h2 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--v-cyan);
+    margin: 0;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .student-week-nav small {
+    display: block;
     font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(56, 189, 248, 0.1);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    margin-top: 2px;
+    font-weight: 700;
+    color: var(--v-cyan);
+    letter-spacing: 0.08em;
+  }
+  .nav-arrow-btn {
+    background: transparent;
+    border: none;
+    color: var(--v-cyan);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .nav-arrow-btn:hover { background: rgba(38, 198, 218, 0.15); }
+
+  .print-btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(38, 198, 218, 0.15), rgba(99, 102, 241, 0.15));
+    border: 1px solid rgba(38, 198, 218, 0.35);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .print-btn-action:hover {
+    background: linear-gradient(135deg, rgba(38, 198, 218, 0.25), rgba(99, 102, 241, 0.25));
+    border-color: var(--v-cyan);
+    box-shadow: 0 0 16px var(--v-cyan-glow);
   }
 
-  /* COL 4: PLAN LEKCJI TYGODNIOWY Z TIMELINE */
-  .timetable-wrap {
+  /* TIMETABLE TABLE WITH LIVE YELLOW LINE */
+  .timetable-scroll-box {
     position: relative;
     overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--v-border);
+    background: rgba(14, 17, 22, 0.7);
   }
   .timetable-table {
     width: 100%;
+    min-width: 900px;
     border-collapse: collapse;
     font-size: 12px;
   }
   .timetable-table th {
-    text-align: left;
-    padding: 10px 8px;
+    background: rgba(22, 27, 34, 0.95);
+    color: var(--v-cyan);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    letter-spacing: 0.04em;
+  }
+  .timetable-table th.col-hour-head {
+    width: 90px;
     color: #94a3b8;
-    font-weight: 600;
-    border-bottom: 1px solid var(--v-border);
-    background: rgba(255,255,255,0.02);
+    background: rgba(18, 22, 28, 0.95);
   }
   .timetable-table td {
-    padding: 8px 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    vertical-align: top;
-    min-width: 130px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 6px 8px;
+    vertical-align: middle;
+    height: 64px;
+    position: relative;
   }
-  .timetable-table td.col-hour {
-    min-width: 80px;
+  .timetable-table td.col-hour-cell {
+    text-align: center;
     font-family: monospace;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 11px;
     color: #94a3b8;
+    background: rgba(255, 255, 255, 0.01);
   }
-  .lesson-slot {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--v-border);
+
+  /* Active hour row highlight */
+  tr.row-active-hour td {
+    background: var(--v-amber-row) !important;
+  }
+  tr.row-active-hour td.col-hour-cell {
+    color: #fbbf24;
+    font-weight: 800;
+  }
+
+  /* Exact Live Yellow Slider Line */
+  .live-time-slider {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--v-yellow);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.85);
+    z-index: 25;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+  .live-time-slider-badge {
+    position: absolute;
+    left: 2px;
+    background: var(--v-yellow);
+    color: #000;
+    font-size: 10px;
+    font-weight: 900;
+    font-family: monospace;
+    padding: 1px 6px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    letter-spacing: -0.02em;
+  }
+
+  /* Lesson Cell */
+  .cell-lesson-content {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 8px;
     padding: 6px 8px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
+    height: 100%;
+    box-sizing: border-box;
+    justify-content: center;
   }
-  .lesson-slot.is-cancelled {
-    background: rgba(244, 63, 94, 0.08);
-    border-color: rgba(244, 63, 94, 0.3);
-  }
-  .lesson-slot.is-subst {
-    background: rgba(245, 158, 11, 0.08);
-    border-color: rgba(245, 158, 11, 0.3);
-  }
-  .status-tag {
-    display: inline-block;
-    font-size: 9px;
+  .cell-lesson-title {
+    font-size: 13px;
     font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .cell-lesson-meta {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Group tags */
+  .tag-group-o { color: #4caf50; font-weight: 700; }
+  .tag-group-n { color: #f43f5e; font-weight: 700; }
+  .tag-group-k { color: #26c6da; font-weight: 700; }
+
+  /* Status Badges */
+  .badge-zastepstwo {
+    display: inline-block;
+    background: #ff9800;
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
     padding: 1px 5px;
     border-radius: 4px;
     text-transform: uppercase;
     width: fit-content;
   }
-  .status-tag-subst { background: #f59e0b; color: #000; }
-  .status-tag-cancelled { background: #f43f5e; color: #fff; }
+  .badge-odwolane {
+    display: inline-block;
+    background: #d32f2f;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    width: fit-content;
+  }
 
-  /* TIMELINE OVERLAY INDICATOR */
-  .live-time-indicator {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #eab308;
-    box-shadow: 0 0 8px #eab308;
-    z-index: 10;
-    pointer-events: none;
+  /* Next week footer summary */
+  .timetable-footer-next {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--v-border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: background 0.15s;
   }
-  .live-time-tag {
-    position: absolute;
-    left: -2px;
-    background: #eab308;
-    color: #000;
-    font-weight: 800;
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 4px;
+  .timetable-footer-next:hover { background: rgba(255, 255, 255, 0.05); }
+
+  /* =========================================================================
+     PRINT FORMAT: SFORMATOWANY POZIOM A4 (LANDSCAPE PRINT STYLES)
+     ========================================================================= */
+  @page {
+    size: A4 landscape;
+    margin: 8mm 10mm;
+  }
+
+  @media print {
+    html, body {
+      background: #fff !important;
+      color: #000 !important;
+      font-family: "Segoe UI", Arial, sans-serif !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    #mainSidebar, .sidebar, .top-header, .vulcan-topbar-pills, .vulcan-upper-bento, 
+    .nav-arrow-btn, .print-btn-action, .theme-picker, .timetable-footer-next,
+    #companionBubble, .petdex-widget, button {
+      display: none !important;
+    }
+    
+    .vulcan-dashboard-container {
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .timetable-full-card {
+      background: #fff !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+    }
+    .timetable-top-bar {
+      margin-bottom: 8px !important;
+      border-bottom: 2px solid #000 !important;
+      padding-bottom: 6px !important;
+    }
+    .student-week-nav {
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .student-week-nav h2 {
+      font-size: 18px !important;
+      color: #000 !important;
+    }
+    .student-week-nav small {
+      font-size: 11px !important;
+      color: #444 !important;
+    }
+    .print-header-institution {
+      display: block !important;
+      font-size: 14px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 4px;
+    }
+
+    .timetable-scroll-box {
+      overflow: visible !important;
+      border: 1px solid #333 !important;
+      background: #fff !important;
+    }
+    .timetable-table {
+      width: 100% !important;
+      min-width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 10.5pt !important;
+    }
+    .timetable-table th {
+      background: #eee !important;
+      color: #000 !important;
+      border: 1px solid #444 !important;
+      padding: 6px 4px !important;
+      font-weight: 700 !important;
+    }
+    .timetable-table td {
+      border: 1px solid #666 !important;
+      padding: 4px 6px !important;
+      background: #fff !important;
+      color: #000 !important;
+      height: 48px !important;
+    }
+    .timetable-table td.col-hour-cell {
+      background: #f8f8f8 !important;
+      color: #000 !important;
+      font-weight: bold !important;
+    }
+    .cell-lesson-content {
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .cell-lesson-title {
+      color: #000 !important;
+      font-size: 10.5pt !important;
+      font-weight: bold !important;
+    }
+    .cell-lesson-meta {
+      color: #444 !important;
+      font-size: 9pt !important;
+    }
+    .badge-zastepstwo {
+      border: 1px solid #333 !important;
+      background: #ffcc80 !important;
+      color: #000 !important;
+    }
+    .badge-odwolane {
+      border: 1px solid #333 !important;
+      background: #ffcdd2 !important;
+      color: #b71c1c !important;
+    }
+    .live-time-slider, .live-time-slider-badge {
+      display: none !important;
+    }
+  }
+
+  .print-header-institution {
+    display: none;
   }
 </style>
 
-<!-- GÓRNY PASEK PODGLĄDU: 4 PIGUŁKI -->
-<div class="vulcan-topbar-pills">
-  <div class="v-pill v-pill-purple">
-    <i data-lucide="bar-chart-3" style="width: 15px; height: 15px; color: #c084fc;"></i>
-    <span>Statystyki: <span id="pillStudent">Stanisław Mikos</span></span>
-    <span class="pill-val" id="pillStats">--%</span>
-  </div>
-  <div class="v-pill v-pill-rose">
-    <i data-lucide="user-x" style="width: 15px; height: 15px; color: #fb7185;"></i>
-    <span>Frekwencja: <span id="pillFreqStudent">Stanisław Mikos</span></span>
-    <span class="pill-val" id="pillFreq">-- nieob.</span>
-  </div>
-  <div class="v-pill v-pill-blue">
-    <i data-lucide="mail" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-    <span>Wiadomości: <span id="pillMsgStudent">Stanisław Mikos</span></span>
-    <span class="pill-val" id="pillMsg">0</span>
-  </div>
-  <div class="v-pill v-pill-amber">
-    <i data-lucide="calendar" style="width: 15px; height: 15px; color: #fbbf24;"></i>
-    <span>Terminarz: <span id="pillTermStudent">Stanisław Mikos</span></span>
-    <span class="pill-val" id="pillTerm">0</span>
-  </div>
-</div>
-
-<!-- 4-KOLUMNOWY BENTO GRID -->
-<div class="vulcan-grid">
+<div class="vulcan-dashboard-container">
   
-  <!-- KOLUMNA 1: WYNIKI PER PRZEDMIOT + NAJBLIŻSZE WYDARZENIA -->
-  <div style="display: flex; flex-direction: column; gap: 16px;">
-    <div class="v-col-card">
-      <div class="v-col-header">
-        <span class="v-col-title"><i data-lucide="book-open" style="width: 16px; height: 16px; color: #38bdf8;"></i> Wyniki per przedmiot</span>
-      </div>
-      <div id="subjectResultsList" style="display: flex; flex-direction: column; gap: 6px;">
-        <i style="color: var(--text-muted); font-size: 12px;">Ładowanie danych...</i>
-      </div>
+  <!-- GÓRNY PASEK KPI (4 PIGUŁKI) -->
+  <div class="vulcan-topbar-pills">
+    <div class="v-pill v-pill-purple">
+      <i data-lucide="bar-chart-2" style="width: 15px; height: 15px; color: #c084fc;"></i>
+      <span>Statystyki: <span id="pillStudent">Stanisław Mikos</span></span>
+      <span class="pill-val" id="pillStats">69,84%</span>
     </div>
-
-    <div class="v-col-card">
-      <div class="v-col-header">
-        <span class="v-col-title"><i data-lucide="calendar-days" style="width: 16px; height: 16px; color: #f59e0b;"></i> Najbliższe wydarzenia:</span>
-      </div>
-      <div id="colTerminarzList" style="display: flex; flex-direction: column; gap: 10px;">
-        <i style="color: var(--text-muted); font-size: 12px;">Ładowanie wydarzeń...</i>
-      </div>
+    <div class="v-pill v-pill-rose">
+      <i data-lucide="user-x" style="width: 15px; height: 15px; color: #fb7185;"></i>
+      <span>Frekwencja: <span id="pillFreqStudent">Stanisław Mikos</span></span>
+      <span class="pill-val" id="pillFreq">13 nieob.</span>
     </div>
-  </div>
-
-  <!-- KOLUMNA 2: KAFELKOWE METRYKI UCZNIA -->
-  <div class="v-col-card">
-    <div class="v-col-header">
-      <span class="v-col-title"><i data-lucide="graduation-cap" style="width: 16px; height: 16px; color: #c084fc;"></i> E-dziennik – Stanisław</span>
+    <div class="v-pill v-pill-blue">
+      <i data-lucide="mail" style="width: 15px; height: 15px; color: #26c6da;"></i>
+      <span>Wiadomości: <span id="pillMsgStudent">Stanisław Mikos</span></span>
+      <span class="pill-val" id="pillMsg">0</span>
     </div>
-    <div class="bento-metrics">
-      <!-- Średnia ogólna / % (Span 2) -->
-      <div class="bento-metric-tile span-2">
-        <div class="tile-header">
-          <span>Średnia ogólna</span>
-          <i data-lucide="percent" style="width: 14px; height: 14px; color: #c084fc;"></i>
-        </div>
-        <div class="tile-val large" id="metricGpaVal">--%</div>
-        <div class="tile-progress">
-          <div class="tile-progress-fill" id="metricGpaBar" style="width: 0%;"></div>
-        </div>
-      </div>
-
-      <!-- Nieobecności -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Nieobecności (godz.)</span>
-          <i data-lucide="user-x" style="width: 13px; height: 13px; color: #fb7185;"></i>
-        </div>
-        <div class="tile-val" style="color: #fb7185;" id="metricFreqVal">--</div>
-      </div>
-
-      <!-- Szczęśliwy numerek -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Szczęśliwy numerek</span>
-          <i data-lucide="clover" style="width: 13px; height: 13px; color: #10b981;"></i>
-        </div>
-        <div class="tile-val" style="color: #10b981;" id="metricNumerekVal">--</div>
-      </div>
-
-      <!-- Sprawdziany / kartkówki -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Sprawdziany / kartk.</span>
-          <i data-lucide="file-check" style="width: 13px; height: 13px; color: #fbbf24;"></i>
-        </div>
-        <div class="tile-val" style="color: #fbbf24;" id="metricTermVal">--</div>
-      </div>
-
-      <!-- Nieprzeczytane wiadomości -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Nieprzeczytane</span>
-          <i data-lucide="mail" style="width: 13px; height: 13px; color: #38bdf8;"></i>
-        </div>
-        <div class="tile-val" style="color: #38bdf8;" id="metricMsgVal">--</div>
-      </div>
-
-      <!-- Nowe oceny (okres 1) -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Nowe oceny (okr. 1)</span>
-          <i data-lucide="star" style="width: 13px; height: 13px; color: #eab308;"></i>
-        </div>
-        <div class="tile-val" style="color: #eab308;" id="metricNewGradesVal">--</div>
-      </div>
-
-      <!-- Uwagi / pochwały -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Uwagi / pochwały</span>
-          <i data-lucide="message-square" style="width: 13px; height: 13px; color: #94a3b8;"></i>
-        </div>
-        <div class="tile-val" id="metricUwagiVal">0</div>
-      </div>
-
-      <!-- Osiągnięcia -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Osiągnięcia</span>
-          <i data-lucide="trophy" style="width: 13px; height: 13px; color: #94a3b8;"></i>
-        </div>
-        <div class="tile-val" id="metricOsiagnieciaVal">0</div>
-      </div>
-
-      <!-- Zebrania -->
-      <div class="bento-metric-tile">
-        <div class="tile-header">
-          <span>Zebrania</span>
-          <i data-lucide="users" style="width: 13px; height: 13px; color: #94a3b8;"></i>
-        </div>
-        <div class="tile-val" id="metricZebraniaVal">0</div>
-      </div>
+    <div class="v-pill v-pill-amber">
+      <i data-lucide="calendar" style="width: 15px; height: 15px; color: #fbbf24;"></i>
+      <span>Terminarz: <span id="pillTermStudent">Stanisław Mikos</span></span>
+      <span class="pill-val" id="pillTerm">3</span>
     </div>
   </div>
 
-  <!-- KOLUMNA 3: WIADOMOŚCI - PEŁNA SKRZYNKA -->
-  <div class="v-col-card">
-    <div class="v-col-header">
-      <span class="v-col-title"><i data-lucide="inbox" style="width: 16px; height: 16px; color: #38bdf8;"></i> Wiadomości – skrzynka</span>
-      <span style="font-size: 12px; font-weight: 700; color: #94a3b8;" id="msgCountHeader">0 / 0</span>
-    </div>
-    <div id="messagesList" style="display: flex; flex-direction: column; gap: 8px; max-height: 700px; overflow-y: auto;">
-      <i style="color: var(--text-muted); font-size: 12px;">Ładowanie skrzynki...</i>
-    </div>
-  </div>
+  <!-- ERGONOMICZNY GÓRNY BENTO HUB (3 KOLUMNY) -->
+  <div class="vulcan-upper-bento">
+    
+    <!-- 1. KAFELKI METRYK UCZNIA -->
+    <div class="v-card">
+      <div class="v-card-header">
+        <span class="v-card-title">
+          <i data-lucide="graduation-cap" style="width: 16px; height: 16px; color: #c084fc;"></i>
+          E-dziennik – Stanisław
+        </span>
+      </div>
+      
+      <!-- Duża średnia z paskiem -->
+      <div class="metric-large-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-size: 11px; color: #cbd5e1; font-weight: 500;">Średnia ogólna / frekwencja</span>
+          <span style="background: rgba(168, 85, 247, 0.25); color: #c084fc; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;">%</span>
+        </div>
+        <div style="font-size: 22px; font-weight: 800; color: #c084fc;" id="metricGpaVal">69,84%</div>
+        <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; margin-top: 8px; overflow: hidden;">
+          <div id="metricGpaBar" style="height: 100%; width: 69.84%; background: #a855f7; border-radius: 99px;"></div>
+        </div>
+      </div>
 
-  <!-- KOLUMNA 4: PLAN LEKCJI TYGODNIOWY ZE WSKAŹNIKIEM CZASU -->
-  <div class="v-col-card" style="min-width: 0;">
-    <div class="v-col-header">
-      <span class="v-col-title"><i data-lucide="calendar" style="width: 16px; height: 16px; color: #38bdf8;"></i> Plan lekcji – tydzień bieżący</span>
-      <div style="display: flex; gap: 6px; align-items: center;">
-        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="loadWeekPlan('curr')">Bieżący</button>
-        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="loadWeekPlan('next')">Następny</button>
+      <!-- Kafelki metryk w siatce -->
+      <div class="bento-metrics-grid">
+        <div class="bento-tile">
+          <div class="bento-tile-lbl"><i data-lucide="clover" style="width: 12px; height: 12px; color: #10b981;"></i> Szczęśliwy numerek</div>
+          <div class="bento-tile-val" style="color: #10b981;" id="metricNumerekVal">25</div>
+        </div>
+        <div class="bento-tile">
+          <div class="bento-tile-lbl"><i data-lucide="user-x" style="width: 12px; height: 12px; color: #fb7185;"></i> Nieobecności</div>
+          <div class="bento-tile-val" style="color: #fb7185;" id="metricFreqVal">13 nieob.</div>
+        </div>
+        <div class="bento-tile">
+          <div class="bento-tile-lbl"><i data-lucide="file-check" style="width: 12px; height: 12px; color: #fbbf24;"></i> Sprawdziany / kartk.</div>
+          <div class="bento-tile-val" style="color: #fbbf24;" id="metricTermVal">3</div>
+        </div>
+        <div class="bento-tile">
+          <div class="bento-tile-lbl"><i data-lucide="star" style="width: 12px; height: 12px; color: #eab308;"></i> Nowe oceny (okr. 1)</div>
+          <div class="bento-tile-val" style="color: #eab308;" id="metricNewGradesVal">0</div>
+        </div>
+        <div class="bento-tile">
+          <div class="bento-tile-lbl"><i data-lucide="message-square" style="width: 12px; height: 12px; color: #94a3b8;"></i> Uwagi / pochwały</div>
+          <div class="bento-tile-val" id="metricUwagiVal">0</div>
+        </div>
+        <div class="bento-tile">
+          <div class="bento-tile-lbl"><i data-lucide="users" style="width: 12px; height: 12px; color: #94a3b8;"></i> Zebrania</div>
+          <div class="bento-tile-val" id="metricZebraniaVal">0</div>
+        </div>
       </div>
     </div>
 
-    <div class="timetable-wrap" id="timetableContainer">
+    <!-- 2. WYNIKI PER PRZEDMIOT + NAJBLIŻSZE WYDARZENIA -->
+    <div class="v-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div class="v-card-header">
+          <span class="v-card-title">
+            <i data-lucide="book-open" style="width: 16px; height: 16px; color: var(--v-cyan);"></i>
+            Wyniki per przedmiot (frekwencja)
+          </span>
+        </div>
+        <div class="subject-results-grid" id="subjectResultsList">
+          <i style="color: #64748b; font-size: 11px;">Ładowanie przedmiotów...</i>
+        </div>
+      </div>
+
+      <!-- Najbliższe wydarzenia w pigułce -->
+      <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--v-border);">
+        <div style="font-size: 11px; font-weight: 700; color: #fbbf24; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="calendar-check" style="width: 13px; height: 13px;"></i> Najbliższe wydarzenia:
+        </div>
+        <div id="colTerminarzList" style="display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto;">
+          <i style="color: #64748b; font-size: 11px;">Ładowanie wydarzeń...</i>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. WIADOMOŚCI - SKRZYNKA ODEBRANA -->
+    <div class="v-card">
+      <div class="v-card-header">
+        <span class="v-card-title">
+          <i data-lucide="inbox" style="width: 16px; height: 16px; color: #26c6da;"></i>
+          Wiadomości – pełna skrzynka
+        </span>
+        <span style="font-size: 11px; font-weight: 800; color: #94a3b8;" id="msgCountHeader">0 / 53</span>
+      </div>
+      <div class="messages-scroll-wrap" id="messagesList">
+        <i style="color: #64748b; font-size: 11px;">Ładowanie wiadomości...</i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GŁÓWNY, PEŁNOEKRANOWY PLAN LEKCJI Z SUWAKIEM I DRUKIEM A4 POZIOM -->
+  <div class="timetable-full-card">
+    
+    <!-- Nagłówek dla wydruku A4 -->
+    <div class="print-header-institution">
+      Szkoła Podstawowa nr 13 w Gliwicach · Klasa 5B · Plan lekcji: Stanisław Mikos
+    </div>
+
+    <div class="timetable-top-bar">
+      <!-- Tytuł modułu -->
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i data-lucide="calendar" style="width: 22px; height: 22px; color: var(--v-cyan);"></i>
+        <div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #fff; margin: 0;">Plan lekcji – tydzień bieżący</h3>
+          <span style="font-size: 11px; color: #94a3b8;">Siatka godzinowa ze wskaźnikiem czasu na żywo i zastępstwami</span>
+        </div>
+      </div>
+
+      <!-- Nawigacja Tygodnia (Stanisław Mikos) -->
+      <div class="student-week-nav">
+        <button class="nav-arrow-btn" onclick="toggleWeek(-1)" title="Poprzedni tydzień">&lt;</button>
+        <div>
+          <h2>Stanisław Mikos</h2>
+          <small id="timetableWeekModeText">OBECNY TYDZIEŃ</small>
+        </div>
+        <button class="nav-arrow-btn" onclick="toggleWeek(1)" title="Następny tydzień">&gt;</button>
+      </div>
+
+      <!-- Akcja Wydruku A4 Poziom -->
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button class="print-btn-action" onclick="printScheduleA4Landscape()">
+          <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
+          Drukuj plan (A4 Poziomo)
+        </button>
+      </div>
+    </div>
+
+    <!-- Siatka lekcyjna -->
+    <div class="timetable-scroll-box" id="timetableScrollBox">
       <table class="timetable-table" id="timetableTable">
         <thead>
           <tr id="timetableHead">
-            <th>GODZINA</th>
-            <th>PON</th>
-            <th>WT</th>
-            <th>ŚR</th>
-            <th>CZW</th>
-            <th>PT</th>
+            <th class="col-hour-head">GODZINA</th>
+            <th id="th-col-0">PON</th>
+            <th id="th-col-1">WT</th>
+            <th id="th-col-2">ŚR</th>
+            <th id="th-col-3">CZW</th>
+            <th id="th-col-4">PT</th>
           </tr>
         </thead>
         <tbody id="timetableBody">
-          <!-- Renderowane dynamicznie -->
+          <!-- Wypełniane przez JavaScript -->
         </tbody>
       </table>
     </div>
 
-    <div id="nextWeekSummary" style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--v-border);">
-      <i data-lucide="arrow-right" style="width: 14px; height: 14px; color: #38bdf8;"></i>
-      <span id="nextWeekText">Pobieranie danych o następnym tygodniu...</span>
+    <!-- Karta zapowiedzi przyszłego tygodnia -->
+    <div class="timetable-footer-next" onclick="toggleWeek(1)">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px;">➡️</span>
+        <span id="nextWeekSummaryText">Tydzień następny: 27 lekcji zaplanowanych (od 2026-09-21 do 2026-09-25)</span>
+      </div>
+      <span style="color: var(--v-cyan); font-size: 12px; font-weight: 700;">Przełącz na następny tydzień &gt;</span>
     </div>
+
   </div>
 
 </div>
 
-<script>
-let globalVulcan = null;
+<!-- Modal dla wiadomości -->
+<div id="vMsgModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center;" onclick="closeModal(event)">
+  <div style="background:#161a20; border:1px solid rgba(255,255,255,0.15); border-radius:14px; width:90%; max-width:540px; padding:24px;" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px;">
+      <div>
+        <h4 id="vModalSender" style="font-size:14px; font-weight:700; color:var(--v-cyan); margin:0 0 2px 0;">Nadawca</h4>
+        <div id="vModalDate" style="font-size:11px; color:#64748b;">Data</div>
+      </div>
+      <button onclick="document.getElementById('vMsgModal').style.display='none'" style="background:transparent; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
+    </div>
+    <h3 id="vModalTopic" style="font-size:15px; font-weight:700; color:#fff; margin:0 0 12px 0;">Temat</h3>
+    <div id="vModalBody" style="font-size:13px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap;">Treść</div>
+  </div>
+</div>
 
-async function initVulcanDashboard() {
+<script>
+let vulcanData = null;
+let currentWeek = 'curr'; // 'curr' or 'next'
+
+// Standardowe godziny dzwonków w SP13
+const SLOTS = [
+  '08:00-08:45',
+  '08:50-09:35',
+  '09:45-10:30',
+  '10:40-11:25',
+  '11:45-12:30',
+  '12:40-13:25',
+  '13:45-14:30',
+  '14:35-15:20'
+];
+
+async function loadVulcanData() {
   try {
     const res = await fetch('/api/vulcan/data');
-    if (!res.ok) throw new Error('Status ' + res.status);
-    globalVulcan = await res.json();
-    renderAll();
+    if (!res.ok) throw new Error('API status: ' + res.status);
+    vulcanData = await res.json();
+    renderDashboard();
   } catch (err) {
-    console.error('Błąd pobierania danych VULCAN:', err);
+    console.error('Vulcan load error:', err);
   }
 }
 
-function renderAll() {
-  if (!globalVulcan) return;
+function renderDashboard() {
+  if (!vulcanData) return;
 
-  // 1. TOP PILLS & METRICS
-  const statVal = (globalVulcan.stats_val !== undefined && globalVulcan.stats_val !== null) ? globalVulcan.stats_val : '69.84';
-  const freqVal = (globalVulcan.freq_val !== undefined) ? globalVulcan.freq_val : (globalVulcan.frekwencja_godz || '13');
-  const msgUnread = globalVulcan.msg_unread !== undefined ? globalVulcan.msg_unread : (globalVulcan.wiadomosci_nieprzeczytane || 0);
-  const msgTotal = (globalVulcan.messages) ? globalVulcan.messages.length : (globalVulcan.wiadomosci ? globalVulcan.wiadomosci.length : 10);
-  const msgStats = globalVulcan.msg_stats || `${msgUnread} / 53`;
-  const termCount = (globalVulcan.terminarz) ? globalVulcan.terminarz.length : 3;
-  const numerek = globalVulcan.numerek || '25';
-  const newGrades = globalVulcan.nowe_oceny || '1';
+  // 1. KPI Badges & Bento
+  const statVal = (vulcanData.stats_val !== undefined && vulcanData.stats_val !== null) ? vulcanData.stats_val : '69.84';
+  const statStr = (typeof statVal === 'number' ? statVal.toFixed(2) : String(statVal)).replace('.', ',') + '%';
+  const freqStr = (vulcanData.freq_val || '13') + ' nieob.';
+  const msgUnread = vulcanData.msg_unread !== undefined ? vulcanData.msg_unread : 0;
+  const msgStats = vulcanData.msg_stats || `${msgUnread} / 53`;
+  const termCount = vulcanData.terminarz ? vulcanData.terminarz.length : 3;
 
-  const statFormatted = (typeof statVal === 'number' ? statVal.toFixed(2) : String(statVal)).replace('.', ',') + '%';
-  document.getElementById('pillStats').innerText = statFormatted;
-  document.getElementById('pillFreq').innerText = freqVal + ' nieob.';
+  document.getElementById('pillStats').innerText = statStr;
+  document.getElementById('pillFreq').innerText = freqStr;
   document.getElementById('pillMsg').innerText = msgUnread;
   document.getElementById('pillTerm').innerText = termCount;
 
-  document.getElementById('metricGpaVal').innerText = statFormatted;
-  const pctNum = parseFloat(statVal) || 69.84;
-  document.getElementById('metricGpaBar').style.width = Math.min(100, Math.max(0, pctNum)) + '%';
-  document.getElementById('metricFreqVal').innerText = freqVal + ' nieob.';
-  document.getElementById('metricNumerekVal').innerText = numerek;
+  document.getElementById('metricGpaVal').innerText = statStr;
+  const pct = parseFloat(statVal) || 69.84;
+  document.getElementById('metricGpaBar').style.width = Math.min(100, Math.max(0, pct)) + '%';
+  document.getElementById('metricNumerekVal').innerText = vulcanData.numerek || '25';
+  document.getElementById('metricFreqVal').innerText = freqStr;
   document.getElementById('metricTermVal').innerText = termCount;
-  document.getElementById('metricMsgVal').innerText = msgUnread;
-  document.getElementById('metricNewGradesVal').innerText = newGrades;
-  document.getElementById('metricUwagiVal').innerText = globalVulcan.uwagi || globalVulcan.uwagi_count || 0;
-  document.getElementById('metricOsiagnieciaVal').innerText = globalVulcan.osiagniecia || globalVulcan.osiagniecia_count || 0;
-  document.getElementById('metricZebraniaVal').innerText = globalVulcan.zebrania || globalVulcan.zebrania_count || 0;
+  document.getElementById('metricNewGradesVal').innerText = vulcanData.nowe_oceny || '0';
+  document.getElementById('metricUwagiVal').innerText = vulcanData.uwagi || '0';
+  document.getElementById('metricZebraniaVal').innerText = vulcanData.zebrania || '0';
 
-  // 2. COL 1: WYNIKI PER PRZEDMIOT
-  const subjListEl = document.getElementById('subjectResultsList');
-  const subjStats = globalVulcan.subject_stats || globalVulcan.przedmioty_stats || [];
-  if (subjStats.length > 0) {
-    subjListEl.innerHTML = subjStats.map(s => {
-      const p = s.procent;
+  // 2. Wyniki per przedmiot
+  const subjEl = document.getElementById('subjectResultsList');
+  const sList = vulcanData.subject_stats || [];
+  if (sList.length > 0) {
+    subjEl.innerHTML = sList.map(s => {
+      const p = s.procent || 0;
       let col = '#10b981';
       if (p < 60) col = '#f43f5e';
       else if (p < 75) col = '#fbbf24';
-      else if (p < 90) col = '#38bdf8';
-
+      else if (p < 90) col = '#26c6da';
       const pctStr = (s.procent_str || (p.toFixed(1) + '%')).replace('.', ',');
 
       return `<div class="subject-result-row">
-        <div class="subj-left">
-          <i data-lucide="eye" style="width: 14px; height: 14px; color: #38bdf8; cursor: pointer;"></i>
-          <span>${s.przedmiot}</span>
-        </div>
-        <div class="subj-percent" style="color: ${col};">${pctStr}</div>
+        <span style="color:#e2e8f0; font-weight:600;">${s.przedmiot}</span>
+        <span style="color:${col}; font-family:monospace; font-weight:700;">${pctStr}</span>
       </div>`;
     }).join('');
   } else {
-    subjListEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">Brak danych o wynikach.</div>';
+    subjEl.innerHTML = '<div style="color:#64748b; font-size:11px;">Brak danych frekwencji.</div>';
   }
 
-  // 3. COL 1: NAJBLIŻSZE WYDARZENIA
-  const termListEl = document.getElementById('colTerminarzList');
-  if (globalVulcan.terminarz && globalVulcan.terminarz.length > 0) {
-    termListEl.innerHTML = globalVulcan.terminarz.map(t => {
-      return `<div class="event-item">
-        <div class="event-meta">
-          <span style="color: #fb7185; font-weight: 700;">${t.data}</span>
-          <span style="font-weight: 600; color: #e2e8f0;">${t.przedmiot}</span>
-        </div>
-        <div class="event-title"><i>${t.typ || 'Kartkówka'}</i> — <span style="font-weight: 400; color: #cbd5e1;">${t.opis || ''}</span></div>
-      </div>`;
-    }).join('');
+  // 3. Terminarz
+  const termEl = document.getElementById('colTerminarzList');
+  const tList = vulcanData.terminarz || [];
+  if (tList.length > 0) {
+    termEl.innerHTML = tList.map(t => `
+      <div style="font-size:11px; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:4px 8px; border-radius:4px; border-left:2px solid #fb7185;">
+        <span><b style="color:#fb7185;">${t.data}</b> · <b>${t.przedmiot}</b></span>
+        <span style="color:#94a3b8; font-style:italic;">${t.typ || 'Kartkówka'}</span>
+      </div>
+    `).join('');
   } else {
-    termListEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">Brak nadchodzących sprawdzianów.</div>';
+    termEl.innerHTML = '<div style="color:#64748b; font-size:11px;">Brak zaplanowanych kartkówek.</div>';
   }
 
-  // 4. COL 3: WIADOMOŚCI
+  // 4. Wiadomości
   document.getElementById('msgCountHeader').innerText = msgStats;
-  const msgListEl = document.getElementById('messagesList');
-  const msgs = globalVulcan.messages || globalVulcan.wiadomosci || [];
+  const msgEl = document.getElementById('messagesList');
+  const msgs = vulcanData.messages || [];
   if (msgs.length > 0) {
-    msgListEl.innerHTML = msgs.map(m => {
-      return `<div class="msg-item">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div class="msg-author" title="${m.nadawca}">${m.nadawca}</div>
-          <i data-lucide="chevron-right" style="width: 13px; height: 13px; color: #64748b;"></i>
+    msgEl.innerHTML = msgs.map((m, idx) => `
+      <div class="msg-item" onclick="openMsgModal(${idx})">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+          <div class="msg-author">${m.nadawca}</div>
+          <span style="font-size:9px; color:#26c6da; font-family:monospace;">${(m.data||'').split(' ')[0]}</span>
         </div>
-        <div class="msg-topic" title="${m.temat}">${m.temat}</div>
-        <div class="msg-date-badge">${(m.data || '').split(' ')[0]}</div>
-      </div>`;
-    }).join('');
+        <div class="msg-topic">${m.temat}</div>
+      </div>
+    `).join('');
   } else {
-    msgListEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted); padding: 8px;">Skrzynka jest pusta.</div>';
+    msgEl.innerHTML = '<div style="color:#64748b; font-size:11px;">Skrzynka jest pusta.</div>';
   }
 
-  // 5. COL 4: PLAN LEKCJI TYGODNIOWY
-  renderTimetable(globalVulcan.plan_curr || globalVulcan.plan || []);
+  // 5. Pełny plan lekcji z suwakiem czasu
+  renderFullTimetable();
 
-  // PODSUMOWANIE NASTĘPNEGO TYGODNIA
-  const nextLessonsCount = (globalVulcan.plan_next) ? globalVulcan.plan_next.length : 27;
-  if (nextLessonsCount > 0) {
-    const dates = [...new Set(globalVulcan.plan_next.map(l => l.d).filter(Boolean))].sort();
-    const range = (dates.length >= 2) ? ` (od ${dates[0]} do ${dates[dates.length-1]})` : '';
-    document.getElementById('nextWeekText').innerText = `Tydzień następny: ${nextLessonsCount} lekcji zaplanowanych${range}`;
-  } else {
-    document.getElementById('nextWeekText').innerText = `Tydzień następny: brak lekcji.`;
-  }
+  // 6. Stopka następnego tygodnia
+  const nextCount = vulcanData.plan_next ? vulcanData.plan_next.length : 27;
+  const dates = vulcanData.plan_next ? [...new Set(vulcanData.plan_next.map(l => l.d).filter(Boolean))].sort() : [];
+  const range = dates.length >= 2 ? ` (od ${dates[0]} do ${dates[dates.length-1]})` : '';
+  document.getElementById('nextWeekSummaryText').innerText = `Tydzień następny: ${nextCount} lekcji zaplanowanych${range}`;
 
   if (window.lucide) lucide.createIcons();
 }
 
-function loadWeekPlan(type) {
-  if (!globalVulcan) return;
-  const lessons = (type === 'next') ? (globalVulcan.plan_next || []) : (globalVulcan.plan_curr || globalVulcan.plan || []);
-  renderTimetable(lessons);
-  if (window.lucide) lucide.createIcons();
-}
+function renderFullTimetable() {
+  const tbody = document.getElementById('timetableBody');
+  const plan = (currentWeek === 'curr' ? vulcanData.plan_curr : vulcanData.plan_next) || vulcanData.plan || [];
+  document.getElementById('timetableWeekModeText').innerText = (currentWeek === 'curr' ? 'OBECNY TYDZIEŃ' : 'NASTĘPNY TYDZIEŃ');
 
-function renderTimetable(lessons) {
-  const tableBody = document.getElementById('timetableBody');
-  const tableHead = document.getElementById('timetableHead');
-  if (!lessons || lessons.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Brak lekcji w wybranym tygodniu.</td></tr>';
-    return;
-  }
-
-  // Zbierz unikalne daty i posortuj
-  const dates = [...new Set(lessons.map(l => l.d).filter(Boolean))].sort();
-  const dayNames = ['ND', 'PON', 'WT', 'ŚR', 'CZW', 'PT', 'SOB'];
-
-  // Nagłówki
-  let thHtml = '<th>GODZINA</th>';
-  dates.forEach(d => {
-    const dt = new Date(d);
-    const dn = isNaN(dt.getDay()) ? d : dayNames[dt.getDay()];
-    thHtml += `<th>${dn} (${d})</th>`;
-  });
-  tableHead.innerHTML = thHtml;
-
-  // Zbierz unikalne godziny lekcyjne i posortuj
-  const hours = [...new Set(lessons.map(l => l.g).filter(Boolean))].sort((a,b) => {
-    const aStart = a.split('-')[0];
-    const bStart = b.split('-')[0];
-    return aStart.localeCompare(bStart);
-  });
-
-  let rowsHtml = '';
-  hours.forEach(h => {
-    rowsHtml += `<tr><td class="col-hour">${h}</td>`;
-    dates.forEach(d => {
-      const matching = lessons.filter(l => l.d === d && l.g === h);
-      if (matching.length === 0) {
-        rowsHtml += '<td></td>';
+  // Daty dla kolumn (Pon-Pt)
+  const dates = [...new Set(plan.map(l => l.d).filter(Boolean))].sort();
+  const dayNames = ['PON', 'WT', 'ŚR', 'CZW', 'PT'];
+  
+  for (let i = 0; i < 5; i++) {
+    const th = document.getElementById('th-col-' + i);
+    if (th) {
+      if (dates[i]) {
+        th.innerHTML = `${dayNames[i]}<br><span style="font-size:10px; color:#94a3b8; font-weight:normal;">${dates[i]}</span>`;
       } else {
-        rowsHtml += '<td>';
-        matching.forEach(item => {
-          const isCancelled = item.st === 'ODWOL' || (item.p && item.p.toLowerCase().includes('odwołan'));
-          const isSubst = item.st === 'ZAST' || (item.p && item.p.toLowerCase().includes('zastępstw'));
-          
-          let cls = 'lesson-slot';
-          if (isCancelled) cls += ' is-cancelled';
-          else if (isSubst) cls += ' is-subst';
-
-          let tagHtml = '';
-          if (isCancelled) tagHtml = '<span class="status-tag status-tag-cancelled">ODWOŁANE</span>';
-          else if (isSubst) tagHtml = '<span class="status-tag status-tag-subst">ZASTĘPSTWO</span>';
-
-          rowsHtml += `<div class="${cls}">
-            ${tagHtml}
-            <div style="font-weight:600; color:#fff;">${item.p}</div>
-            <div style="font-size:10px; color:#94a3b8;">${item.s || ''} ${item.n ? '• ' + item.n : ''}</div>
-          </div>`;
-        });
-        rowsHtml += '</td>';
+        th.innerText = dayNames[i];
       }
+    }
+  }
+
+  // Czas rzeczywisty do suwaka
+  const now = new Date();
+  const currentTotalMin = now.getHours() * 60 + now.getMinutes();
+  const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  
+  // Poniedziałek = 0, Piątek = 4
+  const dayOfWeek = now.getDay();
+  const todayColIdx = (dayOfWeek >= 1 && dayOfWeek <= 5) ? (dayOfWeek - 1) : -1;
+
+  let html = '';
+  SLOTS.forEach(slot => {
+    const [startS, endS] = slot.split('-');
+    const [sH, sM] = startS.split(':').map(Number);
+    const [eH, eM] = endS.split(':').map(Number);
+    const startMin = sH * 60 + sM;
+    const endMin = eH * 60 + eM;
+    
+    const isCurrentHour = (currentTotalMin >= startMin && currentTotalMin <= endMin && currentWeek === 'curr');
+    const rowClass = isCurrentHour ? 'row-active-hour' : '';
+
+    html += `<tr class="${rowClass}">`;
+    html += `<td class="col-hour-cell">${slot}</td>`;
+
+    dates.slice(0, 5).forEach((d, colIdx) => {
+      const isToday = (colIdx === todayColIdx && currentWeek === 'curr');
+      const lesson = plan.find(l => l.d === d && l.g === slot);
+
+      html += `<td style="position: relative;">`;
+
+      // LIVE TIME SLIDER (JEŚLI TRWA TA LEKCJA I TO DZIŚ)
+      if (isCurrentHour && isToday) {
+        const pct = Math.min(Math.max((currentTotalMin - startMin) / (endMin - startMin), 0.05), 0.95) * 100;
+        html += `
+          <div class="live-time-slider" style="top: ${pct}%;">
+            <div class="live-time-slider-badge">${timeStr}</div>
+          </div>
+        `;
+      }
+
+      if (lesson) {
+        const st = (lesson.st || '').toUpperCase();
+        const isCancelled = st.includes('ODWOL') || st.includes('ODWOŁ') || (lesson.p && lesson.p.toLowerCase().includes('odwołan'));
+        const isSubst = st.includes('ZAST') || (lesson.p && lesson.p.toLowerCase().includes('zastępstw'));
+
+        let badge = '';
+        if (isCancelled) badge = '<span class="badge-odwolane">ODWOŁANE</span>';
+        else if (isSubst) badge = '<span class="badge-zastepstwo">ZASTĘPSTWO</span>';
+
+        let groupTag = '';
+        let cleanSubject = lesson.p;
+        if (lesson.p.includes('[o]')) { groupTag = '<span class="tag-group-o">[o]</span>'; cleanSubject = cleanSubject.replace('[o]', '').trim(); }
+        else if (lesson.p.includes('[n]')) { groupTag = '<span class="tag-group-n">[n]</span>'; cleanSubject = cleanSubject.replace('[n]', '').trim(); }
+        else if (lesson.p.includes('[k]')) { groupTag = '<span class="tag-group-k">[k]</span>'; cleanSubject = cleanSubject.replace('[k]', '').trim(); }
+        else if (lesson.p.includes('[kj]')) { groupTag = '<span class="tag-group-k">[kj]</span>'; cleanSubject = cleanSubject.replace('[kj]', '').trim(); }
+
+        html += `
+          <div class="cell-lesson-content">
+            <div class="cell-lesson-title">
+              <span>${cleanSubject}</span> ${groupTag}
+            </div>
+            <div class="cell-lesson-meta">
+              <span>${lesson.s || ''}</span>
+              ${lesson.n ? '• <span>' + lesson.n + '</span>' : ''}
+            </div>
+            ${badge}
+          </div>
+        `;
+      }
+
+      html += `</td>`;
     });
-    rowsHtml += '</tr>';
+
+    html += `</tr>`;
   });
 
-  tableBody.innerHTML = rowsHtml;
+  tbody.innerHTML = html;
 }
 
-document.addEventListener('DOMContentLoaded', initVulcanDashboard);
+function toggleWeek(dir) {
+  currentWeek = (dir === 1) ? 'next' : 'curr';
+  renderFullTimetable();
+}
+
+function printScheduleA4Landscape() {
+  window.print();
+}
+
+function openMsgModal(idx) {
+  if (!vulcanData || !vulcanData.messages || !vulcanData.messages[idx]) return;
+  const m = vulcanData.messages[idx];
+  document.getElementById('vModalSender').innerText = m.nadawca;
+  document.getElementById('vModalDate').innerText = m.data;
+  document.getElementById('vModalTopic').innerText = m.temat;
+  document.getElementById('vModalBody').innerText = m.tresc || 'Brak treści wiadomości.';
+  document.getElementById('vMsgModal').style.display = 'flex';
+}
+
+function closeModal(e) {
+  document.getElementById('vMsgModal').style.display = 'none';
+}
+
+setInterval(() => {
+  if (vulcanData && currentWeek === 'curr') {
+    renderFullTimetable();
+  }
+}, 60000);
+
+document.addEventListener('DOMContentLoaded', loadVulcanData);
 </script>
 {% endblock %}
