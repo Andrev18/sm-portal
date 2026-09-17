@@ -2433,6 +2433,11 @@ def courses_play(request: Request, book_id: int):
                 content['shuffled_left'] = lefts
                 content['shuffled_right'] = rights
             td['parsed_content'] = content
+            # Ekstrakcja numeru strony z "number" lub "title" (np. "str. 4" -> 4)
+            import re as _re
+            m = _re.search(r'str\.\s*(\d+)', (content.get('number', '') + ' ' + content.get('title', '')).lower())
+            td['page_ref'] = int(m.group(1)) if m else None
+
             tasks.append(td)
         except Exception as e:
             pass
@@ -2441,7 +2446,23 @@ def courses_play(request: Request, book_id: int):
     chap = conn.execute("SELECT raw_ocr_text FROM book_chapters WHERE book_id=? AND status='completed' LIMIT 1", (book_id,)).fetchone()
     raw_ocr_text = chap['raw_ocr_text'] if chap and chap['raw_ocr_text'] else "Tekst OCR dla tego podręcznika jest obecnie przetwarzany w kolejce N8N."
 
-    # 4. Pobieramy nagrania audio (audio_podcasts) dla tego podręcznika / zeszytu
+    # 4. Sprawdzamy początkową stronę w PDF (np. ze strony pierwszego zadania)
+    initial_page = 1
+    for t in tasks:
+        if t.get('page_ref'):
+            initial_page = t['page_ref']
+            break
+
+    # 5. Sprawdzamy czy istnieje powiązany podręcznik lub zeszyt ćwiczeń
+    counterpart = None
+    if book['kind'] == 'cwiczenia':
+        cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='podreczniki' LIMIT 1", (b_subj,)).fetchone()
+        if cp: counterpart = dict(cp)
+    elif book['kind'] == 'podreczniki':
+        cp = conn.execute("SELECT id, title FROM books WHERE subject=? AND kind='cwiczenia' LIMIT 1", (b_subj,)).fetchone()
+        if cp: counterpart = dict(cp)
+
+    # 6. Pobieramy nagrania audio (audio_podcasts) dla tego podręcznika / zeszytu
     audio_tracks = [dict(r) for r in conn.execute("""
         SELECT ap.* FROM audio_podcasts ap 
         JOIN book_chapters bc ON ap.chapter_id = bc.id 
@@ -2464,6 +2485,8 @@ def courses_play(request: Request, book_id: int):
         "target_deck_id": target_deck_id,
         "cards": cards,
         "tasks": tasks,
+        "initial_page": initial_page,
+        "counterpart": counterpart,
         "raw_ocr_text": raw_ocr_text,
         "audio_tracks": audio_tracks
     })

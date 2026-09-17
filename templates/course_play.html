@@ -294,7 +294,7 @@
     background: #09090b;
     overflow: auto;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 20px;
     position: relative;
@@ -720,7 +720,7 @@
                     </button>
                     <div class="pdf-page-box">
                         <span>Str.</span>
-                        <input type="number" id="pdfPageInput" value="{{ initial_page }}" min="1" max="1" onchange="jumpPdfPage(this.value)">
+                        <input type="number" id="pdfPageInput" value="{{ initial_page|default(1) }}" min="1" max="1" onchange="jumpPdfPage(this.value)">
                         <span>/ <span id="pdfTotalPagesSpan">-</span></span>
                     </div>
                     <button class="pdf-nav-btn" onclick="stepPdfPage(1)" title="Następna strona (Prawo)">
@@ -754,7 +754,7 @@
                 {% for t in tasks %}
                     {% if t.page_ref and t.page_ref not in pages_seen %}
                         {% set _ = pages_seen.append(t.page_ref) %}
-                        <div class="page-chip {% if t.page_ref == initial_page %}active{% endif %}" onclick="jumpPdfPage({{ t.page_ref }})">
+                        <div class="page-chip {% if t.page_ref == (initial_page|default(1)) %}active{% endif %}" onclick="jumpPdfPage({{ t.page_ref }})">
                             Str. {{ t.page_ref }}
                         </div>
                     {% endif %}
@@ -993,7 +993,7 @@
     const PDF_URL = "/books/{{ book['filename']|urlencode }}?inline=1&v={{ v }}";
     
     let pdfDoc = null;
-    let currentPdfPage = {{ initial_page }};
+    let currentPdfPage = {{ initial_page|default(1) }};
     let totalPdfPages = 1;
     let pdfZoom = 'fit';
     let pdfRotation = 0;
