@@ -624,7 +624,7 @@
 @media print {
     @page {
         size: A4 portrait;
-        margin: 15mm 15mm 20mm 15mm;
+        margin: 12mm 15mm 15mm 15mm;
     }
     body {
         background: #fff !important;
@@ -636,7 +636,8 @@
     .slide-history-bar, .task-page-filter-bar, .similar-subbar,
     .similar-dots-control, .btn-submit-task, .btn-hint, .btn-tool-secondary,
     .batch-tasks-bar, .scratchpad-drawer, #noTasksOnPageNotice, .tc-actions-bar,
-    .tc-select-label, .gate-warning-banner, .tc-num-badge button {
+    .tc-select-btn, .gate-warning-banner, .tc-num-badge button, .task-action-box,
+    .task-slot-spacer, .card-close-btn, .print-panel-btn, .tc-page-jump {
         display: none !important;
     }
     .hybrid-page-wrapper {
@@ -645,48 +646,112 @@
     .hybrid-grid {
         display: block !important;
     }
-    .col-tasks, .col-similar {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important;
+    
+    /* Domyślnie lub w trybie 'print-base': ukryj panel wariantów */
+    body.print-mode-base .col-similar {
+        display: none !important;
+    }
+    body.print-mode-base .col-tasks {
         display: block !important;
         width: 100% !important;
         max-width: none !important;
     }
+
+    /* W trybie 'print-similar': ukryj panel bazowy, drukuj warianty */
+    body.print-mode-similar .col-tasks {
+        display: none !important;
+    }
+    body.print-mode-similar .col-similar {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .col-tasks, .col-similar {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
     .tasks-scroll-pane {
         padding: 0 !important;
         display: block !important;
+        overflow: visible !important;
     }
     .task-card {
         background: #fff !important;
         border: 1px solid #cbd5e1 !important;
         color: #000 !important;
         box-shadow: none !important;
-        margin-bottom: 20px !important;
+        margin-bottom: 24px !important;
         page-break-inside: avoid;
         padding: 16px !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
+        min-height: 0 !important;
+        height: auto !important;
     }
-    .tc-title { color: #0f172a !important; font-size: 15px !important; }
-    .tc-inst { color: #475569 !important; font-size: 12px !important; }
+    .tc-title { color: #0f172a !important; font-size: 15px !important; margin-bottom: 4px !important; }
+    .tc-inst { color: #475569 !important; font-size: 12px !important; margin-bottom: 12px !important; }
     .calc-item {
         background: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
+        page-break-inside: avoid;
     }
-    .calc-label { color: #1e293b !important; }
+    .calc-label { color: #1e293b !important; font-size: 13px !important; font-weight: 600 !important; }
     .calc-inp {
         background: #fff !important;
         border: 1px solid #94a3b8 !important;
         color: #000 !important;
+        min-height: 28px !important;
     }
     .print-sheet-header {
         display: block !important;
-        margin-bottom: 24px;
-        padding-bottom: 14px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
         border-bottom: 2px solid #0f172a;
     }
 }
 .print-sheet-header { display: none; }
+
+/* Przycisk druku w belce panelu oraz przycisk zamykania karty */
+.print-panel-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+.print-panel-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.card-close-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.card-close-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #fff;
+}
 
 /* Zwijanie prawego panelu */
 .hybrid-grid.mode-similar-split.right-collapsed {
@@ -1589,9 +1654,12 @@
                         <i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i>
                         Warsztat Zadań (Ćwiczenia na PC)
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 12px; color: var(--text-muted);">
-                            {{ tasks|length }} zadań gotowych do rozwiązywania
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="print-panel-btn" onclick="printSpecificPanel('base')" title="Drukuj tylko zadania bazowe A4">
+                            <i data-lucide="printer" style="width: 13px;"></i> <span>Drukuj A4</span>
+                        </button>
+                        <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
+                            {{ tasks|length }} zadań
                         </span>
                         <button type="button" class="btn-ghost-panel" id="btnCollapseTasks" onclick="toggleLeftPanel()" title="Zwiń ten panel i pokaż wariant na pełnym ekranie" style="display: none;">
                             <i data-lucide="panel-left-close" style="width: 15px;"></i>
@@ -1926,6 +1994,9 @@
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="print-panel-btn" onclick="printSpecificPanel('similar')" title="Drukuj tylko ten zestaw wariantów treningowych A4">
+                        <i data-lucide="printer" style="width: 13px;"></i> <span>Drukuj A4</span>
+                    </button>
                     <div class="variant-btn-group" id="similarHeaderBtnGroup" style="display: none;">
                         <button type="button" class="var-chip var-chip-green" onclick="generateAnotherSimilar('easier')" title="Łatwiejszy">
                             <span class="var-chip-indicator"></span> <span>Łatw.</span>
@@ -2418,9 +2489,22 @@
         }
     }
 
-    // WYDRUK / EKSPORT DO PDF FORMAT A4
-    function printWorksheet() {
+    // WYDRUK / EKSPORT DO PDF FORMAT A4 DLA POSZCZEGÓLNYCH PANELI
+    function printSpecificPanel(panel) {
+        document.body.classList.remove('print-mode-base', 'print-mode-similar');
+        if (panel === 'base') {
+            document.body.classList.add('print-mode-base');
+        } else if (panel === 'similar') {
+            document.body.classList.add('print-mode-similar');
+        }
         window.print();
+        setTimeout(() => {
+            document.body.classList.remove('print-mode-base', 'print-mode-similar');
+        }, 1000);
+    }
+
+    function printWorksheet() {
+        printSpecificPanel('base');
     }
 
     // MULTI-SELECT ZADAŃ I GENEROWANIE ZESTAWU (BATCH)
@@ -2695,28 +2779,47 @@
 
         visibleLeftCards.forEach(leftCard => {
             const origId = parseInt(leftCard.id.replace('task-card-', ''));
-            const origHeight = leftCard.offsetHeight;
 
             if (currentSimilarTasksStore[origId]) {
                 const simTask = currentSimilarTasksStore[origId];
                 renderSimilarTaskHTML(simTask, 'similarTaskContent', false);
-                const simCard = document.getElementById('similar-card-' + simTask.id);
-                if (simCard && origHeight > 0) {
-                    simCard.style.minHeight = origHeight + 'px';
-                    simCard.style.boxSizing = 'border-box';
-                }
             } else {
                 // Niewidoczny dystans dopasowujący wysokość do lewego zadania,
-                // dzięki czemu kolejne zadania (np. Zadanie 2) wypadają DOKŁADNIE vis-à-vis!
+                // dzięki czemu kolejne zadania (np. Zadanie 5) wypadają DOKŁADNIE vis-à-vis!
                 const spacer = document.createElement('div');
                 spacer.className = 'task-slot-spacer';
                 spacer.id = 'slot-spacer-' + origId;
-                spacer.style.minHeight = (origHeight > 0 ? origHeight : 200) + 'px';
-                spacer.style.marginBottom = '20px';
                 spacer.style.boxSizing = 'border-box';
                 spacer.style.visibility = 'hidden';
+                spacer.style.pointerEvents = 'none';
                 rightContainer.appendChild(spacer);
             }
+        });
+
+        // Wyrównaj i zsynchronizuj wysokości w parach (Zadanie Lewe <-> Wariant Prawe)
+        requestAnimationFrame(() => {
+            visibleLeftCards.forEach(leftCard => {
+                const origId = parseInt(leftCard.id.replace('task-card-', ''));
+                const simTask = currentSimilarTasksStore[origId];
+                if (simTask) {
+                    const simCard = document.getElementById('similar-card-' + simTask.id);
+                    if (simCard) {
+                        // Resetujemy przed pomiarem
+                        leftCard.style.height = 'auto';
+                        simCard.style.height = 'auto';
+                        const maxH = Math.max(leftCard.offsetHeight, simCard.offsetHeight);
+                        leftCard.style.height = maxH + 'px';
+                        simCard.style.height = maxH + 'px';
+                        leftCard.style.boxSizing = 'border-box';
+                        simCard.style.boxSizing = 'border-box';
+                    }
+                } else {
+                    const spacer = document.getElementById('slot-spacer-' + origId);
+                    if (spacer) {
+                        spacer.style.height = leftCard.offsetHeight + 'px';
+                    }
+                }
+            });
         });
 
         // Wyrównaj przewijanie do pierwszego wygenerowanego zadania
@@ -2831,6 +2934,12 @@
         currentSimilarTasksStore = {};
         const rightContainer = document.getElementById('similarTaskContent');
         if (rightContainer) rightContainer.innerHTML = '';
+        
+        // Zdejmij wymuszone wysokości z lewych kart
+        document.querySelectorAll('#tasksListContainer .task-card').forEach(c => {
+            c.style.height = 'auto';
+        });
+
         slideBack();
         const grid = document.getElementById('hybridGrid');
         grid.classList.remove('mode-similar-split', 'left-collapsed', 'right-collapsed');
@@ -2843,6 +2952,17 @@
 
         // Przywróć poprzedni tryb
         setGridMode(currentGridMode);
+    }
+
+    function removeSimilarTask(originalId) {
+        delete currentSimilarTasksStore[originalId];
+        activeSimilarTasks = Object.values(currentSimilarTasksStore);
+        if (activeSimilarTasks.length === 0) {
+            closeSimilarPanel();
+        } else {
+            // Ponownie renderujemy prawy panel z zachowaniem układu vis-a-vis
+            openBatchSimilarPanel(activeSimilarTasks);
+        }
     }
 
     function renderSimilarTaskHTML(task, containerId = 'similarTaskContent') {
@@ -2861,6 +2981,9 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span style="font-size: 11px; color: var(--text-muted);">Poziom: ${task.difficulty_level}/5</span>
+                    <button type="button" class="card-close-btn" onclick="removeSimilarTask(${task.original_id})" title="Zamknij ten wariant">
+                        <i data-lucide="x" style="width: 14px;"></i>
+                    </button>
                 </div>
             </div>
 

@@ -2789,7 +2789,7 @@ def generate_math_variant(content: dict, task_type: str, difficulty: str = "same
     else:
         diff_label = "Podobny poziom"
         
-    res["title"] = f"Trening ({diff_label}): " + content.get("title", "Podobne zadanie")
+    res["title"] = content.get("title", "Podobne zadanie")
 
     # 1. Oś liczbowa (sliders)
     if "sliders" in res and res["sliders"]:
