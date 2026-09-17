@@ -311,66 +311,34 @@
     border-color: var(--border-subtle);
 }
 
-/* Kompaktowe kropki poziomu pod słowem 'Podobne' */
-.similar-dots-control {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border-subtle);
-    padding: 3px 8px;
-    border-radius: 16px;
-    transition: all 0.2s;
-    user-select: none;
+/* Przyciski przywracania paneli (Absolute - nie przesuwają nagłówków) */
+.btn-restore-left, .btn-restore-right {
+    position: absolute !important;
+    top: 10px !important;
+    z-index: 40 !important;
+    background: rgba(18, 18, 22, 0.95) !important;
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    color: var(--accent-cyan) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 5px 12px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    display: none;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4) !important;
 }
-.similar-dots-control:hover {
-    border-color: rgba(56, 189, 248, 0.35);
-    background: rgba(255, 255, 255, 0.07);
-}
-.sdc-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #cbd5e1;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-right: 2px;
-}
-.sdc-dot {
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    outline: none;
-    position: relative;
-    padding: 0;
-}
-.sdc-dot:hover {
-    transform: scale(1.35);
-}
-.sdc-dot.dot-green {
-    background: #10b981;
-    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
-}
-.sdc-dot.dot-yellow {
-    background: #eab308;
-    box-shadow: 0 0 6px rgba(234, 179, 8, 0.6);
-}
-.sdc-dot.dot-red {
-    background: #ef4444;
-    box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
-}
-.sdc-dot.dot-blue {
-    background: #3b82f6;
-    box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
-}
+.btn-restore-left { left: 16px !important; }
+.btn-restore-right { right: 16px !important; }
+.hybrid-grid.mode-similar-split.left-collapsed .btn-restore-left { display: inline-flex !important; }
+.hybrid-grid.mode-similar-split.right-collapsed .btn-restore-right { display: inline-flex !important; }
 
-/* Wyrównanie nagłówków i pod-pasków, aby karty zaczynały się idealnie w tej samej linii */
+/* Precyzyjne, identyczne wysokości elementów w obu kolumnach */
 .tasks-header {
-    height: 56px !important;
-    min-height: 56px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+    max-height: 54px !important;
     box-sizing: border-box !important;
     padding: 0 20px !important;
     display: flex !important;
@@ -378,8 +346,9 @@
     justify-content: space-between !important;
 }
 .task-page-filter-bar, .similar-subbar {
-    height: 42px !important;
-    min-height: 42px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
     box-sizing: border-box !important;
     padding: 0 16px !important;
     display: flex !important;
@@ -387,11 +356,172 @@
     gap: 6px !important;
 }
 .tasks-scroll-pane {
+    flex: 1 1 0% !important;
+    overflow-y: auto !important;
     padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    box-sizing: border-box !important;
 }
 .tasks-scroll-pane > .task-card:first-child {
     margin-top: 0 !important;
 }
+
+/* SPÓJNY, DWULINIOWY PASEK AKCJI ZADANIA */
+.task-action-box {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Linia 1: Główne akcje (Sprawdź, Do zadań, Wskazówka, Enter) */
+.action-row-primary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.action-buttons-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.action-meta-right {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.enter-shortcut kbd {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: inherit;
+    color: #cbd5e1;
+}
+
+/* Przyciski linii 1 */
+.act-btn {
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s ease;
+    user-select: none;
+    line-height: 1;
+}
+.act-btn-submit {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: 1px solid rgba(16, 185, 129, 0.6);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+}
+.act-btn-submit:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transform: translateY(-1px);
+}
+.act-btn-submit:active { transform: translateY(0); }
+
+.act-btn-secondary {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: #cbd5e1;
+}
+.act-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.act-btn-ghost {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+}
+.act-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fbbf24;
+}
+
+/* Linia 2: Pasek wariantów */
+.action-row-variants {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 9px;
+    padding: 6px 12px;
+}
+.variant-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.variant-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Spójne micro-chipy wariantów o identycznej wysokości i budowie */
+.var-chip {
+    height: 27px;
+    padding: 0 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle);
+    color: #cbd5e1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.16s ease;
+    user-select: none;
+}
+.var-chip:hover {
+    transform: translateY(-1px);
+}
+.var-chip:active { transform: translateY(0); }
+
+.var-chip-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.var-chip-green .var-chip-indicator { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.7); }
+.var-chip-green:hover { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.12); color: #34d399; }
+
+.var-chip-yellow .var-chip-indicator { background: #eab308; box-shadow: 0 0 6px rgba(234, 179, 8, 0.7); }
+.var-chip-yellow:hover { border-color: rgba(234, 179, 8, 0.5); background: rgba(234, 179, 8, 0.12); color: #fde047; }
+
+.var-chip-red .var-chip-indicator { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.7); }
+.var-chip-red:hover { border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+
+.var-chip-blue .var-chip-indicator { background: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.7); }
+.var-chip-blue:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.12); color: #93c5fd; }
 
 /* Wybór wielu zadań (Multi-select do generowania zestawu) */
 .tc-select-label {
@@ -1453,12 +1583,19 @@
                         <span style="font-size: 12px; color: #fff;">Zaznaczono <strong id="batchSelectedCount">0</strong> zadań:</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <div class="similar-dots-control">
-                            <span class="sdc-label"><i data-lucide="sparkles" style="width:11px;"></i> Zestaw:</span>
-                            <button type="button" class="sdc-dot dot-green" onclick="generateBatchVariants('easier')" title="Generuj łatwiejszy zestaw (-1)"></button>
-                            <button type="button" class="sdc-dot dot-yellow" onclick="generateBatchVariants('same')" title="Generuj zestaw na tym samym poziomie"></button>
-                            <button type="button" class="sdc-dot dot-red" onclick="generateBatchVariants('harder')" title="Generuj trudniejszy zestaw (+1)"></button>
-                            <button type="button" class="sdc-dot dot-blue" onclick="generateBatchVariants('identical')" title="Generuj identyczny zestaw (z pamięci)"></button>
+                        <div class="variant-btn-group">
+                            <button type="button" class="var-chip var-chip-green" onclick="generateBatchVariants('easier')" title="Generuj łatwiejszy zestaw (-1)">
+                                <span class="var-chip-indicator"></span> <span>Łatwiejszy</span>
+                            </button>
+                            <button type="button" class="var-chip var-chip-yellow" onclick="generateBatchVariants('same')" title="Generuj zestaw na tym samym poziomie">
+                                <span class="var-chip-indicator"></span> <span>Podobny</span>
+                            </button>
+                            <button type="button" class="var-chip var-chip-red" onclick="generateBatchVariants('harder')" title="Generuj trudniejszy zestaw (+1)">
+                                <span class="var-chip-indicator"></span> <span>Trudniejszy</span>
+                            </button>
+                            <button type="button" class="var-chip var-chip-blue" onclick="generateBatchVariants('identical')" title="Generuj identyczny zestaw (z pamięci)">
+                                <span class="var-chip-indicator"></span> <span>Z pamięci</span>
+                            </button>
                         </div>
                         <button type="button" class="btn-clear-batch" onclick="clearSelectedTasks()">Odznacz</button>
                     </div>
@@ -1665,31 +1802,55 @@
                         </div>
                         {% endif %}
 
-                        <!-- PASEK WERYFIKACJI ZADANIA -->
-                        <div class="tc-actions-bar">
-                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                <button type="button" class="btn-submit-task" onclick="checkTask({{ t.id }})">
-                                    <i data-lucide="check" style="width: 15px;"></i> Sprawdź zadanie
-                                </button>
-                                <button type="button" class="btn-hint" onclick="addDailyTask({{ t.id }}, this)" title="Dodaj to ćwiczenie do Twojej listy Zadań na dziś">
-                                    <i data-lucide="calendar-plus" style="width: 13px; color:#10b981;"></i> Do Zadań na dziś
-                                </button>
-                                <div class="similar-dots-control">
-                                    <span class="sdc-label"><i data-lucide="sparkles" style="width:11px;"></i> Podobne:</span>
-                                    <button type="button" class="sdc-dot dot-green" onclick="generateSimilarTask({{ t.id }}, 'easier', this)" title="Łatwiejsze (-1 poziom)"></button>
-                                    <button type="button" class="sdc-dot dot-yellow" onclick="generateSimilarTask({{ t.id }}, 'same', this)" title="Na tym samym poziomie"></button>
-                                    <button type="button" class="sdc-dot dot-red" onclick="generateSimilarTask({{ t.id }}, 'harder', this)" title="Trudniejsze (+1 poziom)"></button>
-                                    <button type="button" class="sdc-dot dot-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this)" title="Identyczne (z pamięci - ukrywa oryginał)"></button>
+                        <!-- DWULINIOWY, SPÓJNY PASEK AKCJI ZADANIA -->
+                        <div class="task-action-box">
+                            <!-- LINIA 1: GŁÓWNE AKCJE -->
+                            <div class="action-row-primary">
+                                <div class="action-buttons-left">
+                                    <button type="button" class="act-btn act-btn-submit" onclick="checkTask({{ t.id }})">
+                                        <i data-lucide="check-circle-2" style="width: 15px;"></i>
+                                        <span>Sprawdź zadanie</span>
+                                    </button>
+                                    <button type="button" class="act-btn act-btn-secondary" onclick="addDailyTask({{ t.id }}, this)" title="Dodaj do Twojej listy Zadań na dziś">
+                                        <i data-lucide="calendar-plus" style="width: 14px;"></i>
+                                        <span>Do Zadań na dziś</span>
+                                    </button>
+                                    {% if c.hint or c.story %}
+                                    <button type="button" class="act-btn act-btn-ghost" onclick="toggleHint({{ t.id }})" title="Pokaż wskazówkę">
+                                        <i data-lucide="lightbulb" style="width: 14px;"></i>
+                                        <span>Wskazówka</span>
+                                    </button>
+                                    {% endif %}
                                 </div>
-                                {% if c.hint or c.story %}
-                                <button type="button" class="btn-hint" onclick="toggleHint({{ t.id }})">
-                                    <i data-lucide="lightbulb" style="width: 13px;"></i> Podpowiedź
-                                </button>
-                                {% endif %}
+                                <div class="action-meta-right">
+                                    <span class="enter-shortcut"><kbd>Enter ↵</kbd> sprawdza</span>
+                                </div>
                             </div>
 
-                            <div style="font-size: 11px; color: var(--text-muted);">
-                                Naciśnij <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">Enter</kbd> aby sprawdzić
+                            <!-- LINIA 2: TRENING I GENEROWANIE WARIANTÓW -->
+                            <div class="action-row-variants">
+                                <div class="variant-label">
+                                    <i data-lucide="sparkles" style="width: 13px; color: var(--accent-cyan);"></i>
+                                    <span>Ćwicz wariant:</span>
+                                </div>
+                                <div class="variant-btn-group">
+                                    <button type="button" class="var-chip var-chip-green" onclick="generateSimilarTask({{ t.id }}, 'easier', this, 'base')" title="Wygeneruj łatwiejszy wariant (-1 poziom)">
+                                        <span class="var-chip-indicator"></span>
+                                        <span>Łatwiejszy</span>
+                                    </button>
+                                    <button type="button" class="var-chip var-chip-yellow" onclick="generateSimilarTask({{ t.id }}, 'same', this, 'base')" title="Wygeneruj wariant na tym samym poziomie">
+                                        <span class="var-chip-indicator"></span>
+                                        <span>Podobny</span>
+                                    </button>
+                                    <button type="button" class="var-chip var-chip-red" onclick="generateSimilarTask({{ t.id }}, 'harder', this, 'base')" title="Wygeneruj trudniejszy wariant (+1 poziom)">
+                                        <span class="var-chip-indicator"></span>
+                                        <span>Trudniejszy</span>
+                                    </button>
+                                    <button type="button" class="var-chip var-chip-blue" onclick="generateSimilarTask({{ t.id }}, 'identical', this, 'base')" title="Wygeneruj identyczne zadanie (z pamięci - ukrywa lewe okno)">
+                                        <span class="var-chip-indicator"></span>
+                                        <span>Z pamięci</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1713,7 +1874,7 @@
             <button type="button" class="btn-restore-left" id="btnRestoreLeft" onclick="toggleLeftPanel()" title="Pokaż lewy panel">
                 <i data-lucide="panel-left-open" style="width:14px;"></i> Pokaż lewy panel
             </button>
-            <div class="tasks-header" style="background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.25); padding: 12px 18px;">
+            <div class="tasks-header" style="background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.25);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div class="extra-task-glow-badge">
                         <i data-lucide="sparkles" style="width: 13px;"></i>
@@ -1725,12 +1886,19 @@
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div class="similar-dots-control" id="similarHeaderBtnGroup" style="display: none;">
-                        <span class="sdc-label"><i data-lucide="sparkles" style="width:11px;"></i> Nowy:</span>
-                        <button type="button" class="sdc-dot dot-green" onclick="generateAnotherSimilar('easier')" title="Łatwiejsze (-1 poziom)"></button>
-                        <button type="button" class="sdc-dot dot-yellow" onclick="generateAnotherSimilar('same')" title="Na tym samym poziomie"></button>
-                        <button type="button" class="sdc-dot dot-red" onclick="generateAnotherSimilar('harder')" title="Trudniejsze (+1 poziom)"></button>
-                        <button type="button" class="sdc-dot dot-blue" onclick="generateAnotherSimilar('identical')" title="Identyczne (z pamięci)"></button>
+                    <div class="variant-btn-group" id="similarHeaderBtnGroup" style="display: none;">
+                        <button type="button" class="var-chip var-chip-green" onclick="generateAnotherSimilar('easier')" title="Łatwiejszy">
+                            <span class="var-chip-indicator"></span> <span>Łatw.</span>
+                        </button>
+                        <button type="button" class="var-chip var-chip-yellow" onclick="generateAnotherSimilar('same')" title="Podobny">
+                            <span class="var-chip-indicator"></span> <span>Podobny</span>
+                        </button>
+                        <button type="button" class="var-chip var-chip-red" onclick="generateAnotherSimilar('harder')" title="Trudniejszy">
+                            <span class="var-chip-indicator"></span> <span>Trudn.</span>
+                        </button>
+                        <button type="button" class="var-chip var-chip-blue" onclick="generateAnotherSimilar('identical')" title="Z pamięci">
+                            <span class="var-chip-indicator"></span> <span>Z pamięci</span>
+                        </button>
                     </div>
                     <button type="button" class="btn-ghost-panel" id="btnCollapseSimilar" onclick="toggleRightPanel()" title="Zwiń ten panel">
                         <i data-lucide="panel-right-close" style="width: 15px;"></i>
@@ -2236,12 +2404,7 @@
         const taskIds = Array.from(cbs).map(cb => parseInt(cb.value));
         if (taskIds.length === 0) return;
 
-        // Jeśli w prawym panelu są zadania i nie wszystkie zostały sprawdzone - blokujemy przejście
-        if (!canAdvanceToNextPanel()) {
-            showGateWarning("Wszystkie zadania w bieżącym panelu muszą zostać sprawdzone przed utworzeniem kolejnego zestawu!");
-            return;
-        }
-
+        // Z panelu bazowego uczeń może generować zestaw bez konieczności uprzedniego sprawdzania!
         try {
             const res = await fetch('/api/tasks/batch-similar', {
                 method: 'POST',
@@ -2260,14 +2423,13 @@
         }
     }
 
-    // SPRAWDZANIE BRAMKI (GATE): Czy wszystkie wygenerowane zadania w prawym panelu zostały sprawdzone?
+    // SPRAWDZANIE BRAMKI (GATE): Czy wszystkie wygenerowane zadania w nowo powstałym panelu zostały sprawdzone?
     function canAdvanceToNextPanel() {
         const rightContainer = document.getElementById('similarTaskContent');
         if (!rightContainer) return true;
         const rightCards = rightContainer.querySelectorAll('.task-card');
-        if (rightCards.length === 0) return true; // pusto, można tworzyć
+        if (rightCards.length === 0) return true;
 
-        // Każda karta musi mieć klasę checked-attempt
         for (let card of rightCards) {
             if (!card.classList.contains('checked-attempt')) {
                 return false;
@@ -2298,11 +2460,13 @@
     let previousLeftTasks = null;
     let previousLeftTask = null;
 
-    async function generateSimilarTask(taskId, difficulty = 'same', btn) {
-        // Przed wygenerowaniem kolejnego zadania sprawdzamy czy bieżące zostały sprawdzone!
-        if (!canAdvanceToNextPanel()) {
-            showGateWarning("Sprawdź najpierw zadania w bieżącym panelu przed utworzeniem kolejnego!");
-            return;
+    async function generateSimilarTask(taskId, difficulty = 'same', btn, source = 'base') {
+        // Blokada bramki obowiązuje TYLKO przy próbie generowania z poziomu nowo powstałego panelu (source === 'similar')!
+        if (source === 'similar') {
+            if (!canAdvanceToNextPanel()) {
+                showGateWarning("W nowo powstałym panelu sprawdź najpierw wszystkie zadania przed utworzeniem kolejnego!");
+                return;
+            }
         }
 
         activeSimilarTaskId = taskId;
@@ -2331,11 +2495,11 @@
 
     function generateAnotherSimilar(difficulty) {
         if (!canAdvanceToNextPanel()) {
-            showGateWarning("Sprawdź wszystkie zadania w bieżącym panelu przed wygenerowaniem kolejnego zestawu!");
+            showGateWarning("W nowo powstałym panelu sprawdź wszystkie zadania przed wygenerowaniem kolejnego zestawu!");
             return;
         }
         if (activeSimilarTaskId) {
-            generateSimilarTask(activeSimilarTaskId, difficulty);
+            generateSimilarTask(activeSimilarTaskId, difficulty, null, 'similar');
         }
     }
 
@@ -2401,11 +2565,14 @@
         // Wyrównaj przewijanie do samej góry, aby pierwsze zadanie było idealnie w tej samej linii co lewe
         rightContainer.scrollTop = 0;
         const leftPane = document.querySelector('#colTasks .tasks-scroll-pane');
-        if (leftPane) {
-            // Jeśli nie jest ukryty lewy panel i to jedno zadanie, zrównaj z oryginałem
+        if (leftPane && tasks.length > 0 && !previousLeftTasks) {
             const origCard = document.getElementById('task-card-' + tasks[0].original_id);
-            if (origCard && !previousLeftTasks) {
-                origCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (origCard) {
+                const targetScrollTop = origCard.offsetTop - leftPane.offsetTop;
+                leftPane.scrollTo({
+                    top: Math.max(0, targetScrollTop),
+                    behavior: 'smooth'
+                });
                 origCard.style.outline = '2px solid rgba(56, 189, 248, 0.4)';
                 setTimeout(() => { origCard.style.outline = 'none'; }, 2500);
             }
@@ -2607,24 +2774,42 @@
             </div>`;
         }
 
-        // Pasek akcji dolnych z kompaktowymi kropkami trudności
+        // DWULINIOWY, SPÓJNY PASEK AKCJI DLA WARIANTU
         html += `
-            <div class="tc-actions-bar" style="margin-top: 20px;">
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <button type="button" class="btn-submit-task" onclick="checkSimilarTask('${task.id}')">
-                        <i data-lucide="check" style="width: 15px;"></i> Sprawdź wariant
-                    </button>
-                    
-                    <div class="similar-dots-control">
-                        <span class="sdc-label"><i data-lucide="sparkles" style="width:11px;"></i> Podobne:</span>
-                        <button type="button" class="sdc-dot dot-green" onclick="generateSimilarTask(${task.original_id}, 'easier', this)" title="Łatwiejsze (-1 poziom)"></button>
-                        <button type="button" class="sdc-dot dot-yellow" onclick="generateSimilarTask(${task.original_id}, 'same', this)" title="Na tym samym poziomie"></button>
-                        <button type="button" class="sdc-dot dot-red" onclick="generateSimilarTask(${task.original_id}, 'harder', this)" title="Trudniejsze (+1 poziom)"></button>
-                        <button type="button" class="sdc-dot dot-blue" onclick="generateSimilarTask(${task.original_id}, 'identical', this)" title="Identyczne (z pamięci - ukrywa oryginał)"></button>
+            <div class="task-action-box">
+                <!-- LINIA 1: GŁÓWNA AKCJA SPRAWDZENIA -->
+                <div class="action-row-primary">
+                    <div class="action-buttons-left">
+                        <button type="button" class="act-btn act-btn-submit" onclick="checkSimilarTask('${task.id}')">
+                            <i data-lucide="check-circle-2" style="width: 15px;"></i>
+                            <span>Sprawdź wariant</span>
+                        </button>
+                    </div>
+                    <div class="action-meta-right">
+                        <span class="enter-shortcut"><kbd>Enter ↵</kbd> sprawdza</span>
                     </div>
                 </div>
-                <div style="font-size: 11px; color: var(--text-muted);">
-                    Naciśnij <kbd style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">Enter</kbd> aby sprawdzić
+
+                <!-- LINIA 2: KOLEJNY WARIANT (Z BRAMKĄ: WYMAGA SPRAWDZENIA BIEŻĄCYCH) -->
+                <div class="action-row-variants">
+                    <div class="variant-label">
+                        <i data-lucide="sparkles" style="width: 13px; color: var(--accent-cyan);"></i>
+                        <span>Kolejny wariant:</span>
+                    </div>
+                    <div class="variant-btn-group">
+                        <button type="button" class="var-chip var-chip-green" onclick="generateSimilarTask(${task.original_id}, 'easier', this, 'similar')" title="Wygeneruj łatwiejszy wariant (-1)">
+                            <span class="var-chip-indicator"></span> <span>Łatwiejszy</span>
+                        </button>
+                        <button type="button" class="var-chip var-chip-yellow" onclick="generateSimilarTask(${task.original_id}, 'same', this, 'similar')" title="Wygeneruj podobny wariant">
+                            <span class="var-chip-indicator"></span> <span>Podobny</span>
+                        </button>
+                        <button type="button" class="var-chip var-chip-red" onclick="generateSimilarTask(${task.original_id}, 'harder', this, 'similar')" title="Wygeneruj trudniejszy wariant (+1)">
+                            <span class="var-chip-indicator"></span> <span>Trudniejszy</span>
+                        </button>
+                        <button type="button" class="var-chip var-chip-blue" onclick="generateSimilarTask(${task.original_id}, 'identical', this, 'similar')" title="Wygeneruj identyczne zadanie (z pamięci)">
+                            <span class="var-chip-indicator"></span> <span>Z pamięci</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="task-fb" id="fb-similar-${task.id}"></div>
