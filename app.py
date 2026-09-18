@@ -1293,6 +1293,7 @@ def subjects_list(request: Request):
 
 
 @app.get("/subject/{sid}", response_class=HTMLResponse)
+@app.get("/subjects/{sid}", response_class=HTMLResponse)
 def subject_view(request: Request, sid: int):
     user = require(current_user(request))
     conn = db()
@@ -2591,7 +2592,7 @@ def courses_play(request: Request, book_id: int):
     if target_deck_id:
         cards = [dict(r) for r in conn.execute("SELECT id, front, back FROM cards WHERE deck_id=? LIMIT 12", (target_deck_id,)).fetchall()]
     
-    # 2. Pobieramy zadania interaktywne przypisane do chapterów tej książki wraz z zapisanym postępem ucznia
+    # 2. Pobieramy zadania interaktywne przypisane do chapterów tej konkretnej książki
     raw_tasks = conn.execute("""
         SELECT it.*, utp.score as user_score, utp.attempts as user_attempts, utp.last_attempt as user_last_attempt
         FROM interactive_tasks it 
@@ -2600,18 +2601,6 @@ def courses_play(request: Request, book_id: int):
         WHERE bc.book_id = ?
         ORDER BY it.id ASC
     """, (u['id'], book_id)).fetchall()
-    
-    # Jeśli dla tego book_id nie ma jeszcze zadań, ale mamy powiązaną książkę z tego samego przedmiotu z zadaniami (np. podręcznik vs zeszyt ćwiczeń)
-    if not raw_tasks:
-        raw_tasks = conn.execute("""
-            SELECT it.*, utp.score as user_score, utp.attempts as user_attempts, utp.last_attempt as user_last_attempt
-            FROM interactive_tasks it 
-            JOIN book_chapters bc ON it.chapter_id = bc.id 
-            JOIN books b ON bc.book_id = b.id
-            LEFT JOIN user_task_progress utp ON it.id = utp.task_id AND utp.user_id = ?
-            WHERE b.subject = ?
-            ORDER BY it.id ASC
-        """, (u['id'], b_subj)).fetchall()
 
     import json, random
     tasks = []
@@ -2648,13 +2637,28 @@ def courses_play(request: Request, book_id: int):
             m_ex = _re.search(r'zadanie\s*(\d+)', num_str.lower())
             td['exercise_num'] = int(m_ex.group(1)) if m_ex else None
 
-            # Przypisanie tematyczne (Dział / Rozdział / Zagadnienie)
+            # Ekstrakcja etykiety ćwiczenia/zadania (np. 3a, 3b, 5, 6, 8b, 11a, 12, ★)
+            m_ex_lbl = _re.search(r'zadanie\s*(\d+[a-z]?)', num_str.lower())
+            if m_ex_lbl:
+                td['exercise_label'] = m_ex_lbl.group(1)
+            elif 'super zagadka' in full_text or 'zagadka' in full_text:
+                td['exercise_label'] = '★'
+            elif td.get('exercise_num'):
+                td['exercise_label'] = str(td['exercise_num'])
+            else:
+                td['exercise_label'] = str(len(tasks) + 1)
+
+            # Przypisanie tematyczne i numer rozdziału
+            td['chapter_num'] = 1
             if page_num in (3, 4):
                 td['chapter_name'] = "1. Liczby naturalne"
                 td['topic_name'] = "Zapis i porównywanie liczb"
             elif page_num in (5, 6):
                 td['chapter_name'] = "1. Liczby naturalne"
                 td['topic_name'] = "Działania pamięciowe i sprytne liczenie"
+            elif page_num in (11, 12):
+                td['chapter_name'] = "1. Liczby naturalne"
+                td['topic_name'] = "Liczby wielocyfrowe i oś liczbowa"
             else:
                 td['chapter_name'] = "1. Liczby naturalne"
                 td['topic_name'] = "Ćwiczenia z podręcznika"
@@ -2715,6 +2719,60 @@ def courses_play(request: Request, book_id: int):
             ORDER BY ap.id ASC
         """, (b_subj,)).fetchall()]
 
+    # 8. Pobieramy listę rozdziałów (np. z book_toc)
+    chaps = conn.execute("""
+        SELECT DISTINCT chapter_num, chapter_title 
+        FROM book_toc 
+        WHERE book_id=? 
+        ORDER BY chapter_num ASC
+    """, (book_id,)).fetchall()
+    if not chaps and b_subj == 'Matematyka':
+        chaps = conn.execute("""
+            SELECT DISTINCT chapter_num, chapter_title 
+            FROM book_toc 
+            WHERE book_id=103 
+            ORDER BY chapter_num ASC
+        """).fetchall()
+    chapters_data = [dict(c) for c in chaps]
+    if not chapters_data:
+        chapters_data = [
+            {"chapter_num": 1, "chapter_title": "1. Liczby naturalne i działania"},
+            {"chapter_num": 2, "chapter_title": "2. Własności liczb naturalnych"},
+            {"chapter_num": 3, "chapter_title": "3. Ułamki zwykłe"},
+            {"chapter_num": 4, "chapter_title": "4. Figury na płaszczyźnie"},
+            {"chapter_num": 5, "chapter_title": "5. Ułamki dziesiętne"},
+            {"chapter_num": 6, "chapter_title": "6. Pola figur"},
+            {"chapter_num": 7, "chapter_title": "7. Liczby całkowite"},
+            {"chapter_num": 8, "chapter_title": "8. Objętość figur"}
+        ]
+
+    # 9. Ostatnio robiony rozdział (domyślnie 1)
+    last_active_chapter = 1
+    recent_task = conn.execute("""
+        SELECT it.id, utp.last_attempt 
+        FROM user_task_progress utp
+        JOIN interactive_tasks it ON utp.task_id = it.id
+        JOIN book_chapters bc ON it.chapter_id = bc.id
+        WHERE bc.book_id = ? AND utp.user_id = ? AND utp.attempts > 0
+        ORDER BY utp.last_attempt DESC LIMIT 1
+    """, (book_id, u['id'])).fetchone()
+    if recent_task:
+        for t in tasks:
+            if t['id'] == recent_task['id']:
+                last_active_chapter = t.get('chapter_num', 1)
+                break
+
+    # 10. Pobieramy współdzielone materiały (infografiki i podcasty klasy 5B z ulubionymi na początku i polubieniami)
+    artifacts = [dict(r) for r in conn.execute("""
+        SELECT la.*,
+               EXISTS(SELECT 1 FROM user_artifact_favorites uaf WHERE uaf.artifact_id = la.id AND uaf.user_id = ?) as is_favorite,
+               EXISTS(SELECT 1 FROM user_artifact_likes ual WHERE ual.artifact_id = la.id AND ual.user_id = ?) as is_liked,
+               (SELECT GROUP_CONCAT(ual.user_name, ', ') FROM user_artifact_likes ual WHERE ual.artifact_id = la.id) as liked_by_names
+        FROM learning_artifacts la 
+        WHERE la.book_id=? AND la.is_shared=1 
+        ORDER BY is_favorite DESC, la.id DESC
+    """, (u['id'], u['id'], book_id)).fetchall()]
+
     conn.close()
     return templates.TemplateResponse(request, "course_play.html", {
         "user": u, 
@@ -2727,8 +2785,98 @@ def courses_play(request: Request, book_id: int):
         "page_offset": page_offset,
         "counterpart": counterpart,
         "raw_ocr_text": raw_ocr_text,
-        "audio_tracks": audio_tracks
+        "audio_tracks": audio_tracks,
+        "chapters_data": chapters_data,
+        "last_active_chapter": last_active_chapter,
+        "artifacts": artifacts
     })
+
+@app.get("/api/artifacts")
+def api_get_artifacts(request: Request, book_id: int = 103, chapter_num: int = 1):
+    u = current_user(request)
+    if not u: raise HTTPException(401)
+    conn = db()
+    rows = conn.execute("""
+        SELECT la.*,
+               EXISTS(SELECT 1 FROM user_artifact_favorites uaf WHERE uaf.artifact_id = la.id AND uaf.user_id = ?) as is_favorite,
+               EXISTS(SELECT 1 FROM user_artifact_likes ual WHERE ual.artifact_id = la.id AND ual.user_id = ?) as is_liked,
+               (SELECT GROUP_CONCAT(ual.user_name, ', ') FROM user_artifact_likes ual WHERE ual.artifact_id = la.id) as liked_by_names
+        FROM learning_artifacts la 
+        WHERE la.book_id=? AND la.chapter_num=? AND la.is_shared=1 
+        ORDER BY is_favorite DESC, la.id DESC
+    """, (u['id'], u['id'], book_id, chapter_num)).fetchall()
+    conn.close()
+    return {"status": "ok", "artifacts": [dict(r) for r in rows]}
+
+@app.post("/api/artifacts/{art_id}/toggle-favorite")
+def api_toggle_artifact_favorite(request: Request, art_id: int):
+    u = current_user(request)
+    if not u: raise HTTPException(401)
+    conn = db()
+    fav = conn.execute("SELECT 1 FROM user_artifact_favorites WHERE user_id=? AND artifact_id=?", (u['id'], art_id)).fetchone()
+    if fav:
+        conn.execute("DELETE FROM user_artifact_favorites WHERE user_id=? AND artifact_id=?", (u['id'], art_id))
+        is_fav = 0
+    else:
+        conn.execute("INSERT OR IGNORE INTO user_artifact_favorites (user_id, artifact_id) VALUES (?, ?)", (u['id'], art_id))
+        is_fav = 1
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "is_favorite": is_fav}
+
+@app.post("/api/artifacts/{art_id}/toggle-like")
+def api_toggle_artifact_like(request: Request, art_id: int):
+    u = current_user(request)
+    if not u: raise HTTPException(401)
+    u_dict = dict(u)
+    user_name = u_dict.get("name") or u_dict.get("login") or "Uczeń 5B"
+    conn = db()
+    liked = conn.execute("SELECT 1 FROM user_artifact_likes WHERE user_id=? AND artifact_id=?", (u['id'], art_id)).fetchone()
+    if liked:
+        conn.execute("DELETE FROM user_artifact_likes WHERE user_id=? AND artifact_id=?", (u['id'], art_id))
+        is_liked = 0
+    else:
+        conn.execute("INSERT OR IGNORE INTO user_artifact_likes (user_id, artifact_id, user_name) VALUES (?, ?, ?)", (u['id'], art_id, user_name))
+        is_liked = 1
+    cnt = conn.execute("SELECT COUNT(*) FROM user_artifact_likes WHERE artifact_id=?", (art_id,)).fetchone()[0]
+    conn.execute("UPDATE learning_artifacts SET likes_count=? WHERE id=?", (cnt, art_id))
+    likers = conn.execute("SELECT GROUP_CONCAT(user_name, ', ') FROM user_artifact_likes WHERE artifact_id=?", (art_id,)).fetchone()[0] or ''
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "is_liked": is_liked, "likes_count": cnt, "liked_by_names": likers}
+
+@app.post("/api/artifacts/save")
+async def api_save_artifact(request: Request):
+    u = current_user(request)
+    if not u: raise HTTPException(401)
+    data = await request.json()
+    book_id = int(data.get("book_id", 103))
+    chapter_num = int(data.get("chapter_num", 1))
+    artifact_type = str(data.get("artifact_type", "infographic"))
+    title = str(data.get("title", "Nowy materiał"))
+    description = str(data.get("description", ""))
+    content_html = str(data.get("content_html", ""))
+    audio_url = str(data.get("audio_url", ""))
+    duration = str(data.get("duration", "Plansza A4"))
+    u_dict = dict(u)
+    author_name = u_dict.get("name") or u_dict.get("login") or "Uczeń 5B"
+    is_shared = 1 if data.get("is_shared", True) else 0
+
+    conn = db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO learning_artifacts (book_id, chapter_num, artifact_type, title, description, content_html, audio_url, duration, user_id, author_name, is_shared)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (book_id, chapter_num, artifact_type, title, description, content_html, audio_url, duration, u["id"], author_name, is_shared))
+    art_id = cur.lastrowid
+    conn.commit()
+    created = conn.execute("""
+        SELECT la.*, 0 as is_favorite, 0 as is_liked, '' as liked_by_names
+        FROM learning_artifacts la WHERE la.id=?
+    """, (art_id,)).fetchone()
+    conn.close()
+    return {"status": "ok", "artifact": dict(created) if created else {}}
+
 
 @app.get("/courses/print/{book_id}", response_class=HTMLResponse)
 def courses_print_worksheet(request: Request, book_id: int):

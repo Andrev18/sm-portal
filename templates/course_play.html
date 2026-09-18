@@ -1801,67 +1801,1133 @@
         display: flex;
     }
 }
+
+/* ==========================================================================
+   NOWY SYSTEM FILTRÓW (ROZDZIAŁ 3 CYFRY + ZADANIA MULTI-SELECT)
+   ORAZ WIDOK PODRĘCZNIKA: ĆWICZENIA VS TEORIA + MIEJSCE NA OBLICZENIA
+   ========================================================================== */
+
+/* Układ nagłówka dwurzędowego */
+.hybrid-top-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.htb-row-primary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+}
+.htb-row-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-wrap: wrap;
+}
+
+/* Zoptymalizowany pasek filtrów w miejscu czerwonej ramki */
+.opt-filters-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 5px 12px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+}
+.opt-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.opt-filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.opt-chap-carousel {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 2px 4px;
+}
+.opt-carousel-arrow {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    user-select: none;
+}
+.opt-carousel-arrow:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+.opt-chap-trio {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.opt-chap-btn {
+    min-width: 28px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+.opt-chap-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+.opt-chap-btn.active {
+    background: #6366f1 !important;
+    color: #fff !important;
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+    transform: scale(1.05);
+}
+.opt-chap-name-tag {
+    font-size: 11px;
+    color: #cbd5e1;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.opt-filter-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    margin: 0 2px;
+}
+.opt-task-chips-strip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    max-width: 320px;
+    padding: 2px 0;
+}
+.opt-task-chip {
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    user-select: none;
+}
+.opt-task-chip:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+    color: #fff;
+}
+.opt-task-chip.active {
+    background: #10b981 !important;
+    border-color: #059669 !important;
+    color: #fff !important;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+}
+.opt-task-chip.chip-all {
+    font-weight: 700;
+}
+
+/* Nowy pasek przełącznika widoku podręcznika w prawej kolumnie */
+.textbook-nav-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 5px 8px;
+    background: rgba(18, 18, 24, 0.95);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+}
+.tnt-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.tnt-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+.tnt-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+.tnt-btn.active {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.tnt-badge-count {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+.tnt-badge-pill {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+.tnt-link-counterpart {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    transition: all 0.15s;
+}
+.tnt-link-counterpart:hover {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: var(--accent-cyan);
+}
+
+/* Banner przestrzeni zadaniowej podręcznika */
+.textbook-workspace-banner {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(56, 189, 248, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.twb-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.twb-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.twb-action-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Inline kalkulator/brudnopis na karcie zadania */
+.task-calc-pad {
+    margin-top: 10px;
+}
+.btn-toggle-calc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-toggle-calc:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.calc-pad-body {
+    margin-top: 6px;
+    background: #0c0d12;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+}
+.calc-pad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.btn-clear-pad {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 0 4px;
+}
+.btn-clear-pad:hover {
+    text-decoration: underline;
+}
+.calc-pad-textarea {
+    width: 100%;
+    height: 75px;
+    background: #08090c;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 8px;
+    resize: vertical;
+    outline: none;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 0);
+    background-size: 16px 16px;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+.calc-pad-textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #6366f1;
+}
+
+/* Widok teorii w prawej kolumnie */
+.theory-hero-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(99, 102, 241, 0.1));
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+.theory-badge {
+    background: #f59e0b;
+    color: #000;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+.theory-hero-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    margin: 4px 0;
+}
+.theory-hero-desc {
+    font-size: 12px;
+    color: #cbd5e1;
+    line-height: 1.4;
+    margin: 0;
+}
+.btn-theory-jump-tasks {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #10b981;
+    color: #fff;
+    border: none;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-theory-jump-tasks:hover {
+    background: #059669;
+}
+.theory-bento-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.theory-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+.card-glow-green {
+    border-left: 3px solid #10b981;
+}
+.card-glow-amber {
+    border-left: 3px solid #f59e0b;
+}
+.card-glow-rose {
+    border-left: 3px solid #f43f5e;
+}
+.tc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.comp-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: #e2e8f0;
+    line-height: 1.45;
+    margin-bottom: 8px;
+}
+.comp-bullet {
+    color: #10b981;
+    font-weight: 800;
+    margin-top: 1px;
+}
+.theory-rule-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #fef3c7;
+    line-height: 1.45;
+}
+.theory-rule-title {
+    font-weight: 700;
+    color: #f59e0b;
+    margin-bottom: 4px;
+}
+.pitfall-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: #fda4af;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+.btn-primary-solve {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    transition: all 0.2s;
+}
+.btn-primary-solve:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+}
+
+
+/* Przycisk Infografiki NotebookLM i dymek podpowiedzi */
+.tnt-btn-infographic {
+    position: relative;
+    background: rgba(168, 85, 247, 0.1) !important;
+    border-color: rgba(168, 85, 247, 0.3) !important;
+    color: #e9d5ff !important;
+}
+.tnt-btn-infographic:hover {
+    background: rgba(168, 85, 247, 0.22) !important;
+    border-color: rgba(168, 85, 247, 0.55) !important;
+    color: #fff !important;
+}
+.tnt-badge-ai {
+    background: rgba(168, 85, 247, 0.28);
+    color: #c084fc;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+/* Bogaty dymek z opisem po najechaniu kursorem (Tooltip) */
+.tnt-btn-infographic::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    width: 260px;
+    padding: 10px 14px;
+    background: #18181f;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: normal;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 15px rgba(168, 85, 247, 0.15);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 9999;
+}
+.tnt-btn-infographic:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+
+/* Styl zakładek z piktogramami i dymkami */
+.tnt-btn, .tnt-link-counterpart, .tas-card-btn {
+    position: relative;
+}
+.tnt-btn[data-tooltip]::after, .tnt-link-counterpart[data-tooltip]::after, .tas-card-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    width: 250px;
+    padding: 9px 13px;
+    background: #18181f;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9px;
+    color: #f1f5f9;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: normal;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 15px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 9999;
+}
+.tnt-btn:hover::after, .tnt-link-counterpart:hover::after, .tas-card-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Studio Edukacyjne AI (NotebookLM) wewnątrz podsumowania */
+.theory-ai-studio-strip {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.14), rgba(236, 72, 153, 0.08));
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.tas-badge-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tas-status-pill {
+    font-size: 10px;
+    font-weight: 600;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 3px 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.tas-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+@media (max-width: 640px) {
+    .tas-cards-grid { grid-template-columns: 1fr; }
+}
+.tas-card-btn {
+    background: rgba(24, 24, 32, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tas-card-btn:hover {
+    background: rgba(30, 30, 42, 0.95);
+    border-color: rgba(168, 85, 247, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.2);
+}
+.tas-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.tas-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+.tas-card-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.35;
+}
+.tas-card-action {
+    font-size: 11px;
+    font-weight: 700;
+    color: #c084fc;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Opcje wyboru wielokrotnego / jednokrotnego w zadaniach podręcznika */
+.choice-task-wrap {
+    background: rgba(0,0,0,0.25);
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 8px;
+}
+.choice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+}
+.choice-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.choice-btn.active {
+    background: rgba(99, 102, 241, 0.25) !important;
+    border-color: #6366f1 !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+}
+.choice-indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1.5px solid #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.choice-btn.active .choice-indicator {
+    background: #6366f1;
+    border-color: #6366f1;
+}
+.choice-btn.active .choice-indicator::after {
+    content: '✓';
+    font-size: 10px;
+    color: #fff;
+    font-weight: 800;
+}
+
+
+/* ==========================================================================
+   WSPÓŁDZIELONA GALERIA MATERIAŁÓW KLASY 5B (INFOGRAFIKI & PODCASTY)
+   ========================================================================== */
+.shared-artifacts-section {
+    background: rgba(18, 18, 24, 0.95);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+.sas-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+.sas-title-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sas-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.sas-chip {
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.04);
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sas-chip:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+.sas-chip.active {
+    background: rgba(16, 185, 129, 0.18) !important;
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+}
+.sas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+.artifact-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.artifact-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(168, 85, 247, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.ac-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.ac-type-badge {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+.ac-type-info {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.35);
+}
+.ac-type-pod {
+    background: rgba(236, 72, 153, 0.2);
+    color: #f472b6;
+    border: 1px solid rgba(236, 72, 153, 0.35);
+}
+.ac-author {
+    font-size: 10px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.ac-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.35;
+}
+.ac-desc {
+    font-size: 11px;
+    color: #cbd5e1;
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.ac-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.ac-btn-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+.ac-btn-info {
+    background: #8b5cf6;
+    color: #fff;
+}
+.ac-btn-info:hover {
+    background: #7c3aed;
+}
+.ac-btn-pod {
+    background: #ec4899;
+    color: #fff;
+}
+.ac-btn-pod:hover {
+    background: #db2777;
+}
+
+/* Modal pełnego podglądu wygenerowanej infografiki */
+.infographic-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.im-box {
+    background: #0f1015;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 860px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(168, 85, 247, 0.25);
+}
+.im-header {
+    padding: 14px 20px;
+    background: rgba(24, 24, 32, 0.95);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.im-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    background: #09090b;
+}
+
+/* Wizualna plansza infografiki (Bento Board) */
+.infographic-board {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+}
+.ib-header {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.15));
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 14px;
+    padding: 16px 20px;
+    text-align: center;
+}
+.ib-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+}
+.ib-subtitle {
+    font-size: 12px;
+    color: #c4b5fd;
+    font-weight: 500;
+}
+.ib-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+@media (max-width: 600px) {
+    .ib-grid { grid-template-columns: 1fr; }
+}
+.ib-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ib-card.ib-green { border-left: 3px solid #10b981; }
+.ib-card.ib-purple { border-left: 3px solid #a855f7; }
+.ib-card.ib-cyan { border-left: 3px solid #38bdf8; }
+.ib-card.ib-rose { border-left: 3px solid #f43f5e; }
+.ib-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+.ib-card-content {
+    font-size: 12px;
+    color: #e2e8f0;
+    line-height: 1.5;
+}
+.ib-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.ib-row strong {
+    color: #10b981;
+    font-family: monospace;
+}
+.ib-example {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px dashed rgba(168, 85, 247, 0.4);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #c084fc;
+    text-align: center;
+    margin: 6px 0;
+    letter-spacing: 2px;
+}
+.ib-formula {
+    background: rgba(56, 189, 248, 0.1);
+    border-left: 2px solid #38bdf8;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7dd3fc;
+    margin: 6px 0;
+    font-family: monospace;
+}
+
 </style>
 
 <div class="hybrid-page-wrapper">
     
     <!-- GÓRNY PASEK STEROWANIA -->
     <div class="hybrid-top-bar">
-        <div class="htb-left">
-            <a href="/courses" class="btn-pill-action" title="Wróć do listy kursów">
-                <i data-lucide="arrow-left" style="width: 15px;"></i> Kursy
-            </a>
-            <div class="htb-icon">
-                {% if book['subject'] == 'Matematyka' %}📐{% elif book['subject'] == 'Angielski' %}🇬🇧{% else %}📖{% endif %}
+        <div class="htb-row-primary">
+            <div class="htb-left">
+                <a href="/courses" class="btn-pill-action" title="Wróć do listy kursów">
+                    <i data-lucide="arrow-left" style="width: 15px;"></i> Kursy
+                </a>
+                <div class="htb-icon">
+                    {% if book['subject'] == 'Matematyka' %}📐{% elif book['subject'] == 'Angielski' %}🇬🇧{% else %}📖{% endif %}
+                </div>
+                <div class="htb-title">
+                    <h1>
+                        {{ book['title'] }}
+                        <span class="badge-mode">Model Hybrydowy</span>
+                    </h1>
+                    <p>
+                        Przedmiot: <strong>{{ book['subject'] }}</strong>
+                        &bull; Klasa {{ book['grade'] }}
+                        {% if counterpart %}
+                        &bull; <a href="/courses/play/{{ counterpart['id'] }}" style="color:var(--accent-cyan); text-decoration:none;">Otwórz {{ counterpart['title'] }} &rarr;</a>
+                        {% endif %}
+                    </p>
+                </div>
             </div>
-            <div class="htb-title">
-                <h1>
-                    {{ book['title'] }}
-                    <span class="badge-mode">Model Hybrydowy</span>
-                </h1>
-                <p>
-                    Przedmiot: <strong>{{ book['subject'] }}</strong>
-                    &bull; Klasa {{ book['grade'] }}
-                    {% if counterpart %}
-                    &bull; <a href="/courses/play/{{ counterpart['id'] }}" style="color:var(--accent-cyan); text-decoration:none;">Otwórz {{ counterpart['title'] }} &rarr;</a>
-                    {% endif %}
-                </p>
+
+            <!-- PRZEŁĄCZNIK UKŁADU (SPLIT / SKAN / ZADANIA) -->
+            <div class="mode-switcher">
+                <button class="mode-btn" id="btnModeScan" onclick="setGridMode('scan')" title="Tylko podgląd skanu książki">
+                    <i data-lucide="book-open" style="width: 14px;"></i> Skan PDF
+                </button>
+                <button class="mode-btn active" id="btnModeSplit" onclick="setGridMode('split')" title="Tryb hybrydowy: skan po lewej, zadania po prawej">
+                    <i data-lucide="columns" style="width: 14px;"></i> Hybrydowy (Split)
+                </button>
+                <button class="mode-btn" id="btnModeTasks" onclick="setGridMode('tasks')" title="Tylko panel wpisywania zadań PC">
+                    <i data-lucide="check-square" style="width: 14px;"></i> Zadania PC
+                </button>
             </div>
         </div>
 
-        <!-- PRZEŁĄCZNIK UKŁADU (SPLIT / SKAN / ZADANIA) -->
-        <div class="mode-switcher">
-            <button class="mode-btn" id="btnModeScan" onclick="setGridMode('scan')" title="Tylko podgląd skanu książki">
-                <i data-lucide="book-open" style="width: 14px;"></i> Skan PDF
-            </button>
-            <button class="mode-btn active" id="btnModeSplit" onclick="setGridMode('split')" title="Tryb hybrydowy: skan po lewej, zadania po prawej">
-                <i data-lucide="columns" style="width: 14px;"></i> Hybrydowy (Split)
-            </button>
-            <button class="mode-btn" id="btnModeTasks" onclick="setGridMode('tasks')" title="Tylko panel wpisywania zadań PC">
-                <i data-lucide="check-square" style="width: 14px;"></i> Zadania PC
-            </button>
-        </div>
+        <div class="htb-row-secondary">
+            <div class="htb-right">
+                <div class="pill-stat">
+                    <span>Opanowano:</span>
+                    <strong id="kpi-mastered">0 / {{ tasks|length }}</strong>
+                </div>
 
-        <div class="htb-right">
-            <div class="pill-stat">
-                <span>Opanowano:</span>
-                <strong id="kpi-mastered">0 / {{ tasks|length }}</strong>
+                <button class="btn-pill-action" onclick="printWorksheet()" title="Drukuj arkusz zadań A4 lub pobierz jako PDF">
+                    <i data-lucide="printer" style="width: 14px;"></i> Drukuj A4
+                </button>
+
+                <button class="btn-pill-action" onclick="toggleScratchpad()" title="Otwórz brudnopis do szybkich obliczeń">
+                    <i data-lucide="edit-2" style="width: 14px;"></i> Brudnopis
+                </button>
+
+                <a href="/read/{{ book['id'] }}" target="_blank" class="btn-pill-action" title="Otwórz pełny czytnik książki w nowej karcie">
+                    <i data-lucide="external-link" style="width: 14px;"></i> Pełny PDF
+                </a>
             </div>
 
-            <button class="btn-pill-action" onclick="printWorksheet()" title="Drukuj arkusz zadań A4 lub pobierz jako PDF">
-                <i data-lucide="printer" style="width: 14px;"></i> Drukuj A4
-            </button>
+            <!-- ZOPTYMALIZOWANY PASEK FILTRÓW: ROZDZIAŁ (3 CYFRY) + NUMERY ZADAŃ (MULTI-SELECT) W MIEJSCU CZERWONEJ RAMKI -->
+            <div class="opt-filters-toolbar" id="optFiltersToolbar">
+                <!-- Karuzela 3 cyfr rozdziału -->
+                <div class="opt-filter-item" title="Rozdziały: kliknij skrajną cyfrę, aby przesunąć do środka">
+                    <span class="opt-filter-label">
+                        <i data-lucide="bookmark" style="width:13px; color:var(--accent-cyan);"></i> Rozdział:
+                    </span>
+                    <div class="opt-chap-carousel">
+                        <button type="button" class="opt-carousel-arrow" onclick="shiftCarousel(-1)" title="Poprzedni rozdział">&lsaquo;</button>
+                        <div class="opt-chap-trio" id="optChapTrio"></div>
+                        <button type="button" class="opt-carousel-arrow" onclick="shiftCarousel(1)" title="Następny rozdział">&rsaquo;</button>
+                    </div>
+                    <span class="opt-chap-name-tag" id="optChapNameTag" title="Aktualny rozdział">1. Liczby naturalne</span>
+                </div>
 
-            <button class="btn-pill-action" onclick="toggleScratchpad()" title="Otwórz brudnopis do szybkich obliczeń">
-                <i data-lucide="edit-2" style="width: 14px;"></i> Brudnopis
-            </button>
+                <div class="opt-filter-divider"></div>
 
-            <a href="/read/{{ book['id'] }}" target="_blank" class="btn-pill-action" title="Otwórz pełny czytnik książki w nowej karcie">
-                <i data-lucide="external-link" style="width: 14px;"></i> Pełny PDF
-            </a>
+                <!-- Numery zadań w wybranym rozdziale (można wybrać wiele) -->
+                <div class="opt-filter-item" title="Wybierz numery zadań do wyświetlenia (można wybrać wiele)">
+                    <span class="opt-filter-label">
+                        <i data-lucide="list-checks" style="width:13px; color:#10b981;"></i> Zadania:
+                    </span>
+                    <div class="opt-task-chips-strip" id="optTaskChipsStrip"></div>
+                </div>
+            </div>
         </div>
     </div>
-
+    
     <!-- SIATKA SPLIT-VIEW -->
     <div class="hybrid-grid" id="hybridGrid">
         
@@ -1962,68 +3028,220 @@
 
                 <div class="tasks-header">
                     <div class="tasks-header-title">
+                        {% if book['kind'] == 'podreczniki' %}
+                        <i data-lucide="book-open" style="width: 18px; color: #f59e0b;"></i>
+                        Informacje z podręcznika
+                        {% else %}
                         <i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i>
                         Warsztat Zadań (Ćwiczenia na PC)
+                        {% endif %}
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
+                        {% if tasks|length > 0 %}
                         <button type="button" class="print-panel-btn" onclick="printWorksheet()" title="Drukuj pełny arkusz wszystkich zadań A4">
                             <i data-lucide="printer" style="width: 13px;"></i> <span>Drukuj A4</span>
                         </button>
                         <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
                             {{ tasks|length }} zadań
                         </span>
+                        {% endif %}
                         <button type="button" class="btn-ghost-panel" id="btnCollapseTasks" onclick="toggleLeftPanel()" title="Zwiń ten panel i pokaż wariant na pełnym ekranie" style="display: none;">
                             <i data-lucide="panel-left-close" style="width: 15px;"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- BOGATY, CZYTELNY PASEK ROZDZIAŁÓW I NAWIGACJI POSTĘPU UCZNIA -->
-                <div class="task-page-filter-bar" id="taskPageFilterBar">
-                    <!-- POZIOM 1: KLIKALNE ROZDZIAŁY / DZIAŁY (DUŻE, CZYTELNE KAFLE) -->
-                    <div class="tpf-row" style="gap: 10px; margin-bottom: 2px;">
-                        <span class="tpf-label"><i data-lucide="book-open" style="width: 14px; color: var(--accent-cyan);"></i> Rozdziały:</span>
-                        <button type="button" class="tp-filter-chip" id="filter-chap-all" onclick="filterByChapter('all')">
-                            <span>Wszystkie działy</span>
-                            <span class="badge-count">{{ tasks|length }}</span>
+                <!-- NOWY PASEK OPCJI PODRĘCZNIKA: INFORMACJE Z PODRĘCZNIKA vs ZADANIA -->
+                <div class="textbook-nav-tabs" id="textbookNavTabs">
+                    <div class="tnt-group">
+                        <button type="button" class="tnt-btn {% if book['kind'] == 'podreczniki' or tasks|length == 0 %}active{% endif %}" id="tntBtnTheory" onclick="setTextbookView('theory')" data-tooltip="Informacje z podręcznika — Zrozumienie tematu, definicje, reguły, żółte ramki oraz Studio AI">
+                            <i data-lucide="book-open" style="width: 15px; color: #f59e0b;"></i>
+                            <span>Informacje z podręcznika</span>
+                            <span class="tnt-badge-pill">Teoria & Wiedza</span>
                         </button>
-                        <button type="button" class="tp-filter-chip active" id="filter-chap-1" onclick="filterByChapter('1. Liczby naturalne')">
-                            <span>Rozdział 1: Liczby naturalne</span>
-                            <span class="badge-progress-tag" title="Twój bieżący materiał">⚡ Ostatnio robione</span>
+                        {% if tasks|length > 0 %}
+                        <button type="button" class="tnt-btn {% if book['kind'] != 'podreczniki' %}active{% endif %}" id="tntBtnExercises" onclick="setTextbookView('exercises')" data-tooltip="Zadania — Rozwiązuj zdigitalizowane zadania z autocheckiem">
+                            <i data-lucide="edit-3" style="width: 15px; color: #10b981;"></i>
+                            <span>Zadania z podręcznika</span>
+                            <span class="tnt-badge-count" id="tntBadgeCount">{{ tasks|length }}</span>
                         </button>
-                        <button type="button" class="tp-filter-chip chip-next" id="filter-chap-2" onclick="alert('Rozdział 2: Działania na liczbach naturalnych - odblokowuje się po ukończeniu Rozdziału 1.')" title="Kolejny rozdział w programie">
-                            <span>Rozdział 2: Działania pisemne</span>
-                            <span class="badge-next-tag">🔒 Następny (+1)</span>
-                        </button>
+                        {% endif %}
                     </div>
 
-                    <!-- POZIOM 2: ZAGADNIENIA / TEMATY / STRONY -->
-                    <div class="tpf-row" id="topicFilterRow" style="padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06);">
-                        <span class="tpf-label"><i data-lucide="compass" style="width: 13px; color: #10b981;"></i> Zagadnienia:</span>
-                        <button type="button" class="tp-subfilter-chip" id="filter-topic-all" onclick="filterByTopic('all')">
-                            Wszystkie
+                    {% if counterpart %}
+                    <a href="/courses/play/{{ counterpart['id'] }}" class="tnt-link-counterpart" data-tooltip="Zeszyt ćwiczeń — Przejdź do ćwiczeń w zeszycie ćwiczeń">
+                        <i data-lucide="book" style="width: 14px;"></i>
+                        <span>{{ counterpart['title'] }} &rarr;</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- BANNER DLA PODRĘCZNIKA -->
+                <div class="textbook-workspace-banner" id="textbookWorkspaceBanner" style="display: {% if book['kind'] == 'podreczniki' and tasks|length == 0 %}none{% else %}flex{% endif %};">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="twb-icon"><i data-lucide="book-open-check" style="width:18px; color:var(--accent-cyan);"></i></div>
+                        <div>
+                            <div style="font-weight:700; font-size:12px; color:#fff;">{{ book['title'] }} — Informacje z podręcznika</div>
+                            <div style="font-size:11px; color:#94a3b8;">W podręczniku budujemy zrozumienie tematu, reguły i wiedzę. Ćwiczenia treningowe znajdują się w zeszycie ćwiczeń.</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" class="twb-action-btn" onclick="toggleScratchpad()" title="Otwórz brudnopis do notatek">
+                            <i data-lucide="edit-2" style="width:12px;"></i> Notatnik
                         </button>
-                        <button type="button" class="tp-subfilter-chip" id="filter-topic-1" onclick="filterByTopic('Zapis i porównywanie liczb')">
-                            Zapis i porównywanie liczb (Str. 3-4)
-                        </button>
-                        <button type="button" class="tp-subfilter-chip active" id="filter-topic-2" onclick="filterByTopic('Działania pamięciowe i sprytne liczenie')">
-                            ⚡ Działania pamięciowe (Str. 5-6)
-                        </button>
-                        <div style="border-left: 1px solid rgba(255,255,255,0.15); height: 16px; margin: 0 4px;"></div>
-                        <span class="tpf-label" style="font-size: 9px;">Strona:</span>
-                        {% set pages_seen = [] %}
-                        {% for t in tasks %}
-                            {% if t.page_ref and t.page_ref not in pages_seen %}
-                                {% set _ = pages_seen.append(t.page_ref) %}
-                                <button type="button" class="tp-subfilter-chip" id="tp-chip-{{ t.page_ref }}" onclick="filterTasksMode({{ t.page_ref }})">
-                                    s. {{ t.page_ref }}
-                                </button>
-                            {% endif %}
-                        {% endfor %}
+                        {% if counterpart %}
+                        <a href="/courses/play/{{ counterpart['id'] }}" class="twb-action-btn" title="Otwórz powiązany zeszyt ćwiczeń">
+                            <i data-lucide="book" style="width:12px;"></i> Zeszyt ćwiczeń &rarr;
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
 
-                <!-- PASEK WYBORU WIELU ZADAŃ (BATCH GENERATION) -->
+                <!-- KONTENER NA WIDOK TEORII -->
+                <div id="textbookTheoryContainer" style="display: {% if book['kind'] == 'podreczniki' or tasks|length == 0 %}block{% else %}none{% endif %}; padding: 4px 2px 20px 2px; overflow-y: auto; flex: 1;">
+                    <div class="theory-hero-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="theory-badge" id="theoryHeroBadge">Rozdział 1</span>
+                                <span style="font-size: 11px; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" id="theoryHeroBookTitle">{{ book['title'] }}</span>
+                            </div>
+                            {% if counterpart %}
+                            <a href="/courses/play/{{ counterpart['id'] }}" class="btn-theory-jump-tasks" style="text-decoration:none;">
+                                <i data-lucide="book-open" style="width: 13px;"></i> Otwórz Zeszyt Ćwiczeń &rarr;
+                            </a>
+                            {% elif tasks|length > 0 %}
+                            <button type="button" class="btn-theory-jump-tasks" onclick="setTextbookView('exercises')">
+                                <i data-lucide="edit-3" style="width: 13px;"></i> Przejdź do zadań &rarr;
+                            </button>
+                            {% endif %}
+                        </div>
+                        <h2 class="theory-hero-title" id="theoryHeroTitle">1. Liczby i działania (Liczby naturalne)</h2>
+                        <p class="theory-hero-desc" id="theoryHeroDesc">Zapis i odczytywanie wielkich liczb, rzędy wielkości, oś liczbowa, porównywanie i sprytne liczenie.</p>
+                    </div>
+
+                    <!-- STUDIO EDUKACYJNE NOTEBOOKLM (POJAWIA SIĘ PO WYBRANIU PODSUMOWANIA) -->
+                    <div class="theory-ai-studio-strip" id="theoryAiStudioStrip">
+                        <div class="tas-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="tas-badge-icon"><i data-lucide="sparkles" style="width: 15px; color: #c084fc;"></i></div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #fff;">Studio Edukacyjne AI (NotebookLM)</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">Generuj materiały powtórkowe oparte na: <strong id="tasCurrentChapterName" style="color:var(--accent-cyan);">Rozdział 1</strong></div>
+                                </div>
+                            </div>
+                            <span class="tas-status-pill"><span class="hermes-status-dot"></span> Hermes AI Gotowy</span>
+                        </div>
+
+                        <div class="tas-cards-grid">
+                            <!-- KAFELEK 1: INFOGRAFIKA NOTEBOOKLM -->
+                            <button type="button" class="tas-card-btn" onclick="openHermesInfographicChat('infographic')" data-tooltip="Infografika NotebookLM: Kliknij, a Hermes AI zapyta Cię o preferowany schemat (wybór cyfrą 1, 2, 3...) i wygeneruje planszę podsumowującą ten rozdział.">
+                                <div class="tas-card-icon" style="background: rgba(168, 85, 247, 0.18); border-color: rgba(168, 85, 247, 0.35);">
+                                    <i data-lucide="layout-grid" style="width: 20px; color: #c084fc;"></i>
+                                </div>
+                                <div class="tas-card-text">
+                                    <div class="tas-card-title">✨ Infografika NotebookLM</div>
+                                    <div class="tas-card-desc">Mapa myśli, ściąga ze wzorami lub kafelki Bento do tego działu</div>
+                                </div>
+                                <div class="tas-card-action">
+                                    <span>Generuj</span> &rarr;
+                                </div>
+                            </button>
+
+                            <!-- KAFELEK 2: PODCAST AUDIO NOTEBOOKLM -->
+                            <button type="button" class="tas-card-btn" onclick="openHermesInfographicChat('podcast')" data-tooltip="Podcast Audio (NotebookLM): Kliknij, a Hermes AI przygotuje Audio Overview — rozmowę ekspertów omawiających teorię i zadania z tego rozdziału.">
+                                <div class="tas-card-icon" style="background: rgba(236, 72, 153, 0.18); border-color: rgba(236, 72, 153, 0.35);">
+                                    <i data-lucide="headphones" style="width: 20px; color: #f472b6;"></i>
+                                </div>
+                                <div class="tas-card-text">
+                                    <div class="tas-card-title">🎙️ Podcast Audio (NotebookLM)</div>
+                                    <div class="tas-card-desc">Audio Overview: rozmowa dwóch ekspertów tłumaczących pojęcia i pułapki</div>
+                                </div>
+                                <div class="tas-card-action" style="color: #f472b6;">
+                                    <span>Generuj</span> &rarr;
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- WSPÓŁDZIELONA GALERIA KLASOWA: EFEKTY PRACY (INFOGRAFIKI & PODCASTY) -->
+                    <div class="shared-artifacts-section" id="sharedArtifactsSection">
+                        <div class="sas-top-bar">
+                            <div class="sas-title-box">
+                                <i data-lucide="users" style="width: 17px; color: #10b981;"></i>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #fff;">Współdzielone Materiały Klasy 5B (Efekty Pracy AI)</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">Infografiki i podcasty stworzone przez uczniów — domyślnie dostępne dla całej klasy 👥</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <!-- FILTR ROZDZIAŁÓW DLA MATERIAŁÓW -->
+                                <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 9px; padding: 3px 8px;">
+                                    <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan);"><i data-lucide="bookmark" style="width: 12px; vertical-align: middle;"></i> Dział:</span>
+                                    <button type="button" class="sas-chip sas-chap-chip active" id="artChapFilter-active" onclick="filterArtifactsChapter('active', this)">Aktualny (<span id="artActiveChapNum">Rozdział 1</span>)</button>
+                                    <button type="button" class="sas-chip sas-chap-chip" id="artChapFilter-all" onclick="filterArtifactsChapter('all', this)">Wszystkie działy</button>
+                                </div>
+
+                                <!-- FILTR TYPU I WŁASNOŚCI -->
+                                <div class="sas-filter-chips">
+                                    <button type="button" class="sas-chip active" id="chipMine" onclick="filterArtifacts('mine', this)">👤 Moje materiały (<span id="cntArtMine">0</span>)</button>
+                                    <button type="button" class="sas-chip" onclick="filterArtifacts('all', this)">🌐 Wszystkie klasy 5B (<span id="cntArtAll">0</span>)</button>
+                                    <button type="button" class="sas-chip" onclick="filterArtifacts('favorite', this)">⭐ Ulubione (<span id="cntArtFav">0</span>)</button>
+                                    <button type="button" class="sas-chip" onclick="filterArtifacts('infographic', this)">🎨 Infografiki</button>
+                                    <button type="button" class="sas-chip" onclick="filterArtifacts('podcast', this)">🎙️ Podcasty</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sas-grid" id="sharedArtifactsGrid">
+                            <!-- Renderowane dynamicznie przez JS na podstawie bazy danych learning_artifacts -->
+                        </div>
+                    </div>
+
+                    <div class="theory-bento-grid">
+                        <div class="theory-card card-glow-green">
+                            <div class="tc-header">
+                                <i data-lucide="check-circle-2" style="width: 17px; color: #10b981;"></i>
+                                <span>Czego się trzeba nauczyć (Wymagania na kartkówkę i sprawdzian)</span>
+                            </div>
+                            <div class="tc-content" id="theoryCompetenciesList"></div>
+                        </div>
+
+                        <div class="theory-card card-glow-amber">
+                            <div class="tc-header">
+                                <i data-lucide="bookmark" style="width: 17px; color: #f59e0b;"></i>
+                                <span>Najistotniejsza teoria • Definicje, wzory i reguły</span>
+                            </div>
+                            <div class="tc-content" id="theoryRulesList"></div>
+                        </div>
+
+                        <div class="theory-card card-glow-rose">
+                            <div class="tc-header">
+                                <i data-lucide="alert-triangle" style="width: 17px; color: #f43f5e;"></i>
+                                <span>Częste pułapki szkolne i jak ich unikać</span>
+                            </div>
+                            <div class="tc-content" id="theoryPitfallsList"></div>
+                        </div>
+                    </div>
+
+                    {% if counterpart %}
+                    <div style="display: flex; justify-content: center; margin: 20px 0 10px 0;">
+                        <a href="/courses/play/{{ counterpart['id'] }}" class="btn-primary-solve" style="text-decoration:none;">
+                            <i data-lucide="book-open" style="width: 16px;"></i>
+                            <span>Rozwiązuj ćwiczenia w Zeszycie Ćwiczeń &rarr;</span>
+                        </a>
+                    </div>
+                    {% elif tasks|length > 0 %}
+                    <div style="display: flex; justify-content: center; margin: 20px 0 10px 0;">
+                        <button type="button" class="btn-primary-solve" onclick="setTextbookView('exercises')">
+                            <i data-lucide="check-square" style="width: 16px;"></i>
+                            <span>Rozwiązuj zadania z podręcznika na PC</span>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div id="textbookExercisesContainer" style="display: {% if book['kind'] == 'podreczniki' or tasks|length == 0 %}none{% else %}flex{% endif %}; flex-direction: column; flex: 1; min-height: 0;">
+<!-- PASEK WYBORU WIELU ZADAŃ (BATCH GENERATION) -->
                 <div class="batch-tasks-bar" id="batchTasksBar" style="display: none;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="layers" style="width: 15px; color: #10b981;"></i>
@@ -2055,7 +3273,7 @@
                 {% if tasks %}
                     {% for t in tasks %}
                     {% set c = t.parsed_content %}
-                    <div class="task-card {% if t.user_score and t.user_score >= 70 %}completed-card{% endif %}" id="task-card-{{ t.id }}" data-page="{{ t.page_ref or '' }}" data-chapter="{{ t.chapter_name or '1. Liczby naturalne' }}" data-topic="{{ t.topic_name or 'Ćwiczenia' }}">
+                    <div class="task-card {% if t.user_score and t.user_score >= 70 %}completed-card{% endif %}" id="task-card-{{ t.id }}" data-page="{{ t.page_ref or '' }}" data-chapter="{{ t.chapter_name or '1. Liczby naturalne' }}" data-topic="{{ t.topic_name or 'Ćwiczenia' }}" data-chapter-num="{{ t.chapter_num or 1 }}" data-ex-label="{{ t.exercise_label or loop.index }}" data-ex-num="{{ t.exercise_num or loop.index }}">
                         
                         <div class="tc-top">
                             <!-- LEWY GÓRNY RÓG: SELEKCJA (CHECKBOX DO ZESTAWU) ORAZ NUMER I SKAN STRONY -->
@@ -2304,12 +3522,75 @@
                         </div>
                         {% endif %}
 
-                        <!-- Podpowiedź AI (ukryta domyślnie) -->
+                        
+                        <!-- TYP: WYBÓR WIELOKROTNY / JEDNOKROTNY (MULTI-CHOICE Z PODRĘCZNIKA) -->
+                        {% if c.options %}
+                        <div class="choice-task-wrap">
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+                                {% if ',' in (c.expected|default('')) %}
+                                <i data-lucide="check-square" style="width:12px; color:#10b981;"></i> Zaznacz wszystkie pasujące odpowiedzi:
+                                {% else %}
+                                <i data-lucide="circle-dot" style="width:12px; color:#6366f1;"></i> Wybierz właściwą odpowiedź:
+                                {% endif %}
+                            </div>
+                            <div class="choice-buttons-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                {% for opt in c.options %}
+                                <button type="button" 
+                                        class="choice-btn" 
+                                        data-val="{{ opt }}" 
+                                        onclick="toggleTaskChoice(this, {{ t.id }}, {{ 'true' if ',' in (c.expected|default('')) else 'false' }})">
+                                    <span class="choice-indicator"></span>
+                                    <span>{{ opt }}</span>
+                                </button>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" id="choice-inp-{{ t.id }}" class="calc-inp" data-ans="{{ c.expected }}" value="">
+                        </div>
+                        {% endif %}
+
+                        <!-- TYP: POJEDYNCZE POLE WYNIKU (MATEMATYKA PODRĘCZNIK) -->
+                        {% if c.expected and not c.fields and not c.options and not c.multi_chips and not c.sliders %}
+                        <div class="calc-grid" style="margin-bottom: 8px;">
+                            <div class="calc-item" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border-subtle);">
+                                <span class="calc-label" style="font-size: 13px; font-weight: 600; color: #fff;">Twoja odpowiedź:</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" 
+                                           class="calc-inp" 
+                                           data-ans="{{ c.expected }}" 
+                                           placeholder="wpisz liczbę lub wynik..." 
+                                           autocomplete="off" 
+                                           style="width: 220px; text-align: center; font-size: 14px; font-weight: 700; color: var(--accent-cyan);"
+                                           onkeydown="handleInputEnter(event, {{ t.id }})">
+                                    <span class="print-write-box"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="print-math-grid-label">Miejsce na obliczenia:</div>
+                        <div class="print-math-grid"></div>
+                        <div class="print-answer-line">Odpowiedź:<span class="p-dots"></span></div>
+                        {% endif %}
+<!-- Podpowiedź AI (ukryta domyślnie) -->
                         {% if c.hint or c.story %}
                         <div class="task-hint-box" id="hint-box-{{ t.id }}">
                             💡 <strong>Wskazówka:</strong> {{ c.hint if c.hint else 'Zwróć uwagę na dane podane w treści zadania i wykonaj działania po kolei.' }}
                         </div>
                         {% endif %}
+
+                        <!-- MIEJSCE NA OBLICZENIA I BRUDNOPIS DO ZADANIA -->
+                        <div class="task-calc-pad" id="calc-pad-{{ t.id }}">
+                            <button type="button" class="btn-toggle-calc" onclick="toggleTaskPad({{ t.id }})">
+                                <i data-lucide="edit-2" style="width: 12px;"></i>
+                                <span>Miejsce na obliczenia i brudnopis</span>
+                                <i data-lucide="chevron-down" style="width: 12px; margin-left: auto;" id="pad-chev-{{ t.id }}"></i>
+                            </button>
+                            <div class="calc-pad-body" id="pad-body-{{ t.id }}" style="display: none;">
+                                <div class="calc-pad-header">
+                                    <span>📐 Kratka do obliczeń (słupki, notatki)</span>
+                                    <button type="button" class="btn-clear-pad" onclick="clearTaskPad({{ t.id }})">Wyczyść</button>
+                                </div>
+                                <textarea class="calc-pad-textarea" id="pad-text-{{ t.id }}" placeholder="Wpisz tutaj swoje obliczenia, działania pisemne..." oninput="saveTaskPad({{ t.id }})"></textarea>
+                            </div>
+                        </div>
 
                         <!-- JEDNOLITY, SMUKŁY PASEK AKCJI ZADANIA -->
                         <div class="task-action-bar">
@@ -2356,7 +3637,7 @@
                     </div>
                     {% endfor %}
                     <div id="noTasksOnPageNotice" style="display:none; background: rgba(0,0,0,0.3); padding: 32px; border-radius: 16px; text-align: center; color: var(--text-muted);">
-                        Brak wyodrębnionych zadań interaktywnych dla tej konkretnej strony zeszytu. Przejdź do innej strony lub kliknij chip u góry.
+                        Brak wyodrębnionych zadań interaktywnych dla tej konkretnej strony {{ "podręcznika" if book['kind'] == 'podreczniki' else "zeszytu ćwiczeń" }}. Przejdź do innej strony lub kliknij chip u góry.
                     </div>
                 {% else %}
                     <div style="background: rgba(0,0,0,0.3); padding: 36px; border-radius: 16px; text-align: center; color: var(--text-muted);">
@@ -2364,6 +3645,7 @@
                     </div>
                 {% endif %}
             </div>
+            </div><!-- /#textbookExercisesContainer -->
             </div><!-- /#tasksListContainer -->
         </div><!-- /#colTasks -->
 
@@ -2580,6 +3862,18 @@
                 c.classList.toggle('active', bp === currentBookPage);
             });
 
+            // Dwukierunkowa synchronizacja: dopasuj aktywny rozdział do oglądanej strony w PDF
+            if (currentBookPage > 0 && Array.isArray(CHAPTERS_LIST) && CHAPTERS_LIST.length > 0) {
+                const matchingChap = CHAPTERS_LIST.find(c => currentBookPage >= (c.page_start || 0) && currentBookPage <= (c.page_end || 9999));
+                if (matchingChap && matchingChap.num !== activeChapter) {
+                    activeChapter = matchingChap.num;
+                    centerChapter = Math.max(2, Math.min(totalChapters - 1, activeChapter));
+                    renderChapterCarousel();
+                    selectedTasks.clear();
+                    renderTaskChips();
+                }
+            }
+
             // Filtruj zadania po prawej stronie według drukowanej strony książki
             filterTasksByPage(currentBookPage);
         } catch(e) {
@@ -2636,10 +3930,15 @@
 
     // Dynamiczna zmiana zadań po zmianie strony
     function filterTasksByPage(pageNum) {
-        // W trybie Zadania PC lub w widoku dzielonym z wariantami (mode-similar-split)
-        // NIE ukrywamy zadań bazowych! Zestaw bazowy zostaje nienaruszony!
+        if (currentTextbookMode === 'theory') return;
         const grid = document.getElementById('hybridGrid');
         if (currentGridMode === 'tasks' || (grid && grid.classList.contains('mode-similar-split'))) {
+            return;
+        }
+
+        // Jeśli uczeń ma wybrane konkretne numery zadań (multi-select), respektujemy je
+        if (selectedTasks && selectedTasks.size > 0) {
+            applyTaskFilters();
             return;
         }
 
@@ -2648,9 +3947,10 @@
         
         cards.forEach(card => {
             const p = card.getAttribute('data-page');
-            // Jeśli zadanie ma przypisany numer strony, pokazujemy tylko na tej stronie.
-            // Jeśli nie ma (jest uniwersalne), wyświetlamy zawsze.
-            if (!p || p === "" || parseInt(p, 10) === pageNum) {
+            const chNum = parseInt(card.getAttribute('data-chapter-num') || '1', 10);
+            const pageMatches = (p && parseInt(p, 10) === pageNum);
+            const chapterMatches = (chNum === activeChapter);
+            if (pageMatches || (chapterMatches && (!p || p === ""))) {
                 card.style.display = 'flex';
                 visibleCount++;
             } else {
@@ -2658,12 +3958,47 @@
             }
         });
 
-        const emptyNotice = document.getElementById('noTasksOnPageNotice');
-        if (emptyNotice) {
-            emptyNotice.style.display = (visibleCount === 0) ? 'block' : 'none';
+        // Jeśli na tej stronie nie ma zadań z tego rozdziału, pokazujemy wszystkie zadania z aktywnego rozdziału
+        if (visibleCount === 0) {
+            cards.forEach(card => {
+                const chNum = parseInt(card.getAttribute('data-chapter-num') || '1', 10);
+                if (chNum === activeChapter) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                }
+            });
         }
 
-        updateFilterChips(pageNum);
+        const badgeCount = document.getElementById('tntBadgeCount');
+        if (badgeCount) badgeCount.innerText = `${visibleCount} zadań`;
+
+        const emptyNotice = document.getElementById('noTasksOnPageNotice');
+        if (emptyNotice) {
+            if (visibleCount === 0) {
+                emptyNotice.style.display = 'block';
+                const chapObj = CHAPTERS_LIST.find(c => c.num === activeChapter);
+                const chapTitle = chapObj ? chapObj.title : `Rozdział ${activeChapter}`;
+                const bookKind = "{{ book['kind'] }}";
+                const itemLabel = bookKind === 'podreczniki' ? 'podręcznika' : 'zeszytu ćwiczeń';
+                emptyNotice.innerHTML = `
+                    <div style="font-weight: 700; font-size: 13px; color: #fff; margin-bottom: 6px;">
+                        Brak wyodrębnionych zadań interaktywnych dla tej strony ${itemLabel}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+                        Dla: <strong>${chapTitle}</strong> zadania na PC są w trakcie przygotowywania lub na tej stronie nie ma ćwiczeń.
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="btn-pill-action" onclick="selectChapter(1)" style="padding: 6px 14px; font-size: 11px; background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;">
+                            ✓ Rozdział 1 — Przejdź do zadań ze str. 11–12
+                        </button>
+                    </div>
+                `;
+            } else {
+                emptyNotice.style.display = 'none';
+            }
+        }
+
+        updateMasteredCount();
     }
 
     let currentGridMode = 'split';
@@ -2703,23 +4038,445 @@
         }, 300);
     }
 
-    let currentFilterChapter = '1. Liczby naturalne';
-    let currentFilterTopic = 'Działania pamięciowe i sprytne liczenie';
-    let currentFilterPage = 'all';
+    // ==========================================================================
+    // NOWY ZOPTYMALIZOWANY SYSTEM FILTRÓW (ROZDZIAŁ 3 CYFRY + ZADANIA MULTI-SELECT)
+    // ORAZ OBSŁUGA WIDOKU PODRĘCZNIKA (ĆWICZENIA VS TEORIA)
+    // ==========================================================================
 
+    const BOOK_SUBJECT = {{ book['subject']|tojson }};
+    const BOOK_TITLE = {{ book['title']|tojson }};
+    const BOOK_KIND = {{ book['kind']|tojson }};
+
+    const THEORY_DATABASE_MATEMATYKA = {
+        1: {
+            title: "Rozdział 1: Liczby naturalne i działania",
+            desc: "Zapis i odczytywanie wielkich liczb, rzędy wielkości, oś liczbowa, porównywanie i sprytne liczenie.",
+            competencies: [
+                { title: "Zapis i odczytywanie liczb wielocyfrowych", text: "Dziel cyfry na 3-cyfrowe grupy od prawej strony (np. 5 263 807). Zapisuj słownie i cyframi liczby do biliona." },
+                { title: "Rzędy wielkości", text: "Jedności, dziesiątki, setki, tysiące (10³), miliony (10⁶), miliardy (10⁹), biliony (10¹²). Pamiętaj: 1 miliard to 1000 milionów!" },
+                { title: "Oś liczbowa i ustalanie podziałki", text: "Oblicz wartość 1 kreski: odejmij liczby od siebie i podziel wynik przez liczbę odcinków (kresek) między nimi." },
+                { title: "Porównywanie wielkich liczb", text: "Liczba z większą ilością cyfr jest zawsze większa. Przy tej samej liczbie cyfr porównuj cyfry od lewej (od najwyższego rzędu)." },
+                { title: "Cyfry pod kleksami", text: "W nierównościach analizuj cyfry od najwyższego rzędu, aby dobrać cyfry spełniające warunek (np. 3 859 < 3 [?] 5 9 < 6 010)." },
+                { title: "Działania w pamięci i sprytne liczenie", text: "Dopełniaj do pełnych dziesiątek i setek, korzystaj z przemienności i łączności dodawania oraz mnożenia." }
+            ],
+            rules: [
+                { title: "Tabela rzędów wielkości i liczby zer", content: "• Tysiąc = 1 000 (3 zera)<br>• Milion = 1 000 000 (6 zer)<br>• Miliard = 1 000 000 000 (9 zer)<br>• Bilion = 1 000 000 000 000 (12 zer)" },
+                { title: "Złota reguła odczytywania liczb", content: "Grupuj cyfry po 3 <strong>od prawej strony</strong> (od końca). Zapis: <em>304 070</em> czytamy: trzysta cztery tysiące siedemdziesiąt." },
+                { title: "Wzór na krok jednostki na osi", content: "Krok podziałki = <code>(Wartość B - Wartość A) / liczba podziałek</code>" }
+            ],
+            pitfalls: [
+                "Mylenie miliona (6 zer) z miliardem (9 zer) — 2 mld zł to 2 000 mln zł!",
+                "Zera ukryte w środku liczby — 'dwieście milionów trzysta dwa tysiące trzynaście' to 200 302 013 (nie gub zer w rzędach dziesiątek i setek!).",
+                "Oś liczbowa — nigdy nie strzelaj na oko, zawsze policz podziałki między znanymi liczbami."
+            ]
+        },
+        2: {
+            title: "Rozdział 2: Własności liczb naturalnych",
+            desc: "Dzielniki i wielokrotności, cechy podzielności, liczby pierwsze i złożone, NWD i NWW.",
+            competencies: [
+                { title: "Cechy podzielności", text: "Przez 2 (parzyste), przez 5 (końcówka 0 lub 5), przez 10 (końcówka 0), przez 3 i 9 (suma cyfr dzieli się przez 3 lub 9)." },
+                { title: "Liczby pierwsze i złożone", text: "Liczba pierwsza ma dokładnie 2 dzielniki: 1 i samą siebie (2, 3, 5, 7, 11...). Liczby 0 i 1 nie są pierwsze ani złożone!" },
+                { title: "NWD i NWW", text: "NWD — Największy Wspólny Dzielnik (np. NWD(12, 18) = 6). NWW — Najmniejsza Wspólna Wielokrotność (np. NWW(4, 6) = 12)." }
+            ],
+            rules: [
+                { title: "Cechy podzielności przez 3 i 9", content: "Liczba jest podzielna przez 3, gdy suma jej cyfr dzieli się przez 3. Liczba jest podzielna przez 9, gdy suma jej cyfr dzieli się przez 9." }
+            ],
+            pitfalls: [
+                "Uznawanie liczby 1 za liczbę pierwszą (1 ma tylko jeden dzielnik!).",
+                "Mylenie podzielności przez 3 z podzielnością przez 9."
+            ]
+        },
+        3: {
+            title: "Rozdział 3: Ułamki zwykłe",
+            desc: "Licznik i mianownik, ułamek jako iloraz, skracanie i rozszerzanie, dodawanie i odejmowanie.",
+            competencies: [
+                { title: "Pojęcie ułamka", text: "Mianownik określa liczbę równych części całości, a licznik ile części wzięto." },
+                { title: "Skracanie i rozszerzanie", text: "Mnożenie lub dzielenie licznika i mianownika przez tę samą liczbę różną od zera." },
+                { title: "Wspólny mianownik", text: "Przed dodaniem ułamków o różnych mianownikach sprowadź je do wspólnego mianownika." }
+            ],
+            rules: [
+                { title: "Ułamek jako iloraz", content: "Kreska ułamkowa to znak dzielenia: <code>a / b = a : b</code>." }
+            ],
+            pitfalls: [
+                "Dodawanie mianowników do siebie (np. 1/4 + 2/4 = 3/4, a nie 3/8!)."
+            ]
+        },
+        4: {
+            title: "Rozdział 4: Figury na płaszczyźnie",
+            desc: "Proste, odcinki, kąty, rodzaje trójkątów i czworokątów, osie symetrii.",
+            competencies: [
+                { title: "Kąty i ich rodzaje", text: "Ostry (< 90°), prosty (90°), rozwarty (90°–180°), półpełny (180°), pełny (360°)." },
+                { title: "Suma kątów", text: "W trójkącie suma kątów wynosi zawsze 180°, a w czworokącie 360°." }
+            ],
+            rules: [
+                { title: "Suma kątów w trójkącie", content: "<code>α + β + γ = 180°</code>" }
+            ],
+            pitfalls: [
+                "Mylenie kątów przyległych (suma 180°) z wierzchołkowymi (są równe)."
+            ]
+        },
+        5: {
+            title: "Rozdział 5: Ułamki dziesiętne",
+            desc: "Zapis z przecinkiem, rzędy dziesiętne, dodawanie i odejmowanie pisemne.",
+            competencies: [
+                { title: "Rzędy po przecinku", text: "Pierwsze miejsce: części dziesiąte (0,1), drugie: setne (0,01), trzecie: tysięczne (0,001)." },
+                { title: "Działania pisemne", text: "Podpisuj zawsze przecinek dokładnie pod przecinkiem!" }
+            ],
+            rules: [
+                { title: "Mnożenie i dzielenie przez 10, 100", content: "Mnożenie: przecinek w prawo. Dzielenie: przecinek w lewo." }
+            ],
+            pitfalls: [
+                "Gubienie przecinka przy dodawaniu pisemnym."
+            ]
+        },
+        6: {
+            title: "Rozdział 6: Pola figur",
+            desc: "Jednostki pola, pole prostokąta, kwadratu, trójkąta, równoległoboku i trapezu.",
+            competencies: [
+                { title: "Wzory na pola", text: "Prostokąt: a·b; Trójkąt: (a·h)/2; Równoległobok: a·h; Trapez: ((a+b)·h)/2." },
+                { title: "Jednostki pola", text: "1 a = 100 m², 1 ha = 10 000 m² = 100 a." }
+            ],
+            rules: [
+                { title: "Wzór na pole trójkąta", content: "<code>P = (a · h) / 2</code>" }
+            ],
+            pitfalls: [
+                "Mnożenie długości w różnych jednostkach bez uprzedniej zamiany (np. cm z dm)."
+            ]
+        },
+        7: {
+            title: "Rozdział 7: Liczby całkowite",
+            desc: "Liczby ujemne i dodatnie, oś liczbowa poniżej zera, dodawanie i odejmowanie.",
+            competencies: [
+                { title: "Oś liczbowa poniżej zera", text: "Im dalej w lewo od zera, tym liczba jest mniejsza (-10 < -2)." },
+                { title: "Dodawanie liczb o różnych znakach", text: "Obliczanie salda (zyski i długi), np. -7 + 4 = -3." }
+            ],
+            rules: [
+                { title: "Liczby przeciwne", content: "Liczby leżące w tej samej odległości od zera, ale po przeciwnych stronach (np. 5 i -5)." }
+            ],
+            pitfalls: [
+                "Błędne przekonanie, że -10 jest większe od -2."
+            ]
+        },
+        8: {
+            title: "Rozdział 8: Objętość figur",
+            desc: "Prostopadłościan i sześcian, litry i mililitry, siatki brył.",
+            competencies: [
+                { title: "Jednostki objętości", text: "1 dm³ = 1 litr = 1000 ml = 1000 cm³." },
+                { title: "Wzór na objętość", text: "V = a · b · c (prostopadłościan), V = a³ (sześcian)." }
+            ],
+            rules: [
+                { title: "Objętość prostopadłościanu", content: "<code>V = a · b · c</code>" }
+            ],
+            pitfalls: [
+                "Nieuwzględnienie jednakowych jednostek dla wszystkich trzech krawędzi."
+            ]
+        }
+    };
+
+    const THEORY_DATABASE_POLSKI = {
+        1: {
+            title: "Dział 1: Dziwny ten świat (Język polski)",
+            desc: "Pierwsze lądowanie na Księżycu (misja Apollo 11). Pisownia wyrazów z ó, rz, ż, ch wymiennym. Komiks, dymki i notatki marginesowe.",
+            competencies: [
+                { title: "Pisownia wyrazów z 'ó' wymiennym", text: "'ó' piszemy, gdy w formach wyrazu lub wyrazach pokrewnych wymienia się na o, e lub a (np. stół : stoły, wiózł : wieźć, powtórzy : powtarzać)." },
+                { title: "Pisownia wyrazów z 'rz' wymiennym", text: "'rz' piszemy, gdy wymienia się na 'r' (np. dworzec : dworce, rowerzysta : rower, powtórzy : powtarzać)." },
+                { title: "Pisownia wyrazów z 'ż' wymiennym", text: "'ż' piszemy, gdy wymienia się na: g, dz, h, z, ź, s (np. obniżyć : nisko/niski, zagrożenie : groza, dróżka : droga)." },
+                { title: "Pisownia wyrazów z 'ch' wymiennym", text: "'ch' piszemy, gdy wymienia się na 'sz' (np. ucichnie : cicho/cisza, słychać : słyszeć, ucho : uszy)." },
+                { title: "Odczytywanie informacji z komiksu", text: "Powiązanie tekstu w dymkach z rysunkiem, odczytywanie notatek na marginesach (np. wymowa nazwisk obcych: Kennedy'ego — czyt. Kenediego)." }
+            ],
+            rules: [
+                { title: "Główne reguły wymiany liter (Zasady z podręcznika)", content: "• <strong>ó : o, e, a</strong> (wóz : wozy, powtórzy : powtarzać)<br>• <strong>rz : r</strong> (starzec : stary, morze : morski)<br>• <strong>ż : g, dz, h, z, ź, s</strong> (nóżka : noga, ważyć : waga)<br>• <strong>ch : sz</strong> (mucha : muszka, cicho : cisza)" },
+                { title: "Wyrazy z lekcji 'Lądowanie na Księżycu' (s. 16)", content: "• <em>słychać</em> (bo: słyszeć, ch:sz)<br>• <em>ucichnie</em> (bo: cisza, ch:sz)<br>• <em>powtórzy</em> (bo: powtarzać, rz:r i ó:a)<br>• <em>obniżyć</em> (bo: nisko, ż:s)<br>• <em>zagrożenie</em> (bo: groza, ż:z)" },
+                { title: "Notatki marginesowe i słowniczek", content: "• <strong>skandować</strong> — wypowiadać coś rytmicznie i głośno.<br>• <strong>Kennedy'ego</strong> — czyt. <em>Kenediego</em> (Przylądek Kennedy'ego na Florydzie, misja Apollo 11)." }
+            ],
+            pitfalls: [
+                "Mylenie 'rz' z 'ż' — jeśli wyraz wymienia się na 'r', piszemy 'rz' (np. powtórzy : powtarzać).",
+                "Słowa z 'ó' niewymiennym — niektóre słowa nie mają wymiany (ogórek, córka, góra) i ich pisownię trzeba zapamiętać.",
+                "Zwracaj uwagę na objaśnienia wymowy i słowniczki na marginesie podręcznika."
+            ]
+        }
+    };
+
+    function getTheoryForChapter(subject, chapNum) {
+        const subjNorm = (subject || '').toLowerCase();
+        let db = THEORY_DATABASE_MATEMATYKA;
+        if (subjNorm.includes('polsk')) {
+            db = THEORY_DATABASE_POLSKI;
+        }
+        if (db && db[chapNum]) {
+            return db[chapNum];
+        }
+        const chapObj = CHAPTERS_LIST.find(c => c.num === chapNum) || { title: `Rozdział ${chapNum}` };
+        return {
+            title: chapObj.title || `Rozdział ${chapNum}`,
+            desc: `Informacje z podręcznika i podsumowanie materiału dla przedmiotu: ${subject}.`,
+            competencies: [
+                { title: "Zrozumienie tematu", text: `Przyswojenie kluczowych pojęć i treści z działu: ${chapObj.title}.` },
+                { title: "Praca z tekstem podręcznika", text: "Uważne czytanie definicji, wyróżnień i schematów na stronach podręcznika." }
+            ],
+            rules: [
+                { title: "Ważne zasady i pojęcia", content: "Zapoznaj się z wyróżnionymi ramkami, komiksami i podsumowaniami na stronach tego rozdziału." }
+            ],
+            pitfalls: [
+                "Zwracaj uwagę na reguły ortograficzne, definicje i przykłady podane w podręczniku."
+            ]
+        };
+    }
+
+    const THEORY_DATABASE = new Proxy({}, {
+        get: function(target, prop) {
+            const num = parseInt(prop, 10) || 1;
+            return getTheoryForChapter(BOOK_SUBJECT, num);
+        }
+    });
+
+    const CHAPTERS_LIST = [
+        {% for c in chapters_data %}
+        { 
+            num: {{ c['chapter_num'] }}, 
+            title: {{ c['chapter_title']|tojson }},
+            page_start: {{ c.get('page_start', 1) }},
+            page_end: {{ c.get('page_end', 999) }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let totalChapters = CHAPTERS_LIST.length || 8;
+    let activeChapter = {{ last_active_chapter|default(1) }};
+    let centerChapter = Math.max(2, Math.min(totalChapters - 1, activeChapter));
+    let selectedTasks = new Set(); // Multi-select zadań w rozdziale
+    let currentTextbookMode = "{% if book['kind'] == 'podreczniki' or tasks|length == 0 %}theory{% else %}exercises{% endif %}";
+
+    // Karuzela 3 cyfr rozdziału
+    function getVisibleTrio() {
+        let c = centerChapter;
+        if (c <= 1) c = 2;
+        if (c >= totalChapters) c = totalChapters - 1;
+        return [c - 1, c, c + 1];
+    }
+
+    function renderChapterCarousel() {
+        const container = document.getElementById('optChapTrio');
+        if (!container) return;
+
+        const trio = getVisibleTrio();
+        let html = '';
+        trio.forEach(num => {
+            const isActive = (num === activeChapter);
+            const isCenter = (num === centerChapter);
+            const posClass = isCenter ? 'center-pos' : (num < centerChapter ? 'left-pos' : 'right-pos');
+            html += `<button type="button" class="opt-chap-btn ${isActive ? 'active' : ''} ${posClass}" onclick="selectChapter(${num})" title="Przejdź do Rozdziału ${num}">${num}</button>`;
+        });
+        container.innerHTML = html;
+
+        // Aktualizacja etykiety nazwy rozdziału
+        const tag = document.getElementById('optChapNameTag');
+        if (tag) {
+            const chapObj = CHAPTERS_LIST.find(c => c.num === activeChapter) || { title: `Rozdział ${activeChapter}` };
+            tag.innerText = chapObj.title;
+            tag.title = chapObj.title;
+        }
+
+        // Aktualizacja nagłówka w widoku teorii
+        updateTheoryContent();
+    }
+
+    function shiftCarousel(delta) {
+        let newCenter = centerChapter + delta;
+        if (newCenter >= 2 && newCenter <= totalChapters - 1) {
+            centerChapter = newCenter;
+            const trio = getVisibleTrio();
+            if (!trio.includes(activeChapter)) {
+                activeChapter = centerChapter;
+            }
+            renderChapterCarousel();
+            selectedTasks.clear();
+            renderTaskChips();
+            applyTaskFilters();
+        }
+    }
+
+    function selectChapter(num) {
+        activeChapter = num;
+        // Wybranie skrajnej cyfry powoduje jej przesunięcie do środka!
+        if (num < centerChapter && num > 1) {
+            centerChapter = num;
+        } else if (num > centerChapter && num < totalChapters) {
+            centerChapter = num;
+        } else if (num === 1) {
+            centerChapter = 2;
+        } else if (num === totalChapters) {
+            centerChapter = totalChapters - 1;
+        }
+
+        renderChapterCarousel();
+        selectedTasks.clear(); // reset selekcji zadań po zmianie rozdziału
+        renderTaskChips();
+        applyTaskFilters();
+        if (typeof renderSharedArtifacts === 'function') renderSharedArtifacts();
+
+        if (window.lucide) lucide.createIcons();
+
+        // Nawiguj skan do początku wybranego rozdziału
+        const chapObj = CHAPTERS_LIST.find(c => c.num === num);
+        if (chapObj && chapObj.page_start) {
+            jumpBookPage(chapObj.page_start);
+        }
+    }
+
+    // Obsługa wyboru wielu zadań w rozdziale (Multi-select)
+    function renderTaskChips() {
+        const container = document.getElementById('optTaskChipsStrip');
+        if (!container) return;
+
+        // Zbieramy unikalne numery/etykiety zadań z kart dla aktywnego rozdziału
+        const cards = document.querySelectorAll('#tasksListContainer .task-card');
+        const availableTasks = [];
+        const seenLabels = new Set();
+
+        cards.forEach(card => {
+            const chNum = parseInt(card.getAttribute('data-chapter-num') || '1', 10);
+            if (chNum === activeChapter) {
+                const exLabel = card.getAttribute('data-ex-label') || '';
+                if (exLabel && !seenLabels.has(exLabel)) {
+                    seenLabels.add(exLabel);
+                    availableTasks.push(exLabel);
+                }
+            }
+        });
+
+        if (availableTasks.length === 0) {
+            container.innerHTML = '<span style="font-size:11px; color:#64748b; font-style:italic;">Brak zadań w rozdziale</span>';
+            return;
+        }
+
+        let html = '';
+        const isAllActive = (selectedTasks.size === 0);
+        html += `<button type="button" class="opt-task-chip chip-all ${isAllActive ? 'active' : ''}" onclick="clearTaskFilter()" title="Pokaż wszystkie zadania z tego rozdziału">Wszystkie (${availableTasks.length})</button>`;
+
+        availableTasks.forEach(label => {
+            const isSelected = selectedTasks.has(label);
+            html += `<button type="button" class="opt-task-chip ${isSelected ? 'active' : ''}" onclick="toggleTaskFilter('${label}')" title="Zadanie ${label}">Zad. ${label}</button>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function toggleTaskFilter(label) {
+        if (selectedTasks.has(label)) {
+            selectedTasks.delete(label);
+        } else {
+            selectedTasks.add(label);
+        }
+        renderTaskChips();
+        applyTaskFilters();
+    }
+
+    function clearTaskFilter() {
+        selectedTasks.clear();
+        renderTaskChips();
+        applyTaskFilters();
+    }
+
+    // Przełącznik widoku podręcznika: Ćwiczenia vs Najistotniejsza teoria
+    function setTextbookView(mode) {
+        currentTextbookMode = mode;
+        const btnEx = document.getElementById('tntBtnExercises');
+        const btnTh = document.getElementById('tntBtnTheory');
+        const exercisesWrap = document.getElementById('textbookExercisesContainer');
+        const theoryWrap = document.getElementById('textbookTheoryContainer');
+        const bannerWrap = document.getElementById('textbookWorkspaceBanner');
+
+        if (mode === 'theory') {
+            if (btnEx) btnEx.classList.remove('active');
+            if (btnTh) btnTh.classList.add('active');
+            if (exercisesWrap) exercisesWrap.style.display = 'none';
+            if (bannerWrap) bannerWrap.style.display = 'none';
+            if (theoryWrap) theoryWrap.style.display = 'block';
+            updateTheoryContent();
+        } else {
+            if (btnTh) btnTh.classList.remove('active');
+            if (btnEx) btnEx.classList.add('active');
+            if (theoryWrap) theoryWrap.style.display = 'none';
+            if (bannerWrap) bannerWrap.style.display = 'flex';
+            if (exercisesWrap) exercisesWrap.style.display = 'flex';
+            applyTaskFilters();
+        }
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function updateTheoryContent() {
+        const theory = THEORY_DATABASE[activeChapter] || THEORY_DATABASE[1];
+        
+        const badge = document.getElementById('theoryHeroBadge');
+        const title = document.getElementById('theoryHeroTitle');
+        const desc = document.getElementById('theoryHeroDesc');
+        const tasName = document.getElementById('tasCurrentChapterName');
+        if (badge) badge.innerText = `Rozdział ${activeChapter}`;
+        if (title) title.innerText = theory.title;
+        if (desc) desc.innerText = theory.desc;
+        if (tasName) tasName.innerText = theory.title;
+
+        // Karta 1: Czego się trzeba nauczyć
+        const compList = document.getElementById('theoryCompetenciesList');
+        if (compList) {
+            let html = '';
+            theory.competencies.forEach(c => {
+                html += `<div class="comp-item">
+                    <span class="comp-bullet">✓</span>
+                    <div><strong>${c.title}:</strong> ${c.text}</div>
+                </div>`;
+            });
+            compList.innerHTML = html;
+        }
+
+        // Karta 2: Żółte ramki
+        const rulesList = document.getElementById('theoryRulesList');
+        if (rulesList) {
+            let html = '';
+            theory.rules.forEach(r => {
+                html += `<div class="theory-rule-box">
+                    <div class="theory-rule-title">${r.title}</div>
+                    <div>${r.content}</div>
+                </div>`;
+            });
+            rulesList.innerHTML = html;
+        }
+
+        // Karta 3: Pułapki
+        const pitfallsList = document.getElementById('theoryPitfallsList');
+        if (pitfallsList) {
+            let html = '';
+            theory.pitfalls.forEach(p => {
+                html += `<div class="pitfall-item">
+                    <span style="color:#f43f5e; font-weight:800;">!</span>
+                    <div>${p}</div>
+                </div>`;
+            });
+            pitfallsList.innerHTML = html;
+        }
+    }
+
+    // Filtracja kart zadań na żywo
     function applyTaskFilters() {
+        if (currentTextbookMode === 'theory') return;
+
         const cards = document.querySelectorAll('#tasksListContainer .task-card');
         let visibleCount = 0;
+
         cards.forEach(card => {
-            const p = card.getAttribute('data-page');
-            const ch = card.getAttribute('data-chapter');
-            const top = card.getAttribute('data-topic');
+            const chNum = parseInt(card.getAttribute('data-chapter-num') || '1', 10);
+            const exLabel = card.getAttribute('data-ex-label') || '';
+            const exNum = card.getAttribute('data-ex-num') || '';
 
-            const matchChap = (currentFilterChapter === 'all' || ch === currentFilterChapter);
-            const matchTop = (currentFilterTopic === 'all' || top === currentFilterTopic);
-            const matchPage = (currentFilterPage === 'all' || !p || p === "" || parseInt(p, 10) === parseInt(currentFilterPage, 10));
+            const matchChapter = (chNum === activeChapter);
+            let matchTask = true;
+            if (selectedTasks.size > 0) {
+                matchTask = selectedTasks.has(exLabel) || selectedTasks.has(exNum);
+            }
 
-            if (matchChap && matchTop && matchPage) {
+            if (matchChapter && matchTask) {
                 card.style.display = 'flex';
                 visibleCount++;
             } else {
@@ -2727,61 +4484,758 @@
             }
         });
 
+        // Licznik opanowanych i plakietka
+        const badgeCount = document.getElementById('tntBadgeCount');
+        if (badgeCount) badgeCount.innerText = `${visibleCount} zadań`;
+
         const emptyNotice = document.getElementById('noTasksOnPageNotice');
         if (emptyNotice) {
-            emptyNotice.style.display = (visibleCount === 0) ? 'block' : 'none';
+            if (visibleCount === 0) {
+                emptyNotice.style.display = 'block';
+                const chapObj = CHAPTERS_LIST.find(c => c.num === activeChapter);
+                const chapTitle = chapObj ? chapObj.title : `Rozdział ${activeChapter}`;
+                const bookKind = "{{ book['kind'] }}";
+                const itemLabel = bookKind === 'podreczniki' ? 'podręcznika' : 'zeszytu ćwiczeń';
+                emptyNotice.innerHTML = `
+                    <div style="font-weight: 700; font-size: 13px; color: #fff; margin-bottom: 6px;">
+                        Brak zadań w: ${chapTitle}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+                        W tym rozdziale nie ma jeszcze dodanych zadań na PC. Wybierz inny rozdział lub przejdź do dostępnych ćwiczeń.
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="btn-pill-action" onclick="selectChapter(1)" style="padding: 6px 14px; font-size: 11px; background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;">
+                            ✓ Rozdział 1 — Przejdź do zadań ze str. 11–12
+                        </button>
+                    </div>
+                `;
+            } else {
+                emptyNotice.style.display = 'none';
+            }
         }
     }
 
-    function filterByChapter(chap) {
-        currentFilterChapter = chap;
-        document.querySelectorAll('.tpf-row .tp-filter-chip').forEach(c => c.classList.remove('active'));
-        if (chap === 'all') {
-            const el = document.getElementById('filter-chap-all');
-            if (el) el.classList.add('active');
-        } else {
-            const el = document.getElementById('filter-chap-1');
-            if (el) el.classList.add('active');
+    // Inline kalkulator i brudnopis per zadanie (Autosave w localStorage)
+    function toggleTaskPad(taskId) {
+        const body = document.getElementById('pad-body-' + taskId);
+        const chev = document.getElementById('pad-chev-' + taskId);
+        if (!body) return;
+        const isHidden = (body.style.display === 'none' || body.style.display === '');
+        body.style.display = isHidden ? 'block' : 'none';
+        if (chev) {
+            chev.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         }
-        applyTaskFilters();
+        if (isHidden) {
+            const saved = localStorage.getItem('task_scratch_' + taskId);
+            const textarea = document.getElementById('pad-text-' + taskId);
+            if (saved && textarea && !textarea.value) {
+                textarea.value = saved;
+            }
+            if (textarea) textarea.focus();
+        }
     }
 
-    function filterByTopic(topic) {
-        currentFilterTopic = topic;
-        currentFilterPage = 'all'; // reset page filter when picking topic
-        document.querySelectorAll('#topicFilterRow .tp-subfilter-chip').forEach(c => c.classList.remove('active'));
-        if (topic === 'all') {
-            const el = document.getElementById('filter-topic-all');
-            if (el) el.classList.add('active');
-        } else if (topic.includes('Zapis')) {
-            const el = document.getElementById('filter-topic-1');
-            if (el) el.classList.add('active');
-        } else {
-            const el = document.getElementById('filter-topic-2');
-            if (el) el.classList.add('active');
+    function saveTaskPad(taskId) {
+        const textarea = document.getElementById('pad-text-' + taskId);
+        if (textarea) {
+            localStorage.setItem('task_scratch_' + taskId, textarea.value);
         }
-        applyTaskFilters();
     }
 
-    function filterTasksMode(page) {
-        currentFilterPage = page;
-        currentFilterTopic = 'all'; // clear topic constraint
-        document.querySelectorAll('#topicFilterRow .tp-subfilter-chip').forEach(c => {
-            c.classList.remove('active');
-            if (page === 'all' && c.id === 'filter-topic-all') {
-                c.classList.add('active');
-            } else if (c.id === 'tp-chip-' + page) {
-                c.classList.add('active');
+    function clearTaskPad(taskId) {
+        const textarea = document.getElementById('pad-text-' + taskId);
+        if (textarea) {
+            textarea.value = '';
+            localStorage.removeItem('task_scratch_' + taskId);
+        }
+    }
+
+    // Inicjalizacja zapamiętanych notatek w brudnopisach
+    function restoreAllTaskPads() {
+        document.querySelectorAll('.calc-pad-textarea').forEach(ta => {
+            const m = ta.id.match(/pad-text-(\d+)/);
+            if (m) {
+                const taskId = m[1];
+                const saved = localStorage.getItem('task_scratch_' + taskId);
+                if (saved) {
+                    ta.value = saved;
+                    const body = document.getElementById('pad-body-' + taskId);
+                    if (body) body.style.display = 'block';
+                    const chev = document.getElementById('pad-chev-' + taskId);
+                    if (chev) chev.style.transform = 'rotate(180deg)';
+                }
             }
         });
-        applyTaskFilters();
+    }
 
-        if (currentGridMode === 'split' && page !== 'all') {
-            jumpBookPage(page);
+    // ==========================================================================
+    // Inicjalizacja współdzielonych artefaktów (infografik i podcastów)
+    let currentArtifactsStore = {{ artifacts|tojson|safe if artifacts else '[]' }};
+    let currentArtifactFilter = 'mine'; // DOMYŚLNIE WŁĄCZONY: Moje materiały
+    let currentArtifactChapterScope = 'active'; // 'active' (bieżący rozdział) lub 'all' (wszystkie działy)
+    const currentUserId = {{ user['id'] if user else 1 }};
+    const currentUserName = {{ (user['name'] if user and user['name'] else (user['login'] if user else 'Administrator'))|tojson }};
+
+    function renderSharedArtifacts() {
+        const grid = document.getElementById('sharedArtifactsGrid');
+        if (!grid) return;
+
+        // Aktualizacja etykiety bieżącego rozdziału w filtrze
+        const lblChap = document.getElementById('artActiveChapNum');
+        if (lblChap) lblChap.innerText = `Rozdz. ${activeChapter}`;
+
+        // 1. Filtr zakresu rozdziałów: tylko bieżący rozdział czy wszystkie działy
+        let pool = currentArtifactsStore;
+        if (currentArtifactChapterScope === 'active') {
+            pool = pool.filter(a => (a.chapter_num === activeChapter || a.chapter_num === 1));
+        }
+
+        // 2. Obliczanie liczników dla bieżącego zakresu
+        // Za "moje materiały" uznajemy: zgodność user_id LUB obecność imienia usera w autorze LUB brak przypisanego user_id (gdy klasa ma 1 aktywnego twórcę)
+        const isMine = (a) => {
+            if (a.user_id && a.user_id === currentUserId) return true;
+            if (a.author_name && (a.author_name.includes(currentUserName) || a.author_name.includes('Stanisław') || a.author_name.includes('Admin'))) return true;
+            if (!a.user_id) return true; // Domyślnie dla jednoosobowej pracy
+            return false;
+        };
+
+        const mineCount = pool.filter(isMine).length;
+        const favCount = pool.filter(a => a.is_favorite == 1).length;
+        const allCount = pool.length;
+
+        const elMine = document.getElementById('cntArtMine');
+        if (elMine) elMine.innerText = mineCount;
+        const elAll = document.getElementById('cntArtAll');
+        if (elAll) elAll.innerText = allCount;
+        const elFav = document.getElementById('cntArtFav');
+        if (elFav) elFav.innerText = favCount;
+
+        // 3. Filtrowanie właściwe
+        let filtered = pool.filter(a => {
+            if (currentArtifactFilter === 'mine') {
+                return isMine(a);
+            } else if (currentArtifactFilter === 'favorite') {
+                return (a.is_favorite == 1);
+            } else if (currentArtifactFilter === 'infographic') {
+                return (a.artifact_type === 'infographic');
+            } else if (currentArtifactFilter === 'podcast') {
+                return (a.artifact_type === 'podcast');
+            }
+            return true; // 'all'
+        });
+
+        // 4. Sortowanie: Ulubione (gwiazdka) zawsze na samej górze, potem najnowsze
+        filtered.sort((a, b) => {
+            if (b.is_favorite !== a.is_favorite) {
+                return (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0);
+            }
+            return b.id - a.id;
+        });
+
+        // 5. Renderowanie kafelków lub stanu pustego
+        if (filtered.length === 0) {
+            let emptyMsg = '';
+            if (currentArtifactFilter === 'mine') {
+                emptyMsg = `Nie masz jeszcze własnych materiałów w ${currentArtifactChapterScope === 'active' ? `Rozdziale ${activeChapter}` : 'żadnym rozdziale'}. Kliknij powyżej <strong>Infografika</strong> lub <strong>Podcast</strong>, aby stworzyć planszę, albo przełącz na <strong>🌐 Wszystkie klasy 5B</strong>!`;
+            } else if (currentArtifactFilter === 'favorite') {
+                emptyMsg = 'Nie dodałeś jeszcze żadnych materiałów do ulubionych (kliknij ⭐ w lewym górnym rogu karty).';
+            } else {
+                emptyMsg = `Brak materiałów typu <strong>${currentArtifactFilter}</strong> dla ${currentArtifactChapterScope === 'active' ? `Rozdziału ${activeChapter}` : 'wybranych działów'}.`;
+            }
+
+            grid.innerHTML = `
+            <div style="grid-column: 1/-1; padding: 26px; text-align: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 14px; color: #94a3b8; font-size: 12px;">
+                <i data-lucide="sparkles" style="width: 26px; color: #a855f7; margin-bottom: 8px; display: inline-block;"></i>
+                <div style="font-size: 13px; color: #e2e8f0; font-weight: 600;">${emptyMsg}</div>
+                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
+                    <button type="button" class="sas-chip" style="background:#6366f1; color:#fff; font-weight:700;" onclick="filterArtifacts('all', document.querySelectorAll('.sas-filter-chips .sas-chip')[1])">Pokaż wszystkie materiały (${allCount})</button>
+                    ${currentArtifactChapterScope === 'active' ? `<button type="button" class="sas-chip" style="background:rgba(255,255,255,0.08); color:#e2e8f0;" onclick="filterArtifactsChapter('all', document.getElementById('artChapFilter-all'))">Szukaj we wszystkich działach</button>` : ''}
+                </div>
+            </div>`;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(a => {
+            const isInfo = (a.artifact_type === 'infographic');
+            const badgeClass = isInfo ? 'ac-type-info' : 'ac-type-pod';
+            const typeLabel = isInfo ? '🎨 Infografika A4' : '🎙️ Podcast Audio';
+            const btnClass = isInfo ? 'ac-btn-info' : 'ac-btn-pod';
+            const actionText = isInfo ? 'Otwórz planszę' : 'Odtwórz';
+            const iconName = isInfo ? 'layout-grid' : 'play';
+            const isFav = (a.is_favorite == 1);
+            const isLiked = (a.is_liked == 1);
+            const likersText = a.liked_by_names ? `Polubili: ${escapeHtml(a.liked_by_names)}` : 'Kliknij, aby polubić ten materiał!';
+
+            html += `
+            <div class="artifact-card" id="art-card-${a.id}">
+                <div class="ac-top">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <!-- GWIAZDKA W LEWYM GÓRNYM ROGU (ULUBIONE NA POCZĄTKU LISTY) -->
+                        <button type="button" class="ac-star-btn ${isFav ? 'favorited' : ''}" onclick="toggleFavoriteArtifact(${a.id})" title="${isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych (wyświetla się na początku listy)'}">
+                            ⭐
+                        </button>
+                        <span class="ac-type-badge ${badgeClass}">${typeLabel}</span>
+                        <span style="font-size:10px; color:var(--accent-cyan); font-weight:700;">Rozdz. ${a.chapter_num || 1}</span>
+                    </div>
+
+                    <!-- SERDUSZKO Z LICZNIKIEM I DYMKIEM KTO DAŁ LIKE -->
+                    <button type="button" class="ac-like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLikeArtifact(${a.id})" data-tooltip="${likersText}">
+                        <i data-lucide="heart" style="width: 12px; ${isLiked ? 'fill: currentColor;' : ''}"></i>
+                        <span id="like-cnt-${a.id}">${a.likes_count || 0}</span>
+                    </button>
+                </div>
+
+                <h4 class="ac-title">${escapeHtml(a.title)}</h4>
+                <p class="ac-desc">${escapeHtml(a.description || 'Materiały edukacyjne przygotowane z NotebookLM.')}</p>`;
+
+            if (!isInfo && a.audio_url) {
+                html += `
+                <div style="margin: 6px 0;">
+                    <audio controls src="${a.audio_url}" style="width: 100%; height: 32px; border-radius: 6px;"></audio>
+                </div>`;
+            }
+
+            html += `
+                <div class="ac-actions">
+                    <span class="ac-author"><i data-lucide="user" style="width:11px; color:#10b981;"></i> ${escapeHtml(a.author_name || 'Uczeń 5B')}</span>
+                    <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+                        ${isInfo ? `
+                        <button type="button" class="ac-btn-action ${btnClass}" onclick="openInfographicModal(${a.id})">
+                            <i data-lucide="${iconName}" style="width: 13px;"></i> ${actionText}
+                        </button>
+                        <button type="button" class="btn-clear-pad" style="color:#94a3b8; font-size:11px;" onclick="downloadArtifact(${a.id})" title="Pobierz planszę HTML">
+                            <i data-lucide="download" style="width: 13px;"></i>
+                        </button>
+                        ` : `
+                        <span style="font-size: 11px; color: #f472b6; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="headphones" style="width: 13px;"></i> ${a.duration || '2:15'}
+                        </span>
+                        `}
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        grid.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function filterArtifacts(type, btn) {
+        currentArtifactFilter = type;
+        document.querySelectorAll('.sas-filter-chips .sas-chip').forEach(c => c.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        renderSharedArtifacts();
+    }
+
+    function filterArtifactsChapter(scope, btn) {
+        currentArtifactChapterScope = scope;
+        document.querySelectorAll('.sas-chap-chip').forEach(c => c.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        renderSharedArtifacts();
+    }
+
+    async function toggleFavoriteArtifact(artId) {
+        const art = currentArtifactsStore.find(a => a.id === artId);
+        if (!art) return;
+        try {
+            const res = await fetch(`/api/artifacts/${artId}/toggle-favorite`, { method: 'POST' });
+            const d = await res.json();
+            if (d.status === 'ok') {
+                art.is_favorite = d.is_favorite;
+                renderSharedArtifacts();
+            }
+        } catch(e) {
+            console.error(e);
         }
     }
 
-    // Ergonomiczne kontrolki (Chips, Pills, Sliders, Multi-Select)
+    async function toggleLikeArtifact(artId) {
+        const art = currentArtifactsStore.find(a => a.id === artId);
+        if (!art) return;
+        try {
+            const res = await fetch(`/api/artifacts/${artId}/toggle-like`, { method: 'POST' });
+            const d = await res.json();
+            if (d.status === 'ok') {
+                art.is_liked = d.is_liked;
+                art.likes_count = d.likes_count;
+                art.liked_by_names = d.liked_by_names;
+                renderSharedArtifacts();
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+    function openInfographicModal(artId) {
+        const art = currentArtifactsStore.find(a => a.id === artId);
+        if (!art) return;
+
+        const modal = document.getElementById('infographicModal');
+        const titleEl = document.getElementById('imModalTitle');
+        const bodyEl = document.getElementById('imModalBody');
+
+        if (titleEl) titleEl.innerText = art.title;
+        if (bodyEl) bodyEl.innerHTML = art.content_html || '<p>Brak podglądu planszy.</p>';
+        if (modal) modal.style.display = 'flex';
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeInfographicModal() {
+        const modal = document.getElementById('infographicModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function downloadArtifact(artId) {
+        const art = currentArtifactsStore.find(a => a.id === artId);
+        if (!art) return;
+        const blob = new Blob([art.content_html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${art.title.replace(/\s+/g, '_')}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+// ==========================================================================
+    // INTERAKTYWNY KREATOR NOTEBOOKLM PRZEZ HERMES AI (INFOGRAFIKA & PODCAST)
+    // ==========================================================================
+    let infographicWizardState = {
+        mode: 'infographic', // 'infographic' lub 'podcast'
+        step: 0,
+        chapter: 1,
+        type: '',
+        layout: '',
+        detail: ''
+    };
+
+    function openHermesInfographicChat(mode = 'infographic') {
+        if (typeof toggleHermesChat === 'function') {
+            toggleHermesChat(true);
+        } else {
+            const drawer = document.getElementById('hermesChatDrawer');
+            if (drawer) drawer.style.display = 'flex';
+        }
+
+        infographicWizardState = {
+            mode: mode,
+            step: 1,
+            chapter: activeChapter,
+            type: '',
+            layout: '',
+            detail: ''
+        };
+
+        const theory = THEORY_DATABASE[activeChapter] || THEORY_DATABASE[1];
+        const chapObj = CHAPTERS_LIST.find(c => c.num === activeChapter) || { title: `Rozdział ${activeChapter}` };
+
+        // Wyczyść poprzednie wiadomości w oknie Hermes AI
+        const container = document.getElementById('hermesChatMessages');
+        if (container) container.innerHTML = '';
+
+        if (mode === 'podcast') {
+            const welcomeText = `🎙️ Cześć! Przygotuję dla Ciebie <strong>Podcast Audio Overview (NotebookLM)</strong> do materiału:<br><strong style="color:#f472b6;">${chapObj.title}</strong>.<br><br>Dopasujmy format podcastu. <strong>Wybierz rodzaj rozmowy</strong> (wpisz cyfrę 1, 2 lub 3 albo kliknij poniżej):`;
+
+            const optionsHtml = `
+            <div class="quick-options-grid">
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('1')">
+                    <span class="opt-num-badge">1</span>
+                    <span>🎙️ Dynamiczna rozmowa dwóch ekspertów (Podsumowanie całego działu)</span>
+                </button>
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('2')">
+                    <span class="opt-num-badge">2</span>
+                    <span>⚡ Szybka powtórka przed kartkówką (3-minutowy brief z pojęć)</span>
+                </button>
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('3')">
+                    <span class="opt-num-badge">3</span>
+                    <span>🧩 Głębokie omówienie trudnych zadań i pułapek szkolnych</span>
+                </button>
+            </div>`;
+
+            if (typeof addHermesMsg === 'function') {
+                addHermesMsg(welcomeText, true, optionsHtml);
+            }
+        } else {
+            const welcomeText = `🎨 Cześć! Przygotuję dla Ciebie <strong>wizualną infografikę edukacyjną (NotebookLM)</strong> do materiału:<br><strong style="color:var(--accent-cyan);">${chapObj.title}</strong>.<br><br>Dopasujmy szczegóły. <strong>Wybierz rodzaj infografiki</strong> (wpisz cyfrę 1, 2, 3 lub 4 albo kliknij poniżej):`;
+
+            const optionsHtml = `
+            <div class="quick-options-grid">
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('1')">
+                    <span class="opt-num-badge">1</span>
+                    <span>📐 Ściąga z regułami, wzorami i tabelą zer</span>
+                </button>
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('2')">
+                    <span class="opt-num-badge">2</span>
+                    <span>🧠 Mapa myśli i powiązania kluczowych pojęć</span>
+                </button>
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('3')">
+                    <span class="opt-num-badge">3</span>
+                    <span>⚡ Krok po kroku: algorytm rozwiązywania zadań</span>
+                </button>
+                <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('4')">
+                    <span class="opt-num-badge">4</span>
+                    <span>📊 Zestawienie porównawcze (Tabela)</span>
+                </button>
+            </div>`;
+
+            if (typeof addHermesMsg === 'function') {
+                addHermesMsg(welcomeText, true, optionsHtml);
+            }
+        }
+
+        window.hermesChatCallback = handleInfographicChoice;
+    }
+
+    function handleInfographicChoice(inputVal) {
+        const val = (inputVal || '').trim();
+        const state = infographicWizardState;
+        const chapObj = CHAPTERS_LIST.find(c => c.num === state.chapter) || { title: `Rozdział ${state.chapter}` };
+        const theory = THEORY_DATABASE[state.chapter] || THEORY_DATABASE[1];
+
+        if (state.mode === 'podcast') {
+            // ŚCIEŻKA PODCASTU AUDIO
+            if (state.step === 1) {
+                const typeMap = {
+                    '1': 'Dynamiczna rozmowa dwóch ekspertów (Podsumowanie działu)',
+                    '2': 'Szybka powtórka przed kartkówką (3-minutowy brief)',
+                    '3': 'Głębokie omówienie trudnych zadań i pułapek szkolnych'
+                };
+                const chosen = typeMap[val] || val;
+                state.type = chosen;
+                state.step = 2;
+
+                const nextText = `Świetny wybór: <strong>${chosen}</strong>!<br><br><strong>Krok 2 z 2: Jaki styl i ton rozmowy preferujesz?</strong> (wpisz 1 lub 2 albo kliknij poniżej):`;
+                const optionsHtml = `
+                <div class="quick-options-grid">
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('1')">
+                        <span class="opt-num-badge">1</span>
+                        <span>😄 Luźna rozmowa z humorem i prostymi skojarzeniami</span>
+                    </button>
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('2')">
+                        <span class="opt-num-badge">2</span>
+                        <span>🎓 Dydaktyczny styl korepetytora z naciskiem na sprawdzian</span>
+                    </button>
+                </div>`;
+
+                addHermesMsg(nextText, true, optionsHtml);
+
+            } else if (state.step === 2) {
+                const styleMap = {
+                    '1': 'Luźna rozmowa z humorem i prostymi skojarzeniami',
+                    '2': 'Dydaktyczny styl korepetytora z naciskiem na sprawdzian'
+                };
+                const chosen = styleMap[val] || val;
+                state.layout = chosen;
+                state.step = 3; // Gotowość do podsumowania i startu
+
+                // PODSUMOWANIE WYBORU I START
+                const summaryHtml = `
+                <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 12px; margin-top: 6px;">
+                    <div style="font-size: 11px; color: #f472b6; font-weight: 700; margin-bottom: 6px;">📋 Podsumowanie Twojego wyboru:</div>
+                    <div style="font-size: 11px; line-height: 1.5; color: #e2e8f0;">
+                        • <strong>Temat:</strong> ${chapObj.title}<br>
+                        • <strong>Format rozmowy:</strong> ${state.type}<br>
+                        • <strong>Styl:</strong> ${state.layout}
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-start-generate" style="background: linear-gradient(135deg, #ec4899, #d946ef);" onclick="executeArtifactGeneration()">
+                        <span>🚀 START: Generuj podcast i udostępnij w klasie 5B</span>
+                    </button>
+                    <button type="button" class="opt-quick-btn" style="justify-content:center; opacity:0.8;" onclick="openHermesInfographicChat('podcast')">
+                        <span>↩️ Zmień parametry</span>
+                    </button>
+                </div>`;
+
+                addHermesMsg(`Cudownie! Mamy komplet informacji. Kliknij poniżej <strong>Start</strong>, a wygeneruję scenariusz podcastu i natychmiast udostępnię nagranie dla Twojej klasy:`, true, summaryHtml);
+            }
+        } else {
+            // ŚCIEŻKA INFOGRAFIKI
+            if (state.step === 1) {
+                const typeMap = {
+                    '1': 'Ściąga z regułami, wzorami i tabelą zer',
+                    '2': 'Mapa myśli i powiązania kluczowych pojęć',
+                    '3': 'Krok po kroku: algorytm rozwiązywania zadań',
+                    '4': 'Zestawienie porównawcze (Tabela)'
+                };
+                const chosen = typeMap[val] || val;
+                state.type = chosen;
+                state.step = 2;
+
+                const nextText = `Wybrano rodzaj: <strong>${chosen}</strong>!<br><br><strong>Krok 2 z 3: Wybierz układ wizualny</strong> (wpisz cyfrę 1–3 lub kliknij poniżej):`;
+                const optionsHtml = `
+                <div class="quick-options-grid">
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('1')">
+                        <span class="opt-num-badge">1</span>
+                        <span>🍱 Bento Grid (Modułowe kafelki Dark Pro)</span>
+                    </button>
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('2')">
+                        <span class="opt-num-badge">2</span>
+                        <span>🪜 Oś pionowa (Ścieżka powtórkowa krok po kroku)</span>
+                    </button>
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('3')">
+                        <span class="opt-num-badge">3</span>
+                        <span>📄 Karta edukacyjna do druku A4 do zeszytu</span>
+                    </button>
+                </div>`;
+
+                addHermesMsg(nextText, true, optionsHtml);
+
+            } else if (state.step === 2) {
+                const layoutMap = {
+                    '1': 'Bento Grid (Modułowe kafelki Dark Pro)',
+                    '2': 'Oś pionowa (Ścieżka powtórkowa)',
+                    '3': 'Karta edukacyjna do druku A4'
+                };
+                const chosen = layoutMap[val] || val;
+                state.layout = chosen;
+                state.step = 3;
+
+                const nextText = `Układ: <strong>${chosen}</strong>.<br><br><strong>Krok 3 z 3: Jaki zakres materiału ma objąć plansza?</strong> (wpisz 1 lub 2):`;
+                const optionsHtml = `
+                <div class="quick-options-grid">
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('1')">
+                        <span class="opt-num-badge">1</span>
+                        <span>🎯 Sama esencja na kartkówkę + żółte ramki i pułapki</span>
+                    </button>
+                    <button type="button" class="opt-quick-btn" onclick="handleInfographicChoice('2')">
+                        <span class="opt-num-badge">2</span>
+                        <span>📚 Pełne podsumowanie z przykładami zadań</span>
+                    </button>
+                </div>`;
+
+                addHermesMsg(nextText, true, optionsHtml);
+
+            } else if (state.step === 3) {
+                const detailMap = {
+                    '1': 'Sama esencja na kartkówkę + żółte ramki i pułapki',
+                    '2': 'Pełne podsumowanie z przykładami zadań'
+                };
+                const chosen = detailMap[val] || val;
+                state.detail = chosen;
+                state.step = 4; // Gotowość do podsumowania i startu
+
+                // PODSUMOWANIE WYBORU I START
+                const summaryHtml = `
+                <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 12px; padding: 12px; margin-top: 6px;">
+                    <div style="font-size: 11px; color: #c084fc; font-weight: 700; margin-bottom: 6px;">📋 Podsumowanie Twojej infografiki:</div>
+                    <div style="font-size: 11px; line-height: 1.5; color: #e2e8f0;">
+                        • <strong>Temat:</strong> ${chapObj.title}<br>
+                        • <strong>Rodzaj:</strong> ${state.type}<br>
+                        • <strong>Układ wizualny:</strong> ${state.layout}<br>
+                        • <strong>Zakres:</strong> ${state.detail}
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn-start-generate" onclick="executeArtifactGeneration()">
+                        <span>🚀 START: Generuj infografikę i udostępnij w klasie 5B</span>
+                    </button>
+                    <button type="button" class="opt-quick-btn" style="justify-content:center; opacity:0.8;" onclick="openHermesInfographicChat('infographic')">
+                        <span>↩️ Zmień parametry wyboru</span>
+                    </button>
+                </div>`;
+
+                addHermesMsg(`Cudownie! Wszystko mamy przygotowane. Gdy klikniesz <strong>Start</strong>, asystent wygeneruje planszę, sformatuje prompt dla NotebookLM i <strong>automatycznie zapisze ją we współdzielonych materiałach Twojej klasy 5B</strong>:`, true, summaryHtml);
+            }
+        }
+    }
+
+    // FIZYCZNE GENEROWANIE, ZAPIS DO BAZY I PUBLIKACJA W GALERII
+    async function executeArtifactGeneration() {
+        const state = infographicWizardState;
+        const chapObj = CHAPTERS_LIST.find(c => c.num === state.chapter) || { title: `Rozdział ${state.chapter}` };
+        const theory = THEORY_DATABASE[state.chapter] || THEORY_DATABASE[1];
+
+        if (state.mode === 'podcast') {
+            const nlmPodcastPrompt = `Jako autor edukacyjnego podcastu dla uczniów klasy 5 przygotuj scenariusz Audio Overview omawiający materiał z podręcznika "${BOOK_TITLE}".
+PRZEDMIOT: ${BOOK_SUBJECT}
+TEMAT: ${chapObj.title}
+FORMAT ROZMOWY: ${state.type}
+STYL I TON: ${state.layout}
+GŁÓWNE ŹRÓDŁO WIEDZY: https://sm.b2bgliwice.pl/static/notebooklm_knowledge_base.md
+
+KLUCZOWE ZAGADNIENIA DO OMÓWIENIA:
+${theory.competencies.map(c => '• ' + c.title + ': ' + c.text).join('\n')}
+
+NAJWAŻNIEJSZE REGUŁY I WZORY:
+${theory.rules.map(r => '• ' + r.title + ': ' + r.content.replace(/<[^>]*>/g, '')).join('\n')}
+
+PUŁAPKI SZKOLNE, NA KTÓRE TRZEBA ZWRÓCIĆ UWAGĘ:
+${theory.pitfalls.map(p => '⚠️ ' + p).join('\n')}`;
+
+            const cleanPrompt = nlmPodcastPrompt.replace(/\\n/g, '\n');
+
+            try {
+                const res = await fetch('/api/artifacts/save', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        book_id: {{ book['id'] }},
+                        chapter_num: state.chapter,
+                        artifact_type: 'podcast',
+                        title: `Podcast Audio: ${chapObj.title}`,
+                        description: `Rozmowa: ${state.type}. Styl: ${state.layout}.`,
+                        audio_url: '/static/audio/podcasts/podcast_math_ch1.mp3',
+                        duration: '2:15',
+                        is_shared: true
+                    })
+                });
+                const d = await res.json();
+                if (d.status === 'ok' && d.artifact) {
+                    currentArtifactsStore.unshift(d.artifact);
+                    renderSharedArtifacts();
+                }
+            } catch(e) {
+                console.error(e);
+            }
+
+            const resultHtml = `
+            <div class="nlm-prompt-card" style="border-color: rgba(236, 72, 153, 0.4);">
+                <div class="nlm-prompt-header" style="color: #f472b6;">
+                    <span>🎙️ Podcast Audio Overview</span>
+                    <span style="font-size: 10px; color: #10b981;">✓ Zapisano i udostępniono</span>
+                </div>
+                <div style="padding: 6px 0;">
+                    <audio controls src="/static/audio/podcasts/podcast_math_ch1.mp3" style="width: 100%; height: 32px; border-radius: 6px;"></audio>
+                </div>
+                <div class="nlm-prompt-text" id="nlmPromptText">${escapeHtml(cleanPrompt)}</div>
+                <div class="nlm-actions-row">
+                    <button type="button" class="nlm-btn-copy" style="background: #ec4899;" onclick="copyNlmPrompt()">
+                        <i data-lucide="copy" style="width: 13px;"></i> Kopiuj prompt do NotebookLM
+                    </button>
+                </div>
+            </div>`;
+
+            addHermesMsg(`🎉 <strong>Podcast gotowy i udostępniony!</strong> Materiał został pomyślnie zapisany w <strong>Współdzielonych Materiałach Klasy 5B</strong>:`, true, resultHtml);
+
+        } else {
+            // INFOGRAFIKA
+            const visualInfographicHtml = `
+            <div class="infographic-board">
+                <div class="ib-header">
+                    <div class="ib-title">📐 ${escapeHtml(chapObj.title)}</div>
+                    <div class="ib-subtitle">Podsumowanie wizualne • Klasa 5 • ${escapeHtml(state.type)}</div>
+                </div>
+                <div class="ib-grid">
+                    <div class="ib-card ib-green">
+                        <div class="ib-card-title">🎯 Czego się trzeba nauczyć</div>
+                        <div class="ib-card-content">
+                            ${theory.competencies.slice(0, 3).map(c => `<div style="margin-bottom:6px;"><strong>${escapeHtml(c.title)}:</strong> ${escapeHtml(c.text)}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="ib-card ib-purple">
+                        <div class="ib-card-title">📌 Kluczowe reguły i wzory</div>
+                        <div class="ib-card-content">
+                            ${theory.rules.map(r => `<div style="margin-bottom:6px;"><strong>${escapeHtml(r.title)}:</strong> ${r.content}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="ib-card ib-cyan">
+                        <div class="ib-card-title">⚡ Metoda rozwiązywania</div>
+                        <div class="ib-card-content">
+                            <div class="ib-formula">Krok po kroku: Analiza rzędów i właściwości</div>
+                            <p>Zawsze rozpisuj obliczenia na brudnopisie i sprawdzaj jednostki!</p>
+                        </div>
+                    </div>
+                    <div class="ib-card ib-rose">
+                        <div class="ib-card-title">⚠️ Pułapki szkolne</div>
+                        <div class="ib-card-content">
+                            ${theory.pitfalls.map(p => `<p style="margin:2px 0;">• ${escapeHtml(p)}</p>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            const nlmPrompt = `Jako ekspert dydaktyki matematyki dla klasy 5 szkoły podstawowej przygotuj wizualną infografikę edukacyjną podsumowującą materiał z podręcznika "Matematyka z plusem 5".
+TEMAT: ${chapObj.title}
+TYP INFOGRAFIKI: ${state.type}
+UKŁAD WIZUALNY: ${state.layout}
+ZAKRES: ${state.detail}
+GŁÓWNE ŹRÓDŁO WIEDZY: https://sm.b2bgliwice.pl/static/notebooklm_knowledge_base.md
+
+WYMAGANIA MERYTORYCZNE:
+${theory.competencies.map(c => '• ' + c.title + ': ' + c.text).join('\n')}
+
+KLUCZOWE REGUŁY I WZORY:
+${theory.rules.map(r => '• ' + r.title + ': ' + r.content.replace(/<[^>]*>/g, '')).join('\n')}
+
+TYPOWE BŁĘDY I PUŁAPKI DO WYRÓŻNIENIA:
+${theory.pitfalls.map(p => '⚠️ ' + p).join('\n')}`;
+
+            const cleanPromptForDisplay = nlmPrompt.replace(/\\n/g, '\n');
+            let createdArtId = null;
+
+            try {
+                const res = await fetch('/api/artifacts/save', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        book_id: {{ book['id'] }},
+                        chapter_num: state.chapter,
+                        artifact_type: 'infographic',
+                        title: `Infografika: ${chapObj.title}`,
+                        description: `Układ: ${state.layout}. Typ: ${state.type}.`,
+                        content_html: visualInfographicHtml,
+                        is_shared: true
+                    })
+                });
+                const d = await res.json();
+                if (d.status === 'ok' && d.artifact) {
+                    createdArtId = d.artifact.id;
+                    currentArtifactsStore.unshift(d.artifact);
+                    renderSharedArtifacts();
+                }
+            } catch(e) {
+                console.error(e);
+            }
+
+            const resultHtml = `
+            <div class="nlm-prompt-card">
+                <div class="nlm-prompt-header">
+                    <span>✨ Infografika Edukacyjna</span>
+                    <span style="font-size: 10px; color: #10b981;">✓ Zapisano i udostępniono</span>
+                </div>
+                <div style="display:flex; gap:8px; margin: 4px 0;">
+                    <button type="button" class="nlm-btn-copy" style="background:#10b981;" onclick="openInfographicModal(${createdArtId || 1})">
+                        <i data-lucide="eye" style="width: 13px;"></i> Otwórz planszę pełny ekran
+                    </button>
+                    <button type="button" class="nlm-btn-preview" onclick="window.print()">
+                        <i data-lucide="printer" style="width: 13px;"></i> Drukuj A4
+                    </button>
+                </div>
+                <div class="nlm-prompt-text" id="nlmPromptText">${escapeHtml(cleanPromptForDisplay)}</div>
+                <div class="nlm-actions-row">
+                    <button type="button" class="nlm-btn-copy" onclick="copyNlmPrompt()">
+                        <i data-lucide="copy" style="width: 13px;"></i> Kopiuj prompt do NotebookLM
+                    </button>
+                </div>
+            </div>`;
+
+            addHermesMsg(`🎉 <strong>Infografika gotowa!</strong> Stworzyłem planszę i zapisałem ją we współdzielonych materiałach Twojej klasy 5B:`, true, resultHtml);
+        }
+
+        window.hermesChatCallback = null;
+        if (window.lucide) lucide.createIcons();
+    }
+// Obsługa wyboru opcji w zadaniach wielokrotnego / jednokrotnego wyboru (Podręcznik)
+    function toggleTaskChoice(btn, taskId, isMulti) {
+        const card = document.getElementById('task-card-' + taskId) || btn.closest('.task-card');
+        if (!card) return;
+        const hiddenInp = document.getElementById('choice-inp-' + taskId) || card.querySelector('input[type="hidden"].calc-inp');
+        if (!hiddenInp) return;
+
+        if (isMulti) {
+            btn.classList.toggle('active');
+            const activeBtns = card.querySelectorAll('.choice-btn.active');
+            const vals = Array.from(activeBtns).map(b => b.getAttribute('data-val') || b.innerText.trim());
+            hiddenInp.value = vals.join(',');
+        } else {
+            card.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            hiddenInp.value = btn.getAttribute('data-val') || btn.innerText.trim();
+        }
+    }
+// Ergonomiczne kontrolki (Chips, Pills, Sliders, Multi-Select)
     function setFieldValueFromChip(chipBtn, val) {
         const parent = chipBtn.closest('.calc-item') || chipBtn.closest('.calc-group');
         if (!parent) return;
@@ -2850,8 +5304,16 @@
             const validOptions = rawAns.split('|').map(s => s.trim().toLowerCase().replace(',', '.'));
             const userVal = inp.value.trim().toLowerCase().replace(',', '.');
 
-            const isMatch = validOptions.some(opt => opt === userVal);
-            const container = inp.closest('.calc-item') || inp.closest('.slider-card') || inp.closest('.pill-group') || inp;
+            let isMatch = validOptions.some(opt => opt === userVal);
+            if (!isMatch && rawAns.includes(',')) {
+                const expSet = rawAns.split(',').map(s => s.trim().toLowerCase().replace(',', '.')).sort().join(',');
+                const usrSet = userVal.split(',').map(s => s.trim().toLowerCase().replace(',', '.')).sort().join(',');
+                if (expSet === usrSet && userVal !== '') {
+                    isMatch = true;
+                }
+            }
+
+            const container = inp.closest('.calc-item') || inp.closest('.choice-task-wrap') || inp.closest('.slider-card') || inp.closest('.pill-group') || inp;
             if (isMatch && userVal !== '') {
                 inp.style.borderColor = '#10b981';
                 inp.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
@@ -3763,6 +6225,17 @@
         initPDF();
         updateMasteredCount();
 
+        // Inicjalizacja nowego paska filtrów (rozdziały 3 cyfry + zadania multi-select)
+        renderChapterCarousel();
+        renderTaskChips();
+        restoreAllTaskPads();
+        if (currentTextbookMode === 'theory') {
+            setTextbookView('theory');
+        } else {
+            applyTaskFilters();
+        }
+        if (typeof renderSharedArtifacts === 'function') renderSharedArtifacts();
+
         // Sprawdź czy użytkownik wybrał tryb Zadania PC (np. z URL ?mode=tasks lub localStorage)
         const urlParams = new URLSearchParams(window.location.search);
         const initialMode = urlParams.get('mode') || localStorage.getItem('sm_course_play_mode') || 'split';
@@ -3775,4 +6248,28 @@
         if (pdfZoom === 'fit') renderPdfPage(currentPdfPage);
     });
 </script>
+
+<!-- MODAL PEŁNEGO PODGLĄDU INFOGRAFIKI -->
+<div class="infographic-modal" id="infographicModal" style="display: none;">
+    <div class="im-box">
+        <div class="im-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="layout-grid" style="width: 17px; color: #a855f7;"></i>
+                <span style="font-size: 14px; font-weight: 700; color: #fff;" id="imModalTitle">Wizualna Infografika Edukacyjna</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="btn-theory-jump-tasks" onclick="window.print()" title="Drukuj planszę A4" style="background:#8b5cf6;">
+                    <i data-lucide="printer" style="width: 13px;"></i> Drukuj A4
+                </button>
+                <button type="button" class="hcd-icon-btn" onclick="closeInfographicModal()" title="Zamknij">
+                    <i data-lucide="x" style="width: 18px;"></i>
+                </button>
+            </div>
+        </div>
+        <div class="im-body" id="imModalBody">
+            <!-- Wstrzykiwana treść planszy -->
+        </div>
+    </div>
+</div>
+
 {% endblock %}
