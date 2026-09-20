@@ -4902,6 +4902,41 @@ def get_omniroute_key() -> str:
     return "sk-bf98b1ba44aefca43b2f9f5664db6e15"
 
 
+def _clean_card_front(text: str) -> str:
+    """Oczyszcza przód fiszki ze sztucznych pytań typu 'Jak powiesz po angielsku: ...', zostawiając czyste hasło/słowo."""
+    import re
+    s = str(text).strip()
+    # Usunięcie tagów markdown z początku/końca
+    s = re.sub(r'^\*+\s*', '', s)
+    s = re.sub(r'\s*\*+$', '', s)
+
+    prefixes = [
+        r"^\[[^\]]+\]\s*",                               # np. [Angielski • Rozdz. 2]
+        r"^jak powiesz po angielsku\s*:\s*",
+        r"^jak jest po angielsku\s*:\s*",
+        r"^jak przetłumaczysz na angielski\s*:\s*",
+        r"^jak przetłumaczysz\s*:\s*",
+        r"^co oznacza słowo\s*:\s*",
+        r"^co to jest\s*:\s*",
+        r"^wyjaśnij pojęcie\s*:\s*",
+        r"^podaj znaczenie\s*:\s*",
+        r"^co znaczy\s*:\s*",
+        r"^przetłumacz na angielski\s*:\s*",
+        r"^przetłumacz\s*:\s*",
+    ]
+    for p in prefixes:
+        s = re.sub(p, "", s, flags=re.IGNORECASE).strip()
+
+    # Ponowne usunięcie ewentualnych gwiazdek bolda
+    s = s.strip("*").strip()
+
+    # Jeśli to pojedyncze słowo lub zwrot zakończony pytajnikiem (np. "piórnik?"), usuń '?'
+    if s.endswith("?") and not any(q in s.lower() for q in ["ile", "kiedy", "dlaczego", "gdzie", "który", "czy"]):
+        s = s[:-1].strip()
+
+    return s
+
+
 def _extract_fallback_flashcards(subject: str, chapter_title: str, context_text: str, count: int = 10) -> list[dict]:
     """Deterministyczny ekstraktor fiszek wprost ze struktury tekstu podręcznika gdy AI nie jest dostępne."""
     import re
@@ -4916,7 +4951,7 @@ def _extract_fallback_flashcards(subject: str, chapter_title: str, context_text:
             tr_c = tr.strip()
             if len(w_c) >= 3 and len(tr_c) >= 2 and not w_c.lower().startswith(("lesson", "unit", "str", "page")):
                 res.append({
-                    "front": f"Jak powiesz po angielsku: **{tr_c}**?",
+                    "front": tr_c,
                     "back": f"**{w_c}**\n\n*Przykład:* We learn about this in {chapter_title}.",
                     "type": "słownictwo",
                     "topic": chapter_title
@@ -4930,9 +4965,9 @@ def _extract_fallback_flashcards(subject: str, chapter_title: str, context_text:
         if m:
             term = m.group(1).strip()
             defn = m.group(2).strip()
-            if len(term) >= 4 and len(defn) >= 10 and not any(r['front'].endswith(term) for r in res):
+            if len(term) >= 4 and len(defn) >= 10 and not any(r['front'].lower() == term.lower() for r in res):
                 res.append({
-                    "front": f"[{subject}] Wyjaśnij pojęcie: **{term}**",
+                    "front": term,
                     "back": defn,
                     "type": "reguła" if "reguł" in term.lower() or "wzór" in term.lower() else "pojęcie",
                     "topic": chapter_title
@@ -4954,38 +4989,37 @@ def call_ai_flashcards(subject: str, book_title: str, chapter_title: str, topics
         pedagogy_focus = (
             "GŁÓWNY NACISK NA JĘZYK ANGIELSKI:\n"
             "Wyłuskaj ISTOTNE SŁOWNICTWO (vocabulary), wyrażenia oraz kluczowe reguły gramatyczne z tego działu.\n"
-            "Dla słówek:\n"
-            "- 'front': pytanie 'Jak powiesz po angielsku: [polskie znaczenie]?' LUB angielskie słowo/wyrażenie\n"
-            "- 'back': **[angielskie słowo/wyrażenie]** + fonetyka/uwaga + krótki, naturalny przykład zdania po angielsku z tłumaczeniem w nawiasie.\n"
-            "Dla gramatyki / reguł:\n"
-            "- 'front': reguła gramatyczna lub zdanie z luką [...] do uzupełnienia\n"
-            "- 'back': poprawna forma + zwięzłe wyjaśnienie dlaczego (np. '3. osoba l.poj. he/she/it -> dodajemy -s/-es')."
+            "ZASADA DLA PRZODU (FRONT):\n"
+            "- 'front' dla słówek: SAMO POLSKIE SŁOWO (np. 'piórnik', 'stołówka szkolna', 'linijka') — BEZ zbędnych pytań 'Jak powiesz po angielsku:' ani znaku zapytania na końcu!\n"
+            "- 'back' dla słówek: **[angielskie słowo / zwrot]** + zwięzły, naturalny przykład zdania po angielsku z tłumaczeniem w nawiasie.\n"
+            "- 'front' dla gramatyki/reguł: czysta nazwa reguły lub zdanie z luką [...] do uzupełnienia (np. 'Present Simple — 3. os. l.poj.', 'There is vs There are')\n"
+            "- 'back' dla gramatyki/reguł: poprawna forma + zwięzłe wyjaśnienie i wzorcowy przykład."
         )
     elif subject == "Matematyka":
         pedagogy_focus = (
             "GŁÓWNY NACISK NA MATEMATYKĘ:\n"
-            "Wyłuskaj definicje, wzory, własności liczb i metody obliczeń pamięciowych/pisemnych.\n"
-            "- 'front': konkretne pojęcie matematyczne, wzór lub zadanie z luką\n"
-            "- 'back': jasna reguła, metoda krok po kroku oraz szkolna pułapka."
+            "Wyłuskaj definicje, wzory, własności liczb i metody obliczeń.\n"
+            "- 'front': Czyste pojęcie matematyczne, nazwa własności lub wzór (BEZ sztucznych pytań 'Co to jest')\n"
+            "- 'back': Jasna reguła, wzór, metoda krok po kroku oraz przykład/pułapka."
         )
     else:
         pedagogy_focus = (
             f"GŁÓWNY NACISK NA PRZEDMIOT {subject.upper()}:\n"
             "Wyłuskaj kluczowe pojęcia, procesy, fakty, daty i definicje potrzebne na sprawdzian.\n"
-            "- 'front': pytanie lub pojęcie\n"
-            "- 'back': zrozumiała, kompletna odpowiedź z najważniejszymi faktami."
+            "- 'front': Czyste pojęcie lub zwięzłe hasło (BEZ formy sztucznego pytania)\n"
+            "- 'back': Zrozumiała, kompletna odpowiedź z najważniejszymi faktami."
         )
 
     if card_type == "vocab":
-        type_instruction = "SKUP SIĘ W 100% NA SŁOWNICTWIE I WYRAŻENIACH."
+        type_instruction = "SKUP SIĘ W 100% NA SŁOWNICTWIE I WYRAŻENIACH (Przód = polskie słowo, Tył = angielskie słowo + przykład zdania)."
     elif card_type == "rules":
         type_instruction = "SKUP SIĘ W 100% NA REGUŁACH GRAMATYCZNYCH, WZORACH I ZASADACH."
     elif card_type == "cloze":
         type_instruction = "STWÓRZ FISZKI Z LUKAMI [...] DO UZUPEŁNIENIA W ZDANIACH."
     else:
-        type_instruction = "ZBALANSUJ: 60% kluczowe słownictwo/pojęcia, 40% reguły i przykłady."
+        type_instruction = "ZBALANSUJ: 60% kluczowe słownictwo (Przód = czyste słowo), 40% reguły i przykłady."
 
-    prompt = f"""Jesteś doświadczonym nauczycielem tworzącym profesjonalne fiszki SRS dla ucznia 5. klasy (11 lat).
+    prompt = f"""Jesteś doświadczonym nauczycielem tworzącym profesjonalne, ergonomiczne fiszki SRS dla ucznia 5. klasy (11 lat).
 Przedmiot: {subject}
 Podręcznik: {book_title}
 Dział: {chapter_title} (Strony: {page_range or 'całość'})
@@ -5000,12 +5034,20 @@ Treść i materiał z podręcznika:
 
 ZASADY BEZWZGLĘDNE:
 1. Wygeneruj DOKŁADNIE {card_count} fiszek.
-2. KAŻDA fiszka MUSI posiadać zarówno wartościowy 'front', jak i kompletny, wyczerpujący 'back' (ŻADNA ODPOWIEDŹ NIE MOŻE BYĆ PUSTA!).
-3. Zwróć WYŁĄCZNIE czysty format JSON array (żadnego markdownu wokół, sam JSON):
+2. PRZÓD FISZKI ('front'): Podawaj TYLKO czyste hasło/słowo/pojęcie (np. 'piórnik', 'stołówka', 'Present Simple — 3. os. l.poj.').
+   ABSOLUTNY ZAKAZ: Nigdy nie stosuj form pytań: 'Jak powiesz po angielsku:', 'Co to jest:', 'Wyjaśnij pojęcie:'. Forma pytania jest całkowicie zabroniona!
+3. TYŁ FISZKI ('back'): Kompletne, wyczerpujące wyjaśnienie / angielski odpowiednik z przykładem zdania.
+4. Zwróć WYŁĄCZNIE czysty format JSON array (żadnego markdownu wokół, sam JSON):
 [
   {{
-    "front": "Jak powiesz po angielsku: stołówka szkolna?",
+    "front": "stołówka szkolna",
     "back": "**canteen**\\n\\n*Przykład:* We eat lunch in the school canteen. (Jemy obiad na stołówce szkolnej.)",
+    "type": "słownictwo",
+    "topic": "{chapter_title}"
+  }},
+  {{
+    "front": "piórnik",
+    "back": "**pencil case**\\n\\n*Przykład:* I have three pens in my pencil case. (Mam trzy długopisy w piórniku.)",
     "type": "słownictwo",
     "topic": "{chapter_title}"
   }}
@@ -5023,7 +5065,7 @@ ZASADY BEZWZGLĘDNE:
             data=_json.dumps({
                 "model": "Gemini 3.8 Flash",
                 "messages": [
-                    {"role": "system", "content": "Jesteś precyzyjnym generatorem fiszek edukacyjnych JSON dla portalu szkolnego. Zwracasz wyłącznie tablicę JSON."},
+                    {"role": "system", "content": "Jesteś precyzyjnym generatorem fiszek edukacyjnych JSON dla portalu szkolnego. Przód fiszki to zawsze czyste słowo lub pojęcie bez formy pytania. Zwracasz wyłącznie tablicę JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 "max_tokens": 2500,
@@ -5041,7 +5083,8 @@ ZASADY BEZWZGLĘDNE:
         if s >= 0 and e > s:
             parsed = _json.loads(content[s:e])
             for c in parsed:
-                f = str(c.get("front", "")).strip()
+                raw_f = str(c.get("front", "")).strip()
+                f = _clean_card_front(raw_f)
                 b = str(c.get("back", "")).strip()
                 t = str(c.get("type", "słownictwo")).strip()
                 tp = str(c.get("topic", chapter_title)).strip()
@@ -5053,10 +5096,13 @@ ZASADY BEZWZGLĘDNE:
     # Fallback jeśli model nie zwrócił wystarczającej liczby kart
     if len(cards) < min(3, card_count):
         fallback = _extract_fallback_flashcards(subject, chapter_title, context_text, card_count)
-        seen = {c["front"] for c in cards}
+        seen = {c["front"].lower() for c in cards}
         for fc in fallback:
-            if fc["front"] not in seen:
+            clean_fc_f = _clean_card_front(fc["front"])
+            if clean_fc_f.lower() not in seen:
+                fc["front"] = clean_fc_f
                 cards.append(fc)
+                seen.add(clean_fc_f.lower())
             if len(cards) >= card_count:
                 break
 
@@ -5293,7 +5339,7 @@ async def api_fiszkomat_save_deck(request: Request):
 
     saved_count = 0
     for c in cards:
-        front = str(c.get("front", "")).strip()
+        front = _clean_card_front(str(c.get("front", "")).strip())
         back = str(c.get("back", "")).strip()
         if front and back:
             exists = conn.execute("SELECT id FROM cards WHERE deck_id=? AND front=?", (deck_id, front)).fetchone()
