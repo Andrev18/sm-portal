@@ -493,7 +493,305 @@
         overflow: visible !important;
       }
     }
-  </style>
+  
+    /* HERMES FLOATING CHAT DRAWER */
+    .hermes-chat-drawer {
+      position: fixed;
+      bottom: 84px;
+      right: 24px;
+      width: 480px;
+      max-width: calc(100vw - 32px);
+      height: 600px;
+      max-height: calc(100vh - 110px);
+      background: rgba(15, 15, 20, 0.96);
+      border: 1px solid var(--border-focus);
+      border-radius: 18px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 24px rgba(158, 127, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      overflow: hidden;
+      animation: hermesSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes hermesSlideUp {
+      from { opacity: 0; transform: translateY(14px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .hcd-header {
+      padding: 12px 16px;
+      background: rgba(24, 24, 30, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .hcd-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: rgba(158, 127, 255, 0.15);
+      border: 1px solid rgba(158, 127, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-purple);
+    }
+    .hcd-icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .hcd-icon-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .hcd-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hcd-msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 90%;
+    }
+    .hcd-msg.ai {
+      align-self: flex-start;
+    }
+    .hcd-msg.user {
+      align-self: flex-end;
+    }
+    .hcd-bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .hcd-msg.ai .hcd-bubble {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #e2e8f0;
+      border-bottom-left-radius: 4px;
+    }
+    .hcd-msg.user .hcd-bubble {
+      background: #6366f1;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .hcd-input-bar {
+      padding: 10px 14px;
+      background: rgba(18, 18, 24, 0.95);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hcd-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .hcd-input:focus {
+      border-color: var(--accent-purple);
+    }
+    .hcd-send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-purple);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .hcd-send-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Kafelki szybkiego wyboru cyfr w czacie */
+    .quick-options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      width: 100%;
+    }
+    .opt-quick-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .opt-quick-btn:hover {
+      background: rgba(158, 127, 255, 0.18);
+      border-color: rgba(158, 127, 255, 0.4);
+      color: #fff;
+      transform: translateX(2px);
+    }
+    .opt-num-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: rgba(158, 127, 255, 0.25);
+      color: #c4b5fd;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Karta NotebookLM w czacie */
+    .btn-start-generate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ec4899, #d946ef);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-start-generate:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.55);
+      filter: brightness(1.08);
+    }
+    .btn-start-generate:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn-start-generate.success {
+      background: #10b981 !important;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+    }
+    .loading-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .nlm-prompt-card {
+      background: rgba(18, 18, 26, 0.95);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .nlm-prompt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #c084fc;
+    }
+    .nlm-prompt-text {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #e2e8f0;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.4;
+    }
+    .nlm-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nlm-btn-copy {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: #8b5cf6;
+      border: none;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .nlm-btn-copy:hover {
+      background: #7c3aed;
+    }
+    .nlm-btn-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .nlm-btn-preview:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+</style>
 </head>
 <body>
   <div class="ambient-glow-1"></div>
@@ -531,6 +829,18 @@
         <a href="/lektury" class="nav-link">
           <i data-lucide="book-open"></i>
           <span class="hide-on-collapse">Lektury & Podręczniki</span>
+        </a>
+        <a href="/courses" class="nav-link {% if '/courses' in request.url.path %}active{% endif %}">
+          <i data-lucide="graduation-cap"></i>
+          <span class="hide-on-collapse">Moje Kursy</span>
+        </a>
+        <a href="/notes" class="nav-link {% if '/notes' in request.url.path %}active{% endif %}">
+          <i data-lucide="notebook-pen"></i>
+          <span class="hide-on-collapse">Notes (Snitchnotes)</span>
+        </a>
+        <a href="/fiszkomat" class="nav-link {% if '/fiszkomat' in request.url.path %}active{% endif %}" style="color: var(--accent-indigo, #818cf8);">
+          <i data-lucide="layers"></i>
+          <span class="hide-on-collapse">Fiszkomat AI</span>
         </a>
       </div>
 
@@ -632,6 +942,9 @@
         <a href="/" class="nav-tab-item active" style="font-weight: 500; text-decoration: none;">Pulpit</a>
         <a href="/srs" class="nav-tab-item {% if '/srs' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none;">Fiszki</a>
         <a href="/courses" class="nav-tab-item {% if '/courses' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none; color: #10b981;"><i data-lucide="graduation-cap" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i> Moje Kursy</a>
+        <a href="/notes" class="nav-tab-item {% if '/notes' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none; color: #34d399;"><i data-lucide="sparkles" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i> Notes</a>
+        <a href="/fiszkomat" class="nav-tab-item {% if '/fiszkomat' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none; color: #818cf8;"><i data-lucide="layers" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i> Fiszkomat</a>
+        <a href="/planner" class="nav-tab-item {% if '/planner' in request.url.path %}active{% endif %}" style="font-weight: 500; text-decoration: none; color: #f59e0b;"><i data-lucide="calendar-check" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i> Planner</a>
         <a href="/vulcan" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Vulcan</a>
         <a href="/serwisy" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Aplikacje</a>
         <a href="/leaderboard" class="nav-tab-item" style="font-weight: 500; text-decoration: none;">Ranking</a>
@@ -649,6 +962,12 @@
 
         {% if user %}
         <div style="display: flex; align-items: center; gap: 10px; margin-left: 8px;">
+          <div style="position:relative; display:inline-flex;">
+          <a href="/notes" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#a1a1aa; text-decoration:none; font-size:12px; font-weight:600; transition:all 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#a1a1aa'">
+            <i data-lucide="calendar-clock" style="width:14px; height:14px;"></i>
+            <span id="reminder-navbar-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ef4444; color:#fff; font-size:9px; font-weight:800; border-radius:9999px; width:16px; height:16px; align-items:center; justify-content:center;"></span>
+          </a>
+        </div>
           <a href="/logout" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"><i data-lucide="log-out" style="width: 14px; height: 14px; margin-right: 6px;"></i> Wyloguj</a>
         </div>
         {% endif %}
@@ -663,14 +982,48 @@
     </div>
   </div>
 
-  <!-- HERMES COMPANION -->
-  <div class="hermes-widget-btn" onclick="alert('Hermes AI Assistant gotowy do pomocy w powtórkach!')">
+  <!-- HERMES COMPANION BUTTON -->
+  <div class="hermes-widget-btn" id="hermesWidgetBtn" onclick="toggleHermesChat()" title="Otwórz asystenta Hermes AI">
     <i data-lucide="terminal-square" style="color: var(--accent-purple); width: 22px; height: 22px;"></i>
     <div style="display: flex; flex-direction: column; text-align: left;">
       <span style="font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 600;">HERMES_AI</span>
       <span style="font-size: 10px; color: var(--accent-emerald); display: flex; align-items: center; gap: 5px;">
         <span class="hermes-status-dot"></span> online
       </span>
+    </div>
+  </div>
+
+  <!-- HERMES FLOATING CHAT DRAWER -->
+  <div class="hermes-chat-drawer" id="hermesChatDrawer" style="display: none;">
+    <div class="hcd-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="hcd-avatar">
+          <i data-lucide="bot" style="width: 16px;"></i>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fff;">HERMES_AI</div>
+          <div style="font-size: 10px; color: #10b981; display: flex; align-items: center; gap: 4px;">
+            <span class="hermes-status-dot"></span> Asystent Edukacyjny (NotebookLM)
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <button type="button" class="hcd-icon-btn" onclick="resetHermesChat()" title="Wyczyść rozmowę">
+          <i data-lucide="rotate-ccw" style="width: 14px;"></i>
+        </button>
+        <button type="button" class="hcd-icon-btn" onclick="toggleHermesChat(false)" title="Zamknij">
+          <i data-lucide="x" style="width: 15px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="hcd-messages" id="hermesChatMessages"></div>
+
+    <div class="hcd-input-bar">
+      <input type="text" id="hermesChatInput" class="hcd-input" placeholder="Wybierz cyfrę lub napisz pytanie..." autocomplete="off" onkeydown="handleHermesInputKey(event)">
+      <button type="button" class="hcd-send-btn" onclick="sendHermesMessage()" title="Wyślij">
+        <i data-lucide="send" style="width: 14px;"></i>
+      </button>
     </div>
   </div>
 
@@ -682,6 +1035,92 @@
     }
     
     lucide.createIcons();
-  </script>
+  
+    // Escape HTML helper
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Hermes AI Floating Chat Handler
+    let isHermesChatOpen = false;
+    window.hermesChatCallback = null;
+
+    function toggleHermesChat(forceState) {
+      const drawer = document.getElementById('hermesChatDrawer');
+      if (!drawer) return;
+      if (typeof forceState === 'boolean') {
+        isHermesChatOpen = forceState;
+      } else {
+        isHermesChatOpen = !isHermesChatOpen;
+      }
+      drawer.style.display = isHermesChatOpen ? 'flex' : 'none';
+      if (isHermesChatOpen) {
+        const inp = document.getElementById('hermesChatInput');
+        if (inp) inp.focus();
+        const msgs = document.getElementById('hermesChatMessages');
+        if (msgs && msgs.children.length === 0) {
+          addHermesMsg("Cześć! Jestem Twoim asystentem Hermes AI. W czym mogę Ci dzisiaj pomóc w nauce?", true);
+        }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function addHermesMsg(text, isAi, extraHtml = '') {
+      const container = document.getElementById('hermesChatMessages');
+      if (!container) return;
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'hcd-msg ' + (isAi ? 'ai' : 'user');
+      msgDiv.innerHTML = `<div class="hcd-bubble">${text}</div>` + (extraHtml || '');
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleHermesInputKey(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendHermesMessage();
+      }
+    }
+
+    async function sendHermesMessage() {
+      const inp = document.getElementById('hermesChatInput');
+      if (!inp) return;
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = '';
+
+      addHermesMsg(text, false);
+
+      // Jeśli aktywny jest interaktywny kreator infografiki lub inny callback
+      if (typeof window.hermesChatCallback === 'function') {
+        window.hermesChatCallback(text);
+        return;
+      }
+
+      // Standardowe pytanie do tutora
+      try {
+        const res = await fetch('/ai/tutor?q=' + encodeURIComponent(text));
+        const d = await res.json();
+        addHermesMsg(d.answer || "Rozumiem! Czy chciałbyś poćwiczyć więcej przykładów?", true);
+      } catch(e) {
+        addHermesMsg("Chwilowo nie mogę połączyć się z serwerem. Spróbuj za moment!", true);
+      }
+    }
+
+    function resetHermesChat() {
+      const msgs = document.getElementById('hermesChatMessages');
+      if (msgs) msgs.innerHTML = '';
+      window.hermesChatCallback = null;
+      addHermesMsg("Rozmowa zresetowana. Jak mogę Ci pomóc?", true);
+    }
+
+</script>
 </body>
 </html>

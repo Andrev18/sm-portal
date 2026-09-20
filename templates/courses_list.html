@@ -132,16 +132,32 @@
                             <div class="m-title">Teoria (Podręcznik) <div class="m-badge">Teoria</div></div>
                             <div class="m-meta">{{ data.textbook.title }}</div>
                         </div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a href="/read/{{ data.textbook.id }}" class="btn-read-direct" onclick="event.stopPropagation()" title="Otwórz pełny czytnik PDF (strona 1:1)" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.25); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="book" style="width: 12px; height: 12px;"></i> Czytnik
+                            </a>
+                            <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
+                        </div>
                     </div>
                     {% endif %}
 
                     {% if data.workbook %}
-                    <div class="mat-row practice" onclick="window.location.href='/courses/play/{{ data.workbook.id }}?mode=tasks'">
+                    <div class="mat-row practice" onclick="window.location.href='/courses/play/{{ data.workbook.id }}'">
                         <div class="m-ic"><i data-lucide="edit-3" style="width: 14px;"></i></div>
                         <div class="m-info">
-                            <div class="m-title">Warsztat (Zeszyt Ćw.) <div class="m-badge" style="color:#10b981; border:1px solid rgba(16,185,129,0.3); background:rgba(16,185,129,0.1);">Zadania PC</div></div>
+                            <div class="m-title">Warsztat (Zeszyt Ćw.) <div class="m-badge" style="color:#10b981; border:1px solid rgba(16,185,129,0.3); background:rgba(16,185,129,0.1);">Widok Hybrydowy</div></div>
                             <div class="m-meta">{{ data.workbook.title }} &bull; <strong>{{ data.workbook.done_cnt }}/{{ data.workbook.tasks_cnt }}</strong> zadań rozwiązanych</div>
+                        </div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
+                    </div>
+                    {% endif %}
+
+                    {% if data.lektura %}
+                    <div class="mat-row reading" onclick="window.location.href='/read/{{ data.lektura.id }}'" style="border-color: rgba(168, 85, 247, 0.15);">
+                        <div class="m-ic"><i data-lucide="book-heart" style="width: 14px; color: #a855f7;"></i></div>
+                        <div class="m-info">
+                            <div class="m-title">Lektura szkolna <div class="m-badge" style="color:#a855f7; border:1px solid rgba(168,85,247,0.3); background:rgba(168,85,247,0.1);">Lektura</div></div>
+                            <div class="m-meta">{{ data.lektura.title }}</div>
                         </div>
                         <i data-lucide="chevron-right" style="color:var(--text-muted); width:16px;"></i>
                     </div>
@@ -149,12 +165,24 @@
                 </div>
                 
                 <div class="col-actions">
-                    <button class="btn-go" onclick="window.location.href='/courses/play/{% if data.workbook %}{{ data.workbook.id }}{% else %}{{ data.textbook.id }}{% endif %}'">
+                    {% if data.workbook %}
+                    <button class="btn-go" onclick="window.location.href='/courses/play/{{ data.workbook.id }}'">
                         <i data-lucide="play-circle" style="width:16px;"></i> Rozwiązuj Ćwiczenia
                     </button>
+                    {% elif data.textbook %}
+                    <button class="btn-go" onclick="window.location.href='/courses/play/{{ data.textbook.id }}'">
+                        <i data-lucide="book-open" style="width:16px;"></i> Otwórz Podręcznik
+                    </button>
+                    {% endif %}
+                    {% if data.textbook %}
+                    <button class="btn-gen" onclick="window.location.href='/fiszkomat?book_id={{ data.textbook.id }}'" style="background: rgba(99,102,241,0.12); color: #818cf8; border-color: rgba(99,102,241,0.3);">
+                        <i data-lucide="layers" style="width: 14px;"></i> Fiszkomat AI
+                    </button>
+                    {% else %}
                     <button class="btn-gen" onclick="window.location.href='/admin/ocr'">
                         <i data-lucide="sparkles" style="width: 14px;"></i> Dostrój AI
                     </button>
+                    {% endif %}
                 </div>
                 
             </div>
@@ -167,3 +195,4 @@
     if(window.lucide) lucide.createIcons();
 </script>
 {% endblock %}
+

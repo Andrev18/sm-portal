@@ -1,0 +1,709 @@
+{% extends "base.html" %}{% block title %}Fiszkomat AI — Generator Fiszek SRS{% endblock %}
+{% block content %}
+<style>
+  .fz-shell { max-width: 1440px; margin: 0 auto; padding: 16px 18px 80px; color: #fafafa; }
+  .fz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; gap: 16px; }
+  .fz-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .fz-layout { display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 1100px) { .fz-layout { grid-template-columns: 1fr; } }
+
+  /* Panel lewy – konfigurator */
+  .fz-config { background: rgba(15,15,18,0.9); border: 1px solid rgba(99,102,241,0.2); border-top: 3px solid #6366f1; border-radius: 16px; padding: 22px; position: sticky; top: 80px; }
+  .fz-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #6366f1; font-weight: 700; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px; }
+  .fz-select { width: 100%; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); color: #e4e4e7; padding: 9px 12px; border-radius: 10px; font-family: inherit; font-size: 13px; outline: none; cursor: pointer; transition: border-color 0.15s; }
+  .fz-select:focus { border-color: #6366f1; }
+  .fz-input { width: 100%; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); color: #e4e4e7; padding: 9px 12px; border-radius: 10px; font-family: inherit; font-size: 13px; outline: none; box-sizing: border-box; }
+  .fz-input:focus { border-color: #6366f1; }
+
+  /* Rozdziały – lista + tematy */
+  .fz-chapters { max-height: 260px; overflow-y: auto; margin-bottom: 14px; }
+  .fz-chapter-item { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 6px; overflow: hidden; }
+  .fz-chapter-hdr { display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; background: rgba(255,255,255,0.03); transition: background 0.15s; user-select: none; }
+  .fz-chapter-hdr:hover { background: rgba(99,102,241,0.1); }
+  .fz-chapter-hdr.selected { background: rgba(99,102,241,0.15); border-left: 3px solid #6366f1; }
+  .fz-chapter-label { flex: 1; font-size: 12px; font-weight: 600; color: #e4e4e7; line-height: 1.3; }
+  .fz-chapter-pages { font-size: 10px; color: #71717a; white-space: nowrap; }
+  .fz-topics { padding: 4px 12px 8px 24px; display: none; }
+  .fz-topics.open { display: block; }
+  .fz-topic-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 11px; color: #a1a1aa; cursor: pointer; }
+  .fz-topic-row:hover { color: #e4e4e7; }
+  .fz-topic-row input[type=checkbox] { accent-color: #6366f1; width: 13px; height: 13px; flex-shrink: 0; cursor: pointer; }
+
+  /* Typy fiszek */
+  .fz-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .fz-type-btn { border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer; font-size: 11px; font-weight: 600; color: #a1a1aa; background: rgba(0,0,0,0.2); transition: all 0.15s; }
+  .fz-type-btn:hover { border-color: rgba(99,102,241,0.5); color: #fff; }
+  .fz-type-btn.active { background: rgba(99,102,241,0.2); border-color: #6366f1; color: #818cf8; }
+  .fz-type-btn i { display: block; margin: 0 auto 4px; }
+
+  /* Ilość fiszek */
+  .fz-count-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .fz-count-slider { flex: 1; accent-color: #6366f1; }
+  .fz-count-badge { background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #818cf8; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; min-width: 34px; text-align: center; }
+
+  /* Przycisk generuj */
+  .fz-btn-gen { width: 100%; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; font-size: 14px; font-weight: 700; border: none; border-radius: 12px; padding: 14px 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s, box-shadow 0.15s; margin-top: 18px; }
+  .fz-btn-gen:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+  .fz-btn-gen:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Panel prawy – preview fiszek */
+  .fz-workspace { background: rgba(15,15,18,0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; min-height: 600px; }
+  .fz-workspace-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 16px; margin-bottom: 20px; gap: 12px; }
+
+  /* Stan pusty */
+  .fz-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 14px; text-align: center; }
+  .fz-empty-icon { width: 72px; height: 72px; border-radius: 20px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+
+  /* Spinner */
+  .fz-loading { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 18px; }
+  .fz-spinner { width: 48px; height: 48px; border: 3px solid rgba(99,102,241,0.2); border-top-color: #6366f1; border-radius: 50%; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Karty fiszek */
+  .fz-cards-grid { display: flex; flex-direction: column; gap: 12px; }
+  .fz-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; overflow: hidden; transition: border-color 0.15s; }
+  .fz-card:hover { border-color: rgba(99,102,241,0.3); }
+  .fz-card-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .fz-card-side { padding: 14px 16px; }
+  .fz-card-side:first-child { border-right: 1px solid rgba(255,255,255,0.06); }
+  .fz-card-side-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; color: #6366f1; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+  .fz-card-front { font-size: 13px; color: #f4f4f5; font-weight: 600; line-height: 1.45; }
+  .fz-card-back { font-size: 12px; color: #a1a1aa; line-height: 1.5; }
+  .fz-card-back strong { color: #e4e4e7; }
+  .fz-card-type-pill { display: inline-flex; align-items: center; font-size: 9px; padding: 2px 7px; border-radius: 9999px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .fz-card-toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(0,0,0,0.15); border-top: 1px solid rgba(255,255,255,0.04); }
+  .fz-card-idx { font-size: 10px; color: #52525b; font-weight: 600; flex: 1; }
+  .fz-card-edit-btn, .fz-card-del-btn { background: transparent; border: none; cursor: pointer; padding: 3px 5px; border-radius: 6px; color: #71717a; transition: all 0.15s; display: flex; align-items: center; }
+  .fz-card-edit-btn:hover { color: #818cf8; background: rgba(99,102,241,0.1); }
+  .fz-card-del-btn:hover { color: #f43f5e; background: rgba(244,63,94,0.1); }
+
+  /* Inline edit */
+  .fz-card-edit-layer { display: none; padding: 12px 16px; border-top: 1px solid rgba(99,102,241,0.2); background: rgba(99,102,241,0.04); }
+  .fz-card-edit-layer.active { display: block; }
+  .fz-edit-textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(99,102,241,0.3); color: #e4e4e7; padding: 8px 10px; border-radius: 8px; font-family: inherit; font-size: 12px; resize: vertical; outline: none; min-height: 52px; box-sizing: border-box; }
+  .fz-edit-textarea:focus { border-color: #6366f1; }
+
+  /* Talia docelowa + save */
+  .fz-save-bar { background: rgba(15,15,18,0.95); border: 1px solid rgba(99,102,241,0.25); border-top: 2px solid #6366f1; border-radius: 14px; padding: 18px 20px; margin-top: 20px; }
+  .fz-save-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .fz-deck-select-wrap { flex: 2; min-width: 220px; }
+  .fz-save-btn { flex: 1; min-width: 160px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-size: 13px; font-weight: 700; border: none; border-radius: 10px; padding: 12px 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all 0.15s; }
+  .fz-save-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+  .fz-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Tost */
+  .fz-toast { position: fixed; bottom: 24px; right: 24px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 9999; display: none; animation: slideInUp 0.3s ease; max-width: 380px; }
+  @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .fz-toast.error { background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.4); color: #fda4af; }
+
+  /* stat badges */
+  .fz-stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .fz-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 8px 14px; font-size: 12px; color: #a1a1aa; display: flex; align-items: center; gap: 6px; }
+  .fz-stat b { color: #fff; }
+</style>
+
+<div class="fz-shell">
+  <!-- Header -->
+  <div class="fz-header">
+    <div>
+      <div class="fz-badge" style="margin-bottom: 8px;">
+        <i data-lucide="layers" style="width:12px;height:12px;"></i> Fiszkomat AI · Baza 5B
+      </div>
+      <h1 style="font-size: 26px; font-weight: 800; margin: 0; color: #fff;">Inteligentny Generator Fiszek</h1>
+      <p style="font-size: 13px; color: #71717a; margin: 4px 0 0 0;">Wybierz podręcznik, rozdziały i lekcje → AI wygeneruje kompletne fiszki SRS do nauki</p>
+    </div>
+    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+      <a href="/srs" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); border-radius: 9px; color: #818cf8; font-size: 12px; font-weight: 600; text-decoration: none;">
+        <i data-lucide="layers" style="width:14px;height:14px;"></i> Moje Talie
+      </a>
+      <a href="/notes" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); border-radius: 9px; color: #34d399; font-size: 12px; font-weight: 600; text-decoration: none;">
+        <i data-lucide="notebook-pen" style="width:14px;height:14px;"></i> Notes
+      </a>
+    </div>
+  </div>
+
+  <div class="fz-layout">
+
+    <!-- LEWA: Konfigurator -->
+    <div class="fz-config">
+
+      <!-- 1. Podręcznik -->
+      <div style="margin-bottom: 18px;">
+        <p class="fz-section-title"><i data-lucide="book-open" style="width:13px;height:13px;"></i> 1. Wybierz Podręcznik</p>
+        <select id="fzBookSel" class="fz-select" onchange="onBookChange()">
+          {% set books_by_subj = {} %}
+          {% for b in books %}
+            {% set kind_label = 'Podręcznik' if b.kind == 'podreczniki' else ('Ćwiczenia' if b.kind == 'cwiczenia' else b.kind) %}
+            <option value="{{ b.id }}"{% if b.id == selected_book_id %} selected{% endif %}>
+              {{ b.subject }} — {{ b.title }} ({{ kind_label }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- 2. Rozdziały i lekcje -->
+      <div style="margin-bottom: 18px;">
+        <p class="fz-section-title"><i data-lucide="list" style="width:13px;height:13px;"></i> 2. Wybierz Rozdziały / Lekcje</p>
+        <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+          <button type="button" onclick="selectAllTopics()" style="font-size: 10px; padding: 4px 10px; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; border-radius: 7px; cursor: pointer; font-weight: 600;">Zaznacz wszystko</button>
+          <button type="button" onclick="selectNoneTopics()" style="font-size: 10px; padding: 4px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #71717a; border-radius: 7px; cursor: pointer;">Odznacz</button>
+        </div>
+        <div class="fz-chapters" id="fzChapterList">
+          <div style="text-align:center; padding: 24px; color: #52525b; font-size: 12px;">
+            <i data-lucide="loader" style="width:20px; animation: spin 1s linear infinite; display:inline-block;"></i><br>Ładowanie spisu treści...
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Zakres stron (opcja) -->
+      <div style="margin-bottom: 18px;">
+        <p class="fz-section-title"><i data-lucide="file-text" style="width:13px;height:13px;"></i> 3. Zakres stron (opcja)</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>
+            <div style="font-size: 10px; color: #71717a; margin-bottom: 4px;">OD strony</div>
+            <input type="number" id="fzPageFrom" class="fz-input" placeholder="np. 8" min="1">
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #71717a; margin-bottom: 4px;">DO strony</div>
+            <input type="number" id="fzPageTo" class="fz-input" placeholder="np. 19" min="1">
+          </div>
+        </div>
+        <p style="font-size: 10px; color: #52525b; margin: 6px 0 0 0;">Zostaw puste = cały dział</p>
+      </div>
+
+      <!-- 4. Typ fiszek -->
+      <div style="margin-bottom: 18px;">
+        <p class="fz-section-title"><i data-lucide="layout-grid" style="width:13px;height:13px;"></i> 4. Typ fiszek</p>
+        <div class="fz-type-grid">
+          <div class="fz-type-btn active" data-type="all" onclick="setType('all', this)" title="Mix słownictwa i reguł">
+            <i data-lucide="sparkles" style="width:16px;height:16px;display:block;margin:0 auto 4px;"></i>
+            Zbalansowany
+          </div>
+          <div class="fz-type-btn" data-type="vocab" onclick="setType('vocab', this)" title="Tylko słownictwo">
+            <i data-lucide="book-marked" style="width:16px;height:16px;display:block;margin:0 auto 4px;"></i>
+            Słownictwo
+          </div>
+          <div class="fz-type-btn" data-type="rules" onclick="setType('rules', this)" title="Reguły i gramatyka">
+            <i data-lucide="sigma" style="width:16px;height:16px;display:block;margin:0 auto 4px;"></i>
+            Reguły / Wzory
+          </div>
+          <div class="fz-type-btn" data-type="cloze" onclick="setType('cloze', this)" title="Zdania z luką do uzupełnienia">
+            <i data-lucide="pen-line" style="width:16px;height:16px;display:block;margin:0 auto 4px;"></i>
+            Luki (cloze)
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Ilość -->
+      <div style="margin-bottom: 4px;">
+        <p class="fz-section-title"><i data-lucide="hash" style="width:13px;height:13px;"></i> 5. Liczba fiszek: <span id="fzCountLabel" class="fz-count-badge" style="margin-left:4px;">10</span></p>
+        <div class="fz-count-row">
+          <input type="range" id="fzCountSlider" class="fz-count-slider" min="5" max="30" value="10" step="1" oninput="document.getElementById('fzCountLabel').textContent = this.value">
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #52525b;">
+          <span>5 — Szybkie powtórzenie</span>
+          <span>30 — Pełna baza</span>
+        </div>
+      </div>
+
+      <!-- Przycisk generuj -->
+      <button id="fzGenBtn" class="fz-btn-gen" onclick="generateCards()">
+        <i data-lucide="sparkles" style="width:18px;height:18px;"></i>
+        Wygeneruj Fiszki AI
+      </button>
+    </div>
+
+    <!-- PRAWA: Workspace -->
+    <div>
+      <div class="fz-workspace">
+        <div class="fz-workspace-header">
+          <div>
+            <h2 style="font-size: 16px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="layers" style="color: #6366f1; width:18px;height:18px;"></i>
+              <span id="fzWorkspaceTitle">Podgląd Fiszek</span>
+            </h2>
+            <p id="fzWorkspaceSub" style="font-size: 12px; color: #71717a; margin: 4px 0 0 0;">Wybierz materiał i wygeneruj fiszki</p>
+          </div>
+          <div style="display: flex; gap: 8px;" id="fzTopActions">
+            <button type="button" onclick="clearAll()" style="display:none;" id="fzClearBtn" style="font-size: 11px; padding: 6px 12px; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: #fda4af; border-radius: 8px; cursor: pointer; font-weight: 600;">
+              <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Wyczyść
+            </button>
+            <button type="button" onclick="addEmptyCard()" id="fzAddBtn" style="display:none; font-size: 11px; padding: 6px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; border-radius: 8px; cursor: pointer; font-weight: 600;">
+              <i data-lucide="plus" style="width:12px;height:12px;"></i> Dodaj ręcznie
+            </button>
+          </div>
+        </div>
+
+        <!-- Puste -->
+        <div class="fz-empty" id="fzEmpty">
+          <div class="fz-empty-icon">
+            <i data-lucide="layers" style="width:32px;height:32px;color:#6366f1;"></i>
+          </div>
+          <div>
+            <h3 style="color:#fff; font-size:16px; margin:0 0 6px 0;">Gotowy do nauki!</h3>
+            <p style="color:#71717a; font-size:13px; margin:0; max-width:340px; line-height:1.5;">
+              Wybierz podręcznik → rozdziały/lekcje → typ fiszek i kliknij <strong style="color:#818cf8;">Wygeneruj Fiszki AI</strong>
+            </p>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
+            <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px 14px;font-size:11px;color:#a1a1aa;text-align:center;min-width:120px;">
+              <i data-lucide="book-marked" style="width:16px;color:#6366f1;display:block;margin:0 auto 4px;"></i>
+              Angielski słownictwo
+            </div>
+            <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px 14px;font-size:11px;color:#a1a1aa;text-align:center;min-width:120px;">
+              <i data-lucide="sigma" style="width:16px;color:#6366f1;display:block;margin:0 auto 4px;"></i>
+              Matematyka wzory
+            </div>
+            <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px 14px;font-size:11px;color:#a1a1aa;text-align:center;min-width:120px;">
+              <i data-lucide="globe-2" style="width:16px;color:#6366f1;display:block;margin:0 auto 4px;"></i>
+              Historia fakty
+            </div>
+          </div>
+        </div>
+
+        <!-- Ładowanie -->
+        <div class="fz-loading" id="fzLoading">
+          <div class="fz-spinner"></div>
+          <div style="text-align:center;">
+            <p style="color:#818cf8; font-weight:700; margin:0 0 4px 0; font-size:14px;">AI generuje fiszki...</p>
+            <p style="color:#71717a; font-size:12px; margin:0;" id="fzLoadingMsg">Analizuję materiał i wyłuskuję kluczowe pojęcia</p>
+          </div>
+        </div>
+
+        <!-- Karty -->
+        <div id="fzCardsArea" style="display:none;">
+          <div class="fz-stats-row" id="fzStatsRow"></div>
+          <div class="fz-cards-grid" id="fzCardsList"></div>
+        </div>
+      </div>
+
+      <!-- Pasek zapisu -->
+      <div class="fz-save-bar" id="fzSaveBar" style="display:none;">
+        <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <i data-lucide="inbox" style="width:16px;color:#6366f1;"></i>
+          <span style="font-size:13px; font-weight:700; color:#fff;">Zapisz fiszki do talii SRS</span>
+        </div>
+        <div class="fz-save-row">
+          <div class="fz-deck-select-wrap">
+            <div style="font-size:10px;color:#71717a;margin-bottom:4px;">Wybierz lub utwórz nową talię</div>
+            <select id="fzTargetDeck" class="fz-select">
+              <option value="0">✦ Utwórz nową talię (proponowana nazwa poniżej)</option>
+              {% for d in decks %}
+              <option value="{{ d.id }}">{{ d.name }}{% if d.subject %} ({{ d.subject }}){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="flex:2; min-width:200px;">
+            <div style="font-size:10px;color:#71717a;margin-bottom:4px;">Nazwa nowej talii (jeśli nie wybrano)</div>
+            <input type="text" id="fzNewDeckName" class="fz-input" placeholder="np. Angielski — Unit 1 (Słownictwo)">
+          </div>
+          <button class="fz-save-btn" id="fzSaveBtn" onclick="saveCards()" disabled>
+            <i data-lucide="save" style="width:16px;height:16px;"></i>
+            Zapisz do Talii
+          </button>
+        </div>
+        <p style="font-size:10px;color:#52525b;margin:8px 0 0;"><i data-lucide="info" style="width:10px;vertical-align:-1px;"></i> Fiszki trafiają do Fiszek SRS i możesz od razu startować sesję powtórek algorytmem SM-2.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="fz-toast" id="fzToast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let currentCards = [];             // [{front, back, type, topic}, ...]
+let currentChaptersData = {};      // map kapNumero -> {title, topics[]}
+let selectedType = 'all';
+let currentBookSubject = '';
+let currentChapterTitle = '';
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const bookId = document.getElementById('fzBookSel').value;
+  if (bookId) loadTOC(parseInt(bookId));
+  lucide.createIcons();
+});
+
+function onBookChange() {
+  const bid = parseInt(document.getElementById('fzBookSel').value);
+  loadTOC(bid);
+}
+
+// ─── TOC loader ───────────────────────────────────────────────────────────────
+async function loadTOC(bookId) {
+  const list = document.getElementById('fzChapterList');
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:#52525b;font-size:12px;"><div class="fz-spinner" style="width:24px;height:24px;margin:0 auto 8px;"></div>Ładowanie...</div>';
+  try {
+    const res = await fetch(`/api/fiszkomat/toc/${bookId}`);
+    const data = await res.json();
+    currentBookSubject = data.book.subject || '';
+    renderChapters(data.chapters || []);
+  } catch(e) {
+    list.innerHTML = `<div style="color:#f43f5e;font-size:12px;padding:12px;">Błąd ładowania spisu treści: ${e.message}</div>`;
+  }
+  lucide.createIcons();
+}
+
+function renderChapters(chapters) {
+  const list = document.getElementById('fzChapterList');
+  currentChaptersData = {};
+  if (!chapters || chapters.length === 0) {
+    list.innerHTML = '<div style="color:#71717a;font-size:12px;padding:12px;">Brak danych TOC dla tej książki.</div>';
+    return;
+  }
+  let html = '';
+  chapters.forEach(ch => {
+    currentChaptersData[ch.chapter_num] = ch;
+    const pages = ch.page_start && ch.page_end ? `str. ${ch.page_start}–${ch.page_end}` : '';
+    const topics = ch.topics || [];
+    html += `
+      <div class="fz-chapter-item">
+        <div class="fz-chapter-hdr" onclick="toggleChapter(${ch.chapter_num}, this)">
+          <input type="checkbox" id="ch_${ch.chapter_num}" onclick="event.stopPropagation(); toggleChapterCheck(${ch.chapter_num})" checked style="accent-color:#6366f1;width:14px;height:14px;">
+          <span class="fz-chapter-label">${ch.chapter_title}</span>
+          <span class="fz-chapter-pages">${pages}</span>
+          <i data-lucide="chevron-down" style="width:12px;height:12px;color:#52525b;flex-shrink:0;"></i>
+        </div>
+        <div class="fz-topics" id="topics_${ch.chapter_num}">
+          ${topics.map(t => `
+          <div class="fz-topic-row">
+            <input type="checkbox" class="topic-chk" data-topic-id="${t.id}" data-chapter="${ch.chapter_num}" id="topic_${t.id}" checked>
+            <label for="topic_${t.id}" style="cursor:pointer;flex:1;">${t.topic_title}</label>
+            <span style="font-size:9px;color:#52525b;white-space:nowrap;">${t.page_start}–${t.page_end}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+  });
+  list.innerHTML = html;
+  lucide.createIcons();
+}
+
+function toggleChapter(chNum, hdr) {
+  const topics = document.getElementById(`topics_${chNum}`);
+  if (topics) {
+    topics.classList.toggle('open');
+    lucide.createIcons();
+  }
+}
+
+function toggleChapterCheck(chNum) {
+  const chkbox = document.getElementById(`ch_${chNum}`);
+  const topicChks = document.querySelectorAll(`.topic-chk[data-chapter="${chNum}"]`);
+  topicChks.forEach(c => c.checked = chkbox.checked);
+}
+
+function selectAllTopics() {
+  document.querySelectorAll('.topic-chk').forEach(c => c.checked = true);
+  document.querySelectorAll('[id^="ch_"]').forEach(c => c.checked = true);
+}
+
+function selectNoneTopics() {
+  document.querySelectorAll('.topic-chk').forEach(c => c.checked = false);
+  document.querySelectorAll('[id^="ch_"]').forEach(c => c.checked = false);
+}
+
+function setType(type, el) {
+  selectedType = type;
+  document.querySelectorAll('.fz-type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── Generate ─────────────────────────────────────────────────────────────────
+async function generateCards() {
+  const bookId = parseInt(document.getElementById('fzBookSel').value);
+  const cardCount = parseInt(document.getElementById('fzCountSlider').value);
+  const pageFrom = document.getElementById('fzPageFrom').value;
+  const pageTo = document.getElementById('fzPageTo').value;
+
+  // Zbierz zaznaczone topic ids i numery rozdziałów
+  const selectedTopicChks = document.querySelectorAll('.topic-chk:checked');
+  const topicIds = Array.from(selectedTopicChks).map(c => parseInt(c.dataset.topicId));
+  const chapterNums = [...new Set(Array.from(selectedTopicChks).map(c => parseInt(c.dataset.chapter)))];
+
+  if (topicIds.length === 0) {
+    showToast('Zaznacz przynajmniej jedną lekcję!', true);
+    return;
+  }
+
+  // Wyznacz główny rozdział (pierwszy zaznaczony)
+  const chapterNum = chapterNums[0];
+  const chapData = currentChaptersData[chapterNum];
+  if (chapData) currentChapterTitle = chapData.chapter_title;
+
+  showState('loading');
+  const loadingMsgs = [
+    'Analizuję materiał z podręcznika...',
+    'Wyłuskuję kluczowe pojęcia i słownictwo...',
+    'Tworzę kompletne pytania i odpowiedzi...',
+    'Sprawdzam jakość fiszek...'
+  ];
+  let msgIdx = 0;
+  const msgEl = document.getElementById('fzLoadingMsg');
+  const msgInterval = setInterval(() => {
+    msgEl.textContent = loadingMsgs[msgIdx % loadingMsgs.length];
+    msgIdx++;
+  }, 2500);
+
+  document.getElementById('fzGenBtn').disabled = true;
+  document.getElementById('fzGenBtn').innerHTML = '<div class="fz-spinner" style="width:18px;height:18px;border-width:2px;"></div> Generuję...';
+
+  try {
+    const payload = {
+      book_id: bookId,
+      chapter_num: chapterNum,
+      topic_ids: topicIds,
+      card_count: cardCount,
+      card_type: selectedType,
+      page_start: pageFrom || null,
+      page_end: pageTo || null
+    };
+    const res = await fetch('/api/fiszkomat/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    clearInterval(msgInterval);
+
+    if (data.status === 'ok' && data.cards && data.cards.length > 0) {
+      currentCards = data.cards;
+      renderCards(data.cards);
+      showState('cards');
+      document.getElementById('fzWorkspaceTitle').textContent = `${data.cards.length} fiszek · ${data.chapter_title}`;
+      document.getElementById('fzWorkspaceSub').textContent = `${data.book_title} · Gotowe do nauki i zapisu`;
+      document.getElementById('fzNewDeckName').value = data.suggested_deck_name || '';
+      document.getElementById('fzSaveBar').style.display = 'block';
+      document.getElementById('fzSaveBtn').disabled = false;
+      document.getElementById('fzAddBtn').style.display = 'inline-flex';
+      document.getElementById('fzClearBtn').style.display = 'inline-flex';
+      showToast(`✓ Wygenerowano ${data.cards.length} fiszek!`);
+    } else {
+      clearInterval(msgInterval);
+      showState('empty');
+      showToast('Nie udało się wygenerować fiszek. Spróbuj ponownie.', true);
+    }
+  } catch(e) {
+    clearInterval(msgInterval);
+    showState('empty');
+    showToast('Błąd połączenia z serwerem: ' + e.message, true);
+  }
+  document.getElementById('fzGenBtn').disabled = false;
+  document.getElementById('fzGenBtn').innerHTML = '<i data-lucide="sparkles" style="width:18px;height:18px;"></i> Wygeneruj Fiszki AI';
+  lucide.createIcons();
+}
+
+function renderCards(cards) {
+  const list = document.getElementById('fzCardsList');
+  const statsRow = document.getElementById('fzStatsRow');
+
+  // stats
+  const vocab = cards.filter(c => c.type === 'słownictwo').length;
+  const rules = cards.filter(c => c.type === 'reguła').length;
+  const other = cards.length - vocab - rules;
+  statsRow.innerHTML = `
+    <div class="fz-stat"><b>${cards.length}</b> fiszek łącznie</div>
+    ${vocab > 0 ? `<div class="fz-stat"><b>${vocab}</b> słownictwo</div>` : ''}
+    ${rules > 0 ? `<div class="fz-stat"><b>${rules}</b> reguły/wzory</div>` : ''}
+    ${other > 0 ? `<div class="fz-stat"><b>${other}</b> inne</div>` : ''}
+  `;
+
+  // cards
+  list.innerHTML = '';
+  cards.forEach((card, idx) => renderCardEl(card, idx, list));
+  lucide.createIcons();
+}
+
+function renderCardEl(card, idx, container) {
+  const typeColor = card.type === 'słownictwo' ? '#34d399' : card.type === 'reguła' ? '#818cf8' : '#f59e0b';
+  const typeLabel = card.type || 'pojęcie';
+  const frontHtml = markdownToHtml(card.front || '');
+  const backHtml = markdownToHtml(card.back || '');
+
+  const div = document.createElement('div');
+  div.className = 'fz-card';
+  div.id = `fzc_${idx}`;
+  div.innerHTML = `
+    <div class="fz-card-inner">
+      <div class="fz-card-side">
+        <div class="fz-card-side-label">
+          <i data-lucide="help-circle" style="width:10px;height:10px;"></i> PRZÓD (PYTANIE)
+        </div>
+        <div class="fz-card-front" id="fzcf_${idx}">${frontHtml}</div>
+      </div>
+      <div class="fz-card-side">
+        <div class="fz-card-side-label" style="color:#34d399;">
+          <i data-lucide="check-circle" style="width:10px;height:10px;color:#34d399;"></i> TYŁ (ODPOWIEDŹ)
+        </div>
+        <div class="fz-card-back" id="fzcb_${idx}">${backHtml}</div>
+      </div>
+    </div>
+    <div class="fz-card-toolbar">
+      <span class="fz-card-idx">#${idx + 1}</span>
+      <span class="fz-card-type-pill" style="background:${typeColor}20;color:${typeColor};border:1px solid ${typeColor}30;">${typeLabel}</span>
+      <button class="fz-card-edit-btn" onclick="toggleEdit(${idx})" title="Edytuj fiszkę">
+        <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+      </button>
+      <button class="fz-card-del-btn" onclick="deleteCard(${idx})" title="Usuń fiszkę">
+        <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+      </button>
+    </div>
+    <div class="fz-card-edit-layer" id="fzed_${idx}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:9px;color:#6366f1;margin-bottom:4px;text-transform:uppercase;font-weight:700;">Przód (pytanie)</div>
+          <textarea class="fz-edit-textarea" id="fzef_${idx}" rows="3">${card.front}</textarea>
+        </div>
+        <div>
+          <div style="font-size:9px;color:#34d399;margin-bottom:4px;text-transform:uppercase;font-weight:700;">Tył (odpowiedź)</div>
+          <textarea class="fz-edit-textarea" id="fzeb_${idx}" rows="3">${card.back}</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="cancelEdit(${idx})" style="font-size:11px;padding:5px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#a1a1aa;border-radius:7px;cursor:pointer;">Anuluj</button>
+        <button onclick="saveEdit(${idx})" style="font-size:11px;padding:5px 14px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#818cf8;border-radius:7px;cursor:pointer;font-weight:600;">✓ Zapisz</button>
+      </div>
+    </div>
+  `;
+  if (container) container.appendChild(div);
+  return div;
+}
+
+function toggleEdit(idx) {
+  const layer = document.getElementById(`fzed_${idx}`);
+  if (layer) layer.classList.toggle('active');
+}
+function cancelEdit(idx) {
+  document.getElementById(`fzed_${idx}`).classList.remove('active');
+}
+function saveEdit(idx) {
+  const front = document.getElementById(`fzef_${idx}`).value.trim();
+  const back = document.getElementById(`fzeb_${idx}`).value.trim();
+  if (!front || !back) { showToast('Przód i tył nie mogą być puste!', true); return; }
+  currentCards[idx].front = front;
+  currentCards[idx].back = back;
+  document.getElementById(`fzcf_${idx}`).innerHTML = markdownToHtml(front);
+  document.getElementById(`fzcb_${idx}`).innerHTML = markdownToHtml(back);
+  document.getElementById(`fzed_${idx}`).classList.remove('active');
+  lucide.createIcons();
+}
+
+function deleteCard(idx) {
+  currentCards.splice(idx, 1);
+  const el = document.getElementById(`fzc_${idx}`);
+  if (el) el.remove();
+  // re-indeksuj
+  reIndexCards();
+  if (currentCards.length === 0) {
+    showState('empty');
+    document.getElementById('fzSaveBar').style.display = 'none';
+  } else {
+    const statsRow = document.getElementById('fzStatsRow');
+    const vocab = currentCards.filter(c => c.type === 'słownictwo').length;
+    const rules = currentCards.filter(c => c.type === 'reguła').length;
+    const other = currentCards.length - vocab - rules;
+    statsRow.innerHTML = `<div class="fz-stat"><b>${currentCards.length}</b> fiszek</div>${vocab > 0 ? `<div class="fz-stat"><b>${vocab}</b> słownictwo</div>` : ''}${rules > 0 ? `<div class="fz-stat"><b>${rules}</b> reguły</div>` : ''}`;
+    document.getElementById('fzWorkspaceTitle').textContent = `${currentCards.length} fiszek · ${currentChapterTitle}`;
+  }
+}
+
+function reIndexCards() {
+  const list = document.getElementById('fzCardsList');
+  list.innerHTML = '';
+  currentCards.forEach((card, idx) => renderCardEl(card, idx, list));
+  lucide.createIcons();
+}
+
+function addEmptyCard() {
+  const card = { front: 'Nowe pytanie...', back: 'Nowa odpowiedź...', type: 'inne', topic: currentChapterTitle };
+  currentCards.push(card);
+  const list = document.getElementById('fzCardsList');
+  renderCardEl(card, currentCards.length - 1, list);
+  lucide.createIcons();
+  // Scroll to bottom
+  list.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  toggleEdit(currentCards.length - 1);
+}
+
+function clearAll() {
+  currentCards = [];
+  showState('empty');
+  document.getElementById('fzSaveBar').style.display = 'none';
+  document.getElementById('fzAddBtn').style.display = 'none';
+  document.getElementById('fzClearBtn').style.display = 'none';
+  document.getElementById('fzWorkspaceTitle').textContent = 'Podgląd Fiszek';
+  document.getElementById('fzWorkspaceSub').textContent = 'Wybierz materiał i wygeneruj fiszki';
+}
+
+// ─── Save ─────────────────────────────────────────────────────────────────────
+async function saveCards() {
+  if (!currentCards || currentCards.length === 0) { showToast('Brak fiszek do zapisania!', true); return; }
+
+  const deckId = parseInt(document.getElementById('fzTargetDeck').value);
+  const deckName = document.getElementById('fzNewDeckName').value.trim();
+  const subject = currentBookSubject || 'Ogólny';
+
+  document.getElementById('fzSaveBtn').disabled = true;
+  document.getElementById('fzSaveBtn').innerHTML = '<div class="fz-spinner" style="width:16px;height:16px;border-width:2px;"></div> Zapisuję...';
+
+  try {
+    const res = await fetch('/api/fiszkomat/save-deck', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        deck_id: deckId || 0,
+        deck_name: deckName,
+        subject: subject,
+        cards: currentCards
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      showToast(`✓ Zapisano ${data.saved_count} fiszek do talii! Przekierowuję...`);
+      setTimeout(() => { window.location.href = data.redirect_url; }, 1500);
+    } else {
+      showToast('Błąd zapisu: ' + (data.detail || 'Nieznany błąd'), true);
+      document.getElementById('fzSaveBtn').disabled = false;
+      document.getElementById('fzSaveBtn').innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Zapisz do Talii';
+      lucide.createIcons();
+    }
+  } catch(e) {
+    showToast('Błąd połączenia: ' + e.message, true);
+    document.getElementById('fzSaveBtn').disabled = false;
+    document.getElementById('fzSaveBtn').innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Zapisz do Talii';
+    lucide.createIcons();
+  }
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+function showState(state) {
+  document.getElementById('fzEmpty').style.display = state === 'empty' ? 'flex' : 'none';
+  document.getElementById('fzLoading').style.display = state === 'loading' ? 'flex' : 'none';
+  document.getElementById('fzCardsArea').style.display = state === 'cards' ? 'block' : 'none';
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('fzToast');
+  t.textContent = msg;
+  t.className = 'fz-toast' + (isError ? ' error' : '');
+  t.style.display = 'block';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
+function markdownToHtml(text) {
+  if (!text) return '';
+  let s = String(text);
+  // bold
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // italic
+  s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  // code inline
+  s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(99,102,241,0.15);padding:1px 5px;border-radius:4px;font-size:11px;">$1</code>');
+  // newlines
+  s = s.replace(/\n/g, '<br>');
+  return s;
+}
+</script>
+{% endblock %}
