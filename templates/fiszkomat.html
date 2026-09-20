@@ -133,10 +133,11 @@
         <select id="fzBookSel" class="fz-select" onchange="onBookChange()">
           {% set books_by_subj = {} %}
           {% for b in books %}
-            {% set kind_label = 'Podręcznik' if b.kind == 'podreczniki' else ('Ćwiczenia' if b.kind == 'cwiczenia' else b.kind) %}
+            {% if b.kind == 'podreczniki' and not b.filename.endswith('.epub') %}
             <option value="{{ b.id }}"{% if b.id == selected_book_id %} selected{% endif %}>
-              {{ b.subject }} — {{ b.title }} ({{ kind_label }})
+              {{ b.subject }} — {{ b.title }}
             </option>
+            {% endif %}
           {% endfor %}
         </select>
       </div>

@@ -5071,12 +5071,14 @@ def fiszkomat_view(request: Request, book_id: Optional[int] = None, chapter: Opt
     user = u
 
     conn = db()
-    books = [dict(r) for r in conn.execute("SELECT id, title, subject, kind, filename FROM books ORDER BY subject, title").fetchall()]
+    all_books = [dict(r) for r in conn.execute("SELECT id, title, subject, kind, filename FROM books ORDER BY subject, title").fetchall()]
+    # Tylko podręczniki PDF (bez EPUB, bez ćwiczeń, bez lektur)
+    books = [b for b in all_books if b.get('kind') == 'podreczniki' and not b.get('filename', '').endswith('.epub')]
     decks = [dict(r) for r in conn.execute("SELECT id, name, subject FROM decks ORDER BY id DESC").fetchall()]
 
     selected_book_id = book_id
     if not selected_book_id and books:
-        eng_b = next((b for b in books if 'angielski' in b['title'].lower() and b.get('kind') == 'podreczniki'), None)
+        eng_b = next((b for b in books if 'angielski' in b['subject'].lower()), None)
         selected_book_id = eng_b['id'] if eng_b else books[0]['id']
 
     selected_chapter = chapter or 1
